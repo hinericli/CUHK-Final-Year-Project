@@ -23,6 +23,10 @@ const PlaceDetail = ({place}) => {
                     <Typography gutterBottom varient="subtitle1">{place.price_level}</Typography>
                 </Box>
                 <Box display="flex" justifyContent="space-between">
+                    <Rating value={Number(place.rating)} readOnly/>
+                    <Typography gutterBottom varient="subtitle1">out of {place.num_reviews} reviews</Typography>
+                </Box>
+                <Box display="flex" justifyContent="space-between">
                     <Typography variant="subtitle1">Ranking</Typography>
                     <Typography gutterBottom varient="subtitle1">{place.ranking}</Typography>
                 </Box>

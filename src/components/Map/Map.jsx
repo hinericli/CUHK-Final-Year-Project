@@ -2,13 +2,13 @@ import React from 'react';
 import GoogleMapReact from 'google-map-react';
 import { Paper, Typography, useMediaQuery } from '@material-ui/core';
 import LocationOnOutlinedIcon from '@material-ui/icons/LocationOnOutlined';
-import Rating from '@material-ui/lab';
+import Rating from '@material-ui/lab/Rating';
 
 import useStyles from './styles';
 
 const Map = ({setCoordinates, setBounds, coordinates, places}) => {
     const classes = useStyles();
-    const isMobile = useMediaQuery('(min-width:600px)');
+    const isDesktop = useMediaQuery('(min-width:600px)');
 
     return (
         <div className={classes.mapContainer}>
@@ -28,6 +28,8 @@ const Map = ({setCoordinates, setBounds, coordinates, places}) => {
                 {places?.map((place, i) => {
                     if (place.latitude === undefined || place.longitude === undefined) return;
 
+                    console.log(Number(place.latitude), Number(place.longitude));
+
                     return (
                         <div 
                             className={classes.markerContainer}
@@ -35,25 +37,27 @@ const Map = ({setCoordinates, setBounds, coordinates, places}) => {
                             lng={Number(place.longitude)}
                             key={i}
                         >   
-                            {
-                                isMobile? (
-                                    <LocationOnOutlinedIcon color="primary" fontSize="large"/>
-                                ) : (
-                                    <Paper elevation={3} className={classes.paper}>
-                                        <Typography className={classes.typography} variant="subtitle2" gutterbottom>
-                                            {place.name}
-                                        </Typography>
-                                        <img
-                                            className={classes.pointer}
-                                            src={place.photo?place.photo.images.large.url:'https://cdn-icons-png.flaticon.com/512/1147/1147856.png'}
-                                            alt={place.name}
-                                            />
-                                    </Paper>
-    
-                                )
-    
-                            }
-    
+                        {   
+                            !isDesktop ? (
+                                <LocationOnOutlinedIcon color='primary' fontSize="large" />
+                            ) : (
+                                <Paper elevation={3} className={classes.paper}>
+                                    <Typography className={classes.typography} variant="subtitle2" gutterBottom>
+                                        {place.name}
+                                    </Typography>
+                                    <img
+                                        className={classes.pointer}
+                                        src={place.photo?place.photo.images.large.url:'https://cdn-icons-png.flaticon.com/512/1147/1147856.png'}
+                                        alt={place.name}
+                                    />
+                                    <Rating size="small" value={Number(place.rating)} readOnly/>
+                                </Paper>
+
+                            )
+
+                        }
+                        
+
                         </div>
                     )
                 })} 
@@ -62,5 +66,7 @@ const Map = ({setCoordinates, setBounds, coordinates, places}) => {
         </div>
     )
 }
+
+
 
 export default Map;

@@ -33,11 +33,18 @@ const List = ({places}) => {
             </FormControl>
 
             <Grid container spacing={3} className={classes.list}>
-                {places?.map((place, i) => (
-                    <Grid item key={i} xs={12}> 
+                {places?.map((place, i) => {
+                    //console.log(place);
+                    if (place.latitude === undefined || place.longitude === undefined) {
+                        return;
+                    }
+
+                    return (<Grid item key={i} xs={12}> 
                         <PlaceDetails place={place}/>
-                    </Grid>
-                ))}
+                    </Grid>)
+                }
+                    
+                )}
 
 
             </Grid>

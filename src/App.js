@@ -8,12 +8,16 @@ import Map from './components/Map/Map';
 
 const App = () => {
     const [places, setPlaces] = useState([]);
+    const [filteredPlaces, setFilteredPlaces] = useState([]);
+
     const [childClicked, setChildClicked] = useState(null);
 
     const [coordinates, setCoordinates] = useState();
     const [bounds, setBounds] = useState({}); // defining bound for Google Map (needed for API)
 
     const [isLoading, setIsLoading] = useState(false);  // loading state
+    const [type, setType] = useState('restaurants');
+    const [rating, setRating] = useState('');
 
     // only happens at the start
     useEffect(() => {
@@ -27,17 +31,27 @@ const App = () => {
         })
     }, [])
 
-    // useEffect happens when coors and bounds changes
+    // this occurs when the selected rating filter is changed
     useEffect(() => {
-        setIsLoading(true);
-        //console.log(coordinates, bounds);
+        const filteredPlaces = places.filter((place) => place.rating > rating);
+        setFilteredPlaces(filteredPlaces);
+    }, [rating]);
 
-        getPlacesData(bounds.sw, bounds.ne)
-            .then((data) => {
-                setPlaces(data);
-                setIsLoading(false);
-            })
-    }, [coordinates, bounds]);
+    // useEffect happens when type, coors and bounds changes
+    useEffect(() => {
+        if (bounds.sw && bounds.ne) {
+            setIsLoading(true);
+            //console.log(coordinates, bounds);
+
+            getPlacesData(type, bounds.sw, bounds.ne)
+                .then((data) => {
+                    setPlaces(data?.filter((place) => place.name && place.num_reviews > 0));
+                    setFilteredPlaces([]);
+                    setIsLoading(false);
+                })
+        }
+        
+    }, [type, bounds]);
 
     return (
         <>
@@ -46,16 +60,21 @@ const App = () => {
             <Grid container spacing={3} style={{width: '100%'}}>
                 <Grid item xs={12} md={4}>
                     <List 
-                        places={places}
+                        places={filteredPlaces.length ? filteredPlaces : places}
                         childClicked={childClicked}
-                        isLoading={isLoading}/>
+                        isLoading={isLoading}
+                        type={type}
+                        setType={setType}
+                        rating={rating}
+                        setRating={setRating}
+                        setCoordinates={setCoordinates}/>
                 </Grid>
                 <Grid item xs={12} md={8}>
                     <Map 
                         setCoordinates={setCoordinates}
                         setBounds={setBounds}
                         coordinates={coordinates}
-                        places={places}
+                        places={filteredPlaces.length ? filteredPlaces : places}
                         setChildClicked={setChildClicked}
                     />
                 </Grid>

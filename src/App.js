@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { CssBaseline, Grid } from '@material-ui/core';
+import { CssBaseline, Grid, Typography } from '@material-ui/core';
+import EventNoteIcon from '@material-ui/icons/EventNote';
+import LanguageIcon from '@material-ui/icons/Language';
 
 import { getPlacesData } from './api';
 import Header from './components/Header/Header';
@@ -82,6 +84,18 @@ const App = () => {
                         places={filteredPlaces.length ? filteredPlaces : places}
                         setChildClicked={setChildClicked}
                     />
+                </Grid>
+            </Grid>
+
+            <Grid container style={{width: '100%'}}>
+                <Grid item xs={6} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
+                    <EventNoteIcon/>
+                    <Typography>Planner</Typography>
+                </Grid>
+                <Grid item xs={6} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
+                    <LanguageIcon/>
+                    <Typography>Discover</Typography>
+
                 </Grid>
             </Grid>
         </>

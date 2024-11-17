@@ -83,11 +83,11 @@ const Planner = () => {
                             <>
                             <Row>
                                 <Col xs={4} md={3}>
-                                    <Typography>{activity.time? activity.time : 'Unfound time'}</Typography>
+                                    <Typography variant="subtitle1">{activity.time? activity.time : 'Unfound time'}</Typography>
                                 </Col>
                                 <Col xs={8} md={9}>
-                                    <Typography>{activity.name? activity.name : 'Unfound Name'}</Typography>
-                                    <Typography gutterBottom className={classes.subtitles}>
+                                    <Typography variant="subtitle1">{activity.name? activity.name : 'Unfound Name'}</Typography>
+                                    <Typography gutterBottom variant="caption" className={classes.subtitles}>
                                         <LocationOnIcon/> {activity.locationName? activity.locationName : ""}
                                     </Typography>
                                 </Col>

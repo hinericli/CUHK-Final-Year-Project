@@ -14,7 +14,7 @@ export default makeStyles((theme) => ({
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
   },
   plusButton: {
-    display: 'flex', justifyContent: "flex-end"
+    position: "sticky", justifyContent: "flex-end"
   }
 
 }));

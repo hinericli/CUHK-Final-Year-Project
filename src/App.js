@@ -3,7 +3,8 @@ import { CssBaseline, Grid } from '@material-ui/core';
 
 import { getPlacesData } from './api';
 import Header from './components/Header/Header';
-import List from './components/List/List';
+import DiscoverList from './components/DiscoverList/DiscoverList';
+import Planner from './components/Planner/Planner';
 import Map from './components/Map/Map';
 
 const App = () => {
@@ -59,7 +60,10 @@ const App = () => {
             <Header />
             <Grid container spacing={3} style={{width: '100%'}}>
                 <Grid item xs={12} md={4}>
-                    <List 
+                    <Planner />
+
+                    {/* 
+                    <DiscoverList 
                         places={filteredPlaces.length ? filteredPlaces : places}
                         childClicked={childClicked}
                         isLoading={isLoading}
@@ -68,6 +72,7 @@ const App = () => {
                         rating={rating}
                         setRating={setRating}
                         setCoordinates={setCoordinates}/>
+                    */}
                 </Grid>
                 <Grid item xs={12} md={8}>
                     <Map 

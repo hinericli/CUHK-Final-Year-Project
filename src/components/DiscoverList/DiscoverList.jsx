@@ -7,7 +7,7 @@ import PlaceDetails from '../PlaceDetails/PlaceDetails'
 
 import useStyles from './styles';
 
-const List = ({places, childClicked, isLoading, type, setType, rating, setRating, setCoordinates}) => {
+const DiscoverList = ({places, childClicked, isLoading, type, setType, rating, setRating, setCoordinates}) => {
     const classes = useStyles();
 
     // --- Refs
@@ -88,4 +88,4 @@ const List = ({places, childClicked, isLoading, type, setType, rating, setRating
     )
 }
 
-export default List;
+export default DiscoverList;

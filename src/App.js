@@ -8,6 +8,7 @@ import Header from './components/Header/Header';
 import DiscoverList from './components/DiscoverList/DiscoverList';
 import Planner from './components/Planner/Planner';
 import Map from './components/Map/Map';
+import AddActivity from './components/AddActivity/AddActivity';
 
 const App = () => {
     const [places, setPlaces] = useState([]);
@@ -21,6 +22,8 @@ const App = () => {
     const [isLoading, setIsLoading] = useState(false);  // loading state
     const [type, setType] = useState('restaurants');
     const [rating, setRating] = useState('');
+
+    const [displayingTable, setDisplayingTable] = useState('Planner');
 
     // only happens at the start
     useEffect(() => {
@@ -56,25 +59,31 @@ const App = () => {
         
     }, [type, bounds]);
 
+    const components = {
+        "Planner": 
+        <Planner 
+            setDisplayingTable={setDisplayingTable}/>,
+        "Discover": 
+            <DiscoverList 
+                places={filteredPlaces.length ? filteredPlaces : places}
+                childClicked={childClicked}
+                isLoading={isLoading}
+                type={type}
+                setType={setType}
+                rating={rating}
+                setRating={setRating}
+                setCoordinates={setCoordinates}/>,
+        "AddActivity": 
+            <AddActivity />
+    }
+
     return (
         <>
             <CssBaseline />
             <Header />
             <Grid container spacing={3} style={{width: '100%'}}>
                 <Grid item xs={12} md={4}>
-                    <Planner />
-
-                    {/* 
-                    <DiscoverList 
-                        places={filteredPlaces.length ? filteredPlaces : places}
-                        childClicked={childClicked}
-                        isLoading={isLoading}
-                        type={type}
-                        setType={setType}
-                        rating={rating}
-                        setRating={setRating}
-                        setCoordinates={setCoordinates}/>
-                    */}
+                    {components[displayingTable]}
                 </Grid>
                 <Grid item xs={12} md={8}>
                     <Map 

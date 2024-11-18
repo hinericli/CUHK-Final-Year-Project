@@ -1,5 +1,5 @@
-import { Typography, Button } from '@material-ui/core';
 import React from 'react';
+import { Typography, Button } from '@material-ui/core';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 import WbSunnyIcon from '@material-ui/icons/WbSunny';
 import { Grid, Row, Col } from 'react-flexbox-grid';
@@ -27,7 +27,7 @@ class Day {
 
 }
 
-const Planner = () => {
+const Planner = ({setDisplayingTable}) => {
     //let day1 = new Day("5 Nov 2003");
     const classes = useStyles();
 
@@ -50,9 +50,6 @@ const Planner = () => {
             0,
             " "
         ),
-
-
-
     ];
 
     return (
@@ -99,7 +96,7 @@ const Planner = () => {
                 }
                 
                 <Row className={classes.plusButton}>
-                    <Button variant="outlined"> <AddCircleIcon/> </Button>
+                    <Button variant="outlined" onClick={() => {setDisplayingTable('AddActivity')}}> <AddCircleIcon/> </Button>
                 </Row>
             </Grid>
 

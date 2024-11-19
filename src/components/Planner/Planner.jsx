@@ -61,8 +61,6 @@ const Planner = ({setDisplayingTable}) => {
                     <Col xs={4} className={classes.title}> <Typography>28/7 Saturday</Typography> </Col>
                     <Col xs={4} className={classes.title}> <Typography>26° </Typography> <WbSunnyIcon/> </Col>
                     <Col xs={4} className={classes.title}> <Typography>Cost: $400</Typography> </Col>
-                    
-                    
                 </Row>
                 
                 <Row className={classes.subtitle}>

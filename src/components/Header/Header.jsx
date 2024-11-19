@@ -14,7 +14,7 @@ const Header = () => {
                 </Typography>
                 <Box display="flex">
                     <Typography variant="h6" className={classes.title}>
-                        Explore new places
+                        Profile
                     </Typography>
                 </Box>
             </Toolbar>

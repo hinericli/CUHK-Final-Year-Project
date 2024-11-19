@@ -16,5 +16,8 @@ export default makeStyles((theme) => ({
   formControl: {
     margin: theme.spacing(1), minWidth: 120,  marginBottom: '20px'
   },
+  finishButton: {
+    position: "sticky", justifyContent: "flex-end"
+  }
 
 }));

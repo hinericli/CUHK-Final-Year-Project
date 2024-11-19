@@ -43,7 +43,7 @@ const App = () => {
         setFilteredPlaces(filteredPlaces);
     }, [rating]);
 
-    // useEffect happens when type, coors and bounds changes
+    // useEffect happens when type and bounds changes
     useEffect(() => {
         if (bounds.sw && bounds.ne) {
             setIsLoading(true);
@@ -74,13 +74,34 @@ const App = () => {
                 setRating={setRating}
                 setCoordinates={setCoordinates}/>,
         "AddActivity": 
-            <AddActivity />
+            <AddActivity 
+                setCoordinates={setCoordinates}
+                setDisplayingTable={setDisplayingTable}/>
     }
 
     return (
         <>
             <CssBaseline />
             <Header />
+
+            <Grid container style={{
+                  display: "flex",
+                  justifyContent: "spaceAround",
+                  alignItems: "center",
+                  position: "fixed",
+                  bottom: 0,
+                  width: "100%"
+                  }}>
+                <Grid item xs={6} md={2} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
+                    <EventNoteIcon/>
+                    <Typography>Planner</Typography>
+                </Grid>
+                <Grid item xs={6} md={2} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
+                    <LanguageIcon/>
+                    <Typography>Discover</Typography>
+                </Grid>
+            </Grid>
+            
             <Grid container spacing={3} style={{width: '100%'}}>
                 <Grid item xs={12} md={4}>
                     {components[displayingTable]}
@@ -93,18 +114,6 @@ const App = () => {
                         places={filteredPlaces.length ? filteredPlaces : places}
                         setChildClicked={setChildClicked}
                     />
-                </Grid>
-            </Grid>
-
-            <Grid container style={{width: '100%'}}>
-                <Grid item xs={6} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
-                    <EventNoteIcon/>
-                    <Typography>Planner</Typography>
-                </Grid>
-                <Grid item xs={6} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
-                    <LanguageIcon/>
-                    <Typography>Discover</Typography>
-
                 </Grid>
             </Grid>
         </>

@@ -1,9 +1,8 @@
 import React, { useState, useEffect, createRef } from 'react';
-import { CircularProgress, Grid, Typography, InputLabel, MenuItem, FormControl, Select, InputBase } from '@material-ui/core';
-import { Autocomplete } from '@react-google-maps/api';
-import SearchIcon from '@material-ui/icons/Search';
+import { CircularProgress, Grid, Typography, InputLabel, MenuItem, FormControl, Select} from '@material-ui/core';
 
 import PlaceDetails from '../PlaceDetails/PlaceDetails'
+import MapSearch from '../MapSearch/MapSearch'
 
 import useStyles from './styles';
 
@@ -16,17 +15,6 @@ const DiscoverList = ({places, childClicked, isLoading, type, setType, rating, s
     useEffect(() => {
         setElRefs(Array(places?.length).fill().map((_, i) => elRefs[i] || createRef()));  //construct array to fill and map all the refs
     }, [places]);
-
-    // --- Autocomplete
-    const [autocomplete, setAutocomplete] = useState(null);
-    
-    const onLoad = (autoC) => setAutocomplete(autoC);
-    const onPlaceChanged = () => {
-        const lat = autocomplete.getPlace().geometry.location.lat();
-        const lng = autocomplete.getPlace().geometry.location.lng();
-
-        setCoordinates({lat, lng});
-    }
 
     // --- Returns
     return (
@@ -58,14 +46,7 @@ const DiscoverList = ({places, childClicked, isLoading, type, setType, rating, s
                         </Select>
                     </FormControl>
 
-                    <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
-                        <div className={classes.search}>
-                            <div className={classes.searchIcon}>
-                                <SearchIcon />
-                            </div>
-                            <InputBase placeholder="Search..." classes={{ root: classes.inputRoot, input: classes.inputInput}}/>
-                        </div>
-                    </Autocomplete>
+                    <MapSearch setCoordinates={setCoordinates}/>
 
                     <Grid container spacing={3} className={classes.list}>
                         {places?.map((place, i) => {

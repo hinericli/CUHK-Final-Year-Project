@@ -29,7 +29,7 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
     }, [])
 
     // beginning, midpoints and end of the path
-    let origin = { lat: 22.3134736, lng: 113.9137283 }, waypoints = [], destination = { lat: 22.3474872, lng: 114.1023164 };
+    let origin = { lat: 22.3134736, lng: 113.9137283 }, waypts = [], destination = { lat: 22.3474872, lng: 114.1023164 };
     useEffect(() => {
         if (places.length >= 2) {
             origin = { lat: Number(places.slice(0, 1)[0].geometry.location.lat()), lng: Number(places.slice(0, 1)[0].geometry.location.lng())}
@@ -39,8 +39,15 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
 
         if (places.length >= 3) {
             let tmp = places.slice(1, -1)
+
+            for (let i = 0; i < tmp.length; i++) {
+                let lat = tmp[i].geometry.location.lat(), lng = tmp[i].geometry.location.lng();
+                waypts.push({
+                    location: new window.google.maps.LatLng(lat,lng)
+                })
+            }
         }
-        console.log({origin, destination, waypoints});
+        console.log({origin, destination, waypts});
     }, [places]) 
 
     const drawPath = (map) => {
@@ -53,6 +60,8 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
             {
             origin: origin,
             destination: destination,
+            waypoints: waypts,
+            optimizeWaypoints: true,
             travelMode: window.google.maps.TravelMode.DRIVING
             },
             (result, status) => {

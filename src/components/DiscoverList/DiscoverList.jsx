@@ -6,7 +6,7 @@ import MapSearch from '../MapSearch/MapSearch'
 
 import useStyles from './styles';
 
-const DiscoverList = ({places, childClicked, isLoading, type, setType, rating, setRating, setCoordinates}) => {
+const DiscoverList = ({places, childClicked, isLoading, type, setType, rating, setRating}) => {
     const classes = useStyles();
 
     // --- Refs
@@ -19,7 +19,7 @@ const DiscoverList = ({places, childClicked, isLoading, type, setType, rating, s
     // --- Returns
     return (
         <div className={classes.container}>
-            <Typography variant="h4">Restaurants, Hotels & Attractions around you</Typography>
+            <Typography variant="h5">Search for Places</Typography>
             {
                 isLoading ? (
                     <div className={classes.loading}>
@@ -46,7 +46,7 @@ const DiscoverList = ({places, childClicked, isLoading, type, setType, rating, s
                         </Select>
                     </FormControl>
 
-                    <MapSearch setCoordinates={setCoordinates}/>
+                    <MapSearch />
 
                     <Grid container spacing={3} className={classes.list}>
                         {places?.map((place, i) => {

@@ -1,0 +1,40 @@
+{
+    "name": "",
+    "days": [
+        {
+            "0": [
+                {
+                    "name": "Flight to Canada",
+                    "type": "Flight",
+                    "startDateTime": "0045",
+                    "endDateTime": "0950",
+                    "place": "Hong Kong International Airport",
+                    "cost": 9800,
+                    "description": ""
+                },
+                {
+                    "name": "",
+                    "type": "",
+                    "startDateTime": "",
+                    "endDateTime": "",
+                    "place": "",
+                    "cost": 500,
+                    "description": ""
+                }
+            ],
+            "1": [
+
+
+
+
+
+            ]
+
+        }
+
+
+
+
+    ]
+
+}

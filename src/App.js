@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext } from 'react';
 import { CssBaseline, Grid, Typography } from '@material-ui/core';
 import EventNoteIcon from '@material-ui/icons/EventNote';
 import LanguageIcon from '@material-ui/icons/Language';
@@ -8,7 +8,10 @@ import Header from './components/Header/Header';
 import DiscoverList from './components/DiscoverList/DiscoverList';
 import Planner from './components/Planner/Planner';
 import Map from './components/Map/Map';
-import AddActivity from './components/AddActivity/AddActivity';
+
+export const CoordinatesContext = createContext();
+export const MapPlacesContext = createContext();
+export const DisplayingTableContext = createContext();
 
 const App = () => {
     const [places, setPlaces] = useState([]);
@@ -48,21 +51,22 @@ const App = () => {
         if (bounds.sw && bounds.ne) {
             setIsLoading(true);
             //console.log(coordinates, bounds);
-
-            getPlacesData(type, bounds.sw, bounds.ne)
-                .then((data) => {
-                    setPlaces(data?.filter((place) => place.name && place.num_reviews > 0));
-                    setFilteredPlaces([]);
-                    setIsLoading(false);
-                })
+            
+            if (displayingTable === "Discover") {
+                getPlacesData(type, bounds.sw, bounds.ne)
+                    .then((data) => {
+                        setPlaces(data?.filter((place) => place.name && place.num_reviews > 0));
+                        setFilteredPlaces([]);
+                    })
+            }
+            setIsLoading(false);
         }
         
     }, [type, bounds]);
 
     const components = {
         "Planner": 
-        <Planner 
-            setDisplayingTable={setDisplayingTable}/>,
+        <Planner />,
         "Discover": 
             <DiscoverList 
                 places={filteredPlaces.length ? filteredPlaces : places}
@@ -72,11 +76,7 @@ const App = () => {
                 setType={setType}
                 rating={rating}
                 setRating={setRating}
-                setCoordinates={setCoordinates}/>,
-        "AddActivity": 
-            <AddActivity 
-                setCoordinates={setCoordinates}
-                setDisplayingTable={setDisplayingTable}/>
+                setCoordinates={setCoordinates}/>
     }
 
     return (
@@ -84,6 +84,9 @@ const App = () => {
             <CssBaseline />
             <Header />
 
+            <DisplayingTableContext.Provider value={{displayingTable, setDisplayingTable}}>
+            <MapPlacesContext.Provider value={{places, setPlaces}}>
+            <CoordinatesContext.Provider value={{coordinates, setCoordinates}}>
             <Grid container style={{
                   display: "flex",
                   justifyContent: "spaceAround",
@@ -111,11 +114,13 @@ const App = () => {
                         setCoordinates={setCoordinates}
                         setBounds={setBounds}
                         coordinates={coordinates}
-                        places={filteredPlaces.length ? filteredPlaces : places}
                         setChildClicked={setChildClicked}
                     />
                 </Grid>
             </Grid>
+            </CoordinatesContext.Provider>
+            </MapPlacesContext.Provider>
+            </DisplayingTableContext.Provider>
         </>
 
 

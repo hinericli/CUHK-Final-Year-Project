@@ -1,5 +1,5 @@
+import React, { useContext, useEffect } from 'react';
 import { FormControl, Typography, InputLabel, Select, MenuItem, Input, InputAdornment, Button } from '@material-ui/core';
-import React, { useContext } from 'react';
 import TextField from '@material-ui/core/TextField';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
@@ -10,20 +10,65 @@ import MapSearch from '../MapSearch/MapSearch';
 
 import useStyle from "./style"
 
+const customParseFormat = require("dayjs/plugin/customParseFormat");
+const toObject = require("dayjs/plugin/toObject");
+dayjs.extend(customParseFormat);
+dayjs.extend(toObject)
 
-const AddActivity = ({setCoordinates, setDisplayingTable}) => {
+
+//const regex = /^([1-9]|([012][0-9])|(3[01]))\/([0]{0,1}[1-9]|1[012])\/\d\d\d\d\s([0-1]?[0-9]|2?[0-3]):([0-5]\d)$/   // date format
+
+
+function changeStartDateTime(newStartDateTimeDayJS, setStartDateTimeDayJS, setStartDateTime) {
+    /*if (regex.test(newStartDateTime)) {
+        setStartDateTime({newStartDateTime})
+    }*/
+    setStartDateTimeDayJS(newStartDateTimeDayJS)
+    setStartDateTime(newStartDateTimeDayJS.toObject())
+}
+
+function changeEndDateTime(newEndDateTimeDayJS, setEndDateTimeDayJS, setEndDateTime) {
+    setEndDateTimeDayJS(newEndDateTimeDayJS) 
+    setEndDateTime(newEndDateTimeDayJS.toObject())
+}
+
+const AddActivity = ({
+    setDisplayingComponent, 
+    setToBeAddedActivity
+}) => {
     const classes = useStyle();
 
+    const [name, setName] = React.useState('');
     const [type, setType] = React.useState('');
-    const [startDateTime, setStartDateTime] = React.useState(null);
-    const [endDateTime, setEndDateTime] = React.useState(null);
-    
+
+    // For showing time on the screen
+    const [startDateTimeDayJS, setStartDateTimeDayJS] = React.useState(dayjs(), 'DD/MM/YYYY HH:mm');
+    const [endDateTimeDayJS, setEndDateTimeDayJS] = React.useState(dayjs(), 'DD/MM/YYYY HH:mm');
+    // For representation of date in itinerary
+    let todayDateTime = dayjs()
+    const [startDateTime, setStartDateTime] = React.useState(dayjs(todayDateTime, 'DD/MM/YYYY HH:mm').toObject());
+    const [endDateTime, setEndDateTime] = React.useState(dayjs(todayDateTime, 'DD/MM/YYYY HH:mm').toObject());
+    //console.log(dayjs(todayDateTime, 'DD/MM/YYYY HH:mm').toObject())
+
+    const [place, setPlace] = React.useState('');
+    const [cost, setCost] = React.useState(0);
+    const [description, setDescription] = React.useState('');
+
 
     return (
         <>
         <Typography variant="h6" className={classes.title}>Add Activity</Typography>
+
         <FormControl fullWidth className={classes.formControl}>
-            <TextField required id="outlined-required" label="Name" variant="standard" />
+            <TextField 
+                required 
+                id="outlined-required" 
+                label="Name" 
+                variant="standard" 
+                value={name}
+                onChange={(event) => {setName(event.target.value)}
+                }
+                />
         </FormControl>
             
         <FormControl fullWidth className={classes.formControl}>
@@ -48,34 +93,54 @@ const AddActivity = ({setCoordinates, setDisplayingTable}) => {
         <FormControl fullWidth className={classes.formControl}>
             <DateTimePicker
                 label="Start Date Time"
-                format='DD/MM/YY HH:mm'
+                format='DD/MM/YYYY HH:mm'
                 ampm={false}
                 closeOnSelect={false}
-                value={startDateTime}
-                onChange={(newStartDateTime) => {setStartDateTime(newStartDateTime)}}
+                value={startDateTimeDayJS}
+                onError={''}
+                slotProps={{
+                    textField: {
+                        onBlur: (event) => {
+                            console.log(event.target.value)
+                            let dayObj = dayjs(event.target.value, 'DD/MM/YYYY HH:mm')
+                            changeStartDateTime(dayObj, setStartDateTimeDayJS, setStartDateTime)
+                        }
+                    }
+                }}
             />
         </FormControl>
         <FormControl fullWidth className={classes.formControl}>
             <DateTimePicker
                 label="End Date Time"
-                format='DD/MM/YY HH:mm'
+                format='DD/MM/YYYY HH:mm'
                 ampm={false}
                 closeOnSelect={false}
-                value={endDateTime}
-                onChange={(newEndDateTime) => {setEndDateTime(newEndDateTime)}}
+                value={endDateTimeDayJS}
+                onError={''}
+                slotProps={{
+                    textField: {
+                        onBlur: (event) => {
+                            console.log(event.target.value)
+                            let dayObj = dayjs(event.target.value, 'DD/MM/YYYY HH:mm')
+                            changeEndDateTime(dayObj, setEndDateTimeDayJS, setEndDateTime)
+                        }
+                    }
+                }}
             />
         </FormControl>
         </LocalizationProvider>
         
         <FormControl fullWidth className={classes.formControl}>
-            <MapSearch setCoordinates={setCoordinates}/>
+            <MapSearch setActivityPlace={setPlace}/>
         </FormControl>
         
         <FormControl fullWidth className={classes.formControl} variant="standard">
           <InputLabel htmlFor="input-cost">Cost</InputLabel>
           <Input
             id="input-cost"
-            startAdornment={<InputAdornment position="start">$</InputAdornment>}
+            startAdornment={<InputAdornment position="start">$</InputAdornment>
+            }
+            onChange={(event) => {setCost(event.target.value)}}
           />
         </FormControl>
 
@@ -84,14 +149,32 @@ const AddActivity = ({setCoordinates, setDisplayingTable}) => {
                 placeholder="Description"
                 multiline
                 variant="outlined"
+                onChange={(event) => {setDescription(event.target.value)}}
                 />
         </FormControl>
 
-        <Button className={classes.finishButton} variant="outlined" onClick={() => {setDisplayingTable('Planner')}}> Finish </Button>
+        <Button 
+            className={classes.finishButton} 
+            variant="outlined" 
+            onClick={() => {
+                setToBeAddedActivity({
+                    name: name,
+                    type: type,
+                    startDateTime: startDateTime,
+                    endDateTime: endDateTime,
+                    place: place,
+                    cost: cost,
+                    description: description
+                    }
+                )
+                setDisplayingComponent('Planner')
+            }}> <Typography>Finish</Typography>
+        </Button>
         </>
     )
 
 
 }
+
 
 export default AddActivity;

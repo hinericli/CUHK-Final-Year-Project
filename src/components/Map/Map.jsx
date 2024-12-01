@@ -1,18 +1,78 @@
-import React from 'react';
+import React, { useRef, useContext, useEffect, useMemo, useState } from 'react';
 import GoogleMapReact from 'google-map-react';
 import { Paper, Typography, useMediaQuery } from '@material-ui/core';
 import LocationOnOutlinedIcon from '@material-ui/icons/LocationOnOutlined';
 import Rating from '@material-ui/lab/Rating';
 
 import useStyles from './styles';
+import { MapPlacesContext } from '../../App';
 
-const Map = ({setCoordinates, setBounds, coordinates, places, setChildClicked}) => {
+import { DisplayingTableContext } from '../../App';
+import { LensOutlined } from '@material-ui/icons';
+
+const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
     const classes = useStyles();
     const isDesktop = useMediaQuery('(min-width:600px)');
+
+    const {places, setPlaces} = useContext(MapPlacesContext);   // all places to have pins placed
+    const {displayingTable, setDisplayingTable} = useContext(DisplayingTableContext);
+
+    // for directions and routes
+    const [directionsService, setDirectionsService] = useState(null);
+    const [directionsRenderer, setDirectionsRenderer] = useState(null);
+
+    useMemo(() => {
+        setDirectionsService(new window.google.maps.DirectionsService())
+        setDirectionsRenderer(new window.google.maps.DirectionsRenderer({
+            preserveViewport: true
+        }))
+    }, [])
+
+    // beginning, midpoints and end of the path
+    let origin = { lat: 22.3134736, lng: 113.9137283 }, waypoints = [], destination = { lat: 22.3474872, lng: 114.1023164 };
+    useEffect(() => {
+        if (places.length >= 2) {
+            origin = { lat: Number(places.slice(0, 1)[0].geometry.location.lat()), lng: Number(places.slice(0, 1)[0].geometry.location.lng())}
+            destination = { lat: Number(places.slice(-1)[0].geometry.location.lat()), lng: Number(places.slice(-1)[0].geometry.location.lng())}
+            drawPath(directionsRenderer.getMap())
+        }
+
+        if (places.length >= 3) {
+            let tmp = places.slice(1, -1)
+        }
+        console.log({origin, destination, waypoints});
+    }, [places]) 
+
+    const drawPath = (map) => {
+        //const origin = { lat: 22.3134736, lng: 113.9137283 }
+        //const destination = { lat: 22.3474872, lng: 114.1023164 }
+        console.log("Path Drawn." + {map, origin, destination})
+
+        //directionsRenderer.setMap(null);
+        directionsService.route(
+            {
+            origin: origin,
+            destination: destination,
+            travelMode: window.google.maps.TravelMode.DRIVING
+            },
+            (result, status) => {
+            if (status === window.google.maps.DirectionsStatus.OK) {
+                console.log(result)
+                directionsRenderer.setDirections(result);
+                directionsRenderer.setOptions({directions:result})
+                directionsRenderer.setMap(map);
+            } else {
+                console.error(`error fetching directions ${result}`);
+            }
+            }
+        );
+        
+    }
 
     return (
         <div className={classes.mapContainer}>
             <GoogleMapReact
+                key="map"
                 bootstrapURLKeys={{key: process.env.REACT_API_GOOGLE_MAPS_API_KEY}}
                 defaultCenter={coordinates}
                 center={coordinates}
@@ -24,42 +84,65 @@ const Map = ({setCoordinates, setBounds, coordinates, places, setChildClicked}) 
                     setBounds({ne: event.marginBounds.ne, sw: event.marginBounds.sw});
                 }}
                 onChildClick={(child) => {setChildClicked(child)}}
+                yesIWantToUseGoogleMapApiInternals
+                onGoogleApiLoaded={displayingTable==="Planner"?({ map, maps }) => {
+                    drawPath(map)
+                }:''}
             >
                 {places?.map((place, i) => {
-                    if (place.latitude === undefined || place.longitude === undefined) return;
-                    //console.log(Number(place.latitude), Number(place.longitude));
+                    if (typeof(place) === undefined || places == '') return;
 
-                    return (
-                        <div 
-                            className={classes.markerContainer}
-                            lat={Number(place.latitude)}
-                            lng={Number(place.longitude)}
-                            key={i}
-                        >   
-                        {   
-                            !isDesktop ? (
-                                <LocationOnOutlinedIcon color='primary' fontSize="large" />
-                            ) : (
+                    if (displayingTable === "Planner") {
+                        //console.log(Number(place.geometry.location.lat()), Number(place.geometry.location.lng()))
+                        return (
+                            <div 
+                                className={classes.markerContainer}
+                                lat={place.geometry.location.lat()}
+                                lng={place.geometry.location.lng()}
+                                key={i} >   
                                 <Paper elevation={3} className={classes.paper}>
+                                    <Typography className={classes.typography} variant="subtitle2" gutterBottom>
+                                        {i+1}
+                                    </Typography>
                                     <Typography className={classes.typography} variant="subtitle2" gutterBottom>
                                         {place.name}
                                     </Typography>
-                                    <img
-                                        className={classes.pointer}
-                                        src={place.photo?place.photo.images.large.url:'https://cdn-icons-png.flaticon.com/512/1147/1147856.png'}
-                                        alt={place.name}
-                                    />
-                                    <Rating size="small" value={Number(place.rating)} readOnly/>
                                 </Paper>
+                            </div>
+                        )
+                    } 
+                    
+                    if (displayingTable === "Discover") {
+                        return (
+                            <div 
+                                className={classes.markerContainer}
+                                lat={Number(place.latitude)}
+                                lng={Number(place.longitude)}
+                                key={i}
+                            >   
+                            {   
+                                !isDesktop ? (
+                                    <LocationOnOutlinedIcon color='primary' fontSize="large" />
+                                ) : (
+                                    <Paper elevation={3} className={classes.paper}>
+                                        <Typography className={classes.typography} variant="subtitle2" gutterBottom>
+                                            {place.name}
+                                        </Typography>
+                                        <img
+                                            className={classes.pointer}
+                                            src={place.photo?place.photo.images.large.url:'https://cdn-icons-png.flaticon.com/512/1147/1147856.png'}
+                                            alt={place.name}
+                                        />
+                                        <Rating size="small" value={Number(place.rating)} readOnly/>
+                                    </Paper>
 
-                            )
-
-                        }
-                        
-
-                        </div>
-                    )
-                })} 
+                                )
+                            }
+                            </div>
+                        )
+                    }
+                    
+                })}
 
             </GoogleMapReact>
         </div>

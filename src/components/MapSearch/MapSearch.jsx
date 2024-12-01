@@ -1,31 +1,40 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { TextField, InputAdornment } from '@material-ui/core';
 import { Autocomplete } from '@react-google-maps/api';
 import SearchIcon from '@material-ui/icons/Search';
 
 import useStyles from './styles';
 
-const MapSearch = ({setCoordinates}) => {
+import { CoordinatesContext } from './../../App';
+
+const MapSearch = ({setActivityPlace}) => {
     const classes = useStyles();
+
+    const {coordinates, setCoordinates} = useContext(CoordinatesContext);
 
     // --- Autocomplete
     const [autocomplete, setAutocomplete] = useState(null);
 
     const onLoad = (autoC) => setAutocomplete(autoC);
     const onPlaceChanged = () => {
-        const lat = autocomplete.getPlace().geometry.location.lat();
-        const lng = autocomplete.getPlace().geometry.location.lng();
+        const place = autocomplete.getPlace()
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
 
         setCoordinates({lat, lng});
+        console.log(coordinates)
+        //console.log(place)
+        //console.log(place.name + ", " + place.formatted_address)
+        typeof(setActivityPlace) === 'function' ? setActivityPlace({place}) : console.error("No Set Activity Place Found");
     }
 
     return (
         <>
             <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
             <TextField fullWidth
-                id="input-location"
+                id="input-Place"
                 ref={autocomplete}
-                label="Location"
+                label="Place"
                 slotProps={{
                 input: {
                     startAdornment: (
@@ -36,8 +45,13 @@ const MapSearch = ({setCoordinates}) => {
                 },
                 }}
                 variant="standard"
+                onChange={(event) => {
+                    typeof(setActivityPlace) === 'function' ? setActivityPlace(event.target.value) : console.error("No Set Activity Place Found");
+                }}
             />
 
+
+            </Autocomplete>
                 {/*
                 <div className={classes.search}>
                     <div className={classes.searchIcon}>
@@ -45,12 +59,12 @@ const MapSearch = ({setCoordinates}) => {
                     </div>
                     <InputBase placeholder="Location" classes={{ root: classes.inputRoot, input: classes.inputInput}}/>
                 </div>*/}
-            </Autocomplete>
+            
         </>
     )
 
 
 }
 
-export default MapSearch
+export default MapSearch;
 

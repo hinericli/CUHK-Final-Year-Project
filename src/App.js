@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext } from 'react';
-import { CssBaseline, Grid, Typography } from '@material-ui/core';
+import { CssBaseline, Grid, Typography, Button } from '@material-ui/core';
 import EventNoteIcon from '@material-ui/icons/EventNote';
 import LanguageIcon from '@material-ui/icons/Language';
 
@@ -97,11 +97,11 @@ const App = () => {
                   }}>
                 <Grid item xs={6} md={2} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
                     <EventNoteIcon/>
-                    <Typography>Planner</Typography>
+                    <Button variant="text" onClick={() => setDisplayingTable('Planner')}>Planner</Button>
                 </Grid>
                 <Grid item xs={6} md={2} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
                     <LanguageIcon/>
-                    <Typography>Discover</Typography>
+                    <Button variant="text" onClick={() => setDisplayingTable('Discover')}>Discover</Button>
                 </Grid>
             </Grid>
             

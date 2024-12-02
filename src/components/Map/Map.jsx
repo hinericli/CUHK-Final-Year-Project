@@ -20,6 +20,7 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
     // for directions and routes
     const [directionsService, setDirectionsService] = useState(null);
     const [directionsRenderer, setDirectionsRenderer] = useState(null);
+    const [mapCopy, setMapCopy] = useState(null)
 
     useMemo(() => {
         setDirectionsService(new window.google.maps.DirectionsService())
@@ -28,24 +29,44 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
         }))
     }, [])
 
+    useEffect(() => {
+        console.log("Current Screen: "+displayingTable)
+        if (displayingTable === 'Planner') {
+            directionsRenderer.setMap(null);
+            drawPath(mapCopy)
+        } else if (displayingTable === 'Discover') {
+            setPlaces([])
+            directionsRenderer.setMap(null);
+        }
+    }, [displayingTable])
+
     // beginning, midpoints and end of the path
     let origin = { lat: 22.3134736, lng: 113.9137283 }, waypts = [], destination = { lat: 22.3474872, lng: 114.1023164 };
     useEffect(() => {
-        if (places.length >= 2) {
-            origin = { lat: Number(places.slice(0, 1)[0].geometry.location.lat()), lng: Number(places.slice(0, 1)[0].geometry.location.lng())}
-            destination = { lat: Number(places.slice(-1)[0].geometry.location.lat()), lng: Number(places.slice(-1)[0].geometry.location.lng())}
-            drawPath(directionsRenderer.getMap())
-        }
-
-        if (places.length >= 3) {
-            let tmp = places.slice(1, -1)
-
-            for (let i = 0; i < tmp.length; i++) {
-                let lat = tmp[i].geometry.location.lat(), lng = tmp[i].geometry.location.lng();
-                waypts.push({
-                    location: new window.google.maps.LatLng(lat,lng)
-                })
+        console.log({places})
+        if (displayingTable === "Planner") {
+            if (places.length <= 1) {
+                directionsRenderer.setMap(null);    // clear path on map
             }
+
+            if (places.length >= 2) {
+                origin = { lat: Number(places.slice(0, 1)[0].geometry.location.lat()), lng: Number(places.slice(0, 1)[0].geometry.location.lng())}
+                destination = { lat: Number(places.slice(-1)[0].geometry.location.lat()), lng: Number(places.slice(-1)[0].geometry.location.lng())}
+                directionsRenderer.setMap(null);
+                drawPath(mapCopy)
+            }
+
+            if (places.length >= 3) {
+                let tmp = places.slice(1, -1)
+
+                for (let i = 0; i < tmp.length; i++) {
+                    let lat = tmp[i].geometry.location.lat(), lng = tmp[i].geometry.location.lng();
+                    waypts.push({
+                        location: new window.google.maps.LatLng(lat,lng)
+                    })
+                }
+            }
+        
         }
         console.log({origin, destination, waypts});
     }, [places]) 
@@ -95,10 +116,11 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
                 onChildClick={(child) => {setChildClicked(child)}}
                 yesIWantToUseGoogleMapApiInternals
                 onGoogleApiLoaded={displayingTable==="Planner"?({ map, maps }) => {
-                    drawPath(map)
+                    setMapCopy(map)
                 }:''}
             >
                 {places?.map((place, i) => {
+                    console.log({place})
                     if (typeof(place) === undefined || places == '') return;
 
                     if (displayingTable === "Planner") {

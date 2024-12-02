@@ -1,40 +1,74 @@
 {
-    "name": "",
-    "days": [
+    "plan": {
+      "name": "Your Plan Name",
+      "startingDate": "YYYY-MM-DD",
+      "endingDate": "YYYY-MM-DD",
+      "dayCount": 3,
+      "cost": 500,
+      "dayList": [
         {
-            "0": [
-                {
-                    "name": "Flight to Canada",
-                    "type": "Flight",
-                    "startDateTime": "0045",
-                    "endDateTime": "0950",
-                    "place": "Hong Kong International Airport",
-                    "cost": 9800,
-                    "description": ""
-                },
-                {
-                    "name": "",
-                    "type": "",
-                    "startDateTime": "",
-                    "endDateTime": "",
-                    "place": "",
-                    "cost": 500,
-                    "description": ""
-                }
-            ],
-            "1": [
-
-
-
-
-
-            ]
-
+          "day": 1,
+          "date": "YYYY-MM-DD",
+          "activities": [
+            {
+              "name": "Activity 1",
+              "type": "Type A",
+              "startDateTime": "YYYY-MM-DDTHH:mm:ss",
+              "endDateTime": "YYYY-MM-DDTHH:mm:ss",
+              "place": "Place A",
+              "cost": 50,
+              "description": "Description of Activity 1"
+            },
+            {
+              "name": "Activity 2",
+              "type": "Type B",
+              "startDateTime": "YYYY-MM-DDTHH:mm:ss",
+              "endDateTime": "YYYY-MM-DDTHH:mm:ss",
+              "place": "Place B",
+              "cost": 70,
+              "description": "Description of Activity 2"
+            }
+          ],
+          "weather": "Weather Condition",
+          "temperature": 25,
+          "cost": 120
+        },
+        {
+          "day": 2,
+          "date": "YYYY-MM-DD",
+          "activities": [
+            {
+              "name": "Activity 3",
+              "type": "Type C",
+              "startDateTime": "YYYY-MM-DDTHH:mm:ss",
+              "endDateTime": "YYYY-MM-DDTHH:mm:ss",
+              "place": "Place C",
+              "cost": 80,
+              "description": "Description of Activity 3"
+            }
+          ],
+          "weather": "Weather Condition",
+          "temperature": 20,
+          "cost": 80
+        },
+        {
+          "day": 3,
+          "date": "YYYY-MM-DD",
+          "activities": [
+            {
+              "name": "Activity 4",
+              "type": "Type D",
+              "startDateTime": "YYYY-MM-DDTHH:mm:ss",
+              "endDateTime": "YYYY-MM-DDTHH:mm:ss",
+              "place": "Place D",
+              "cost": 100,
+              "description": "Description of Activity 4"
+            }
+          ],
+          "weather": "Weather Condition",
+          "temperature": 23,
+          "cost": 100
         }
-
-
-
-
-    ]
-
-}
+      ]
+    }
+  }

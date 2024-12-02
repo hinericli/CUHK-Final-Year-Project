@@ -50,7 +50,7 @@ const DiscoverList = ({places, childClicked, isLoading, type, setType, rating, s
 
                     <Grid container spacing={3} className={classes.list}>
                         {places?.map((place, i) => {
-                            if (place.latitude === undefined || place.longitude === undefined) return;
+                            if (place === undefined) return;
                             //console.log(place);
                             return (
                             <Grid ref={elRefs[i]} item key={i} xs={12}> 

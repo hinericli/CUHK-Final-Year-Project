@@ -13,7 +13,7 @@ export default makeStyles((theme) => ({
   spacing: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
   },
-  plusButton: {
+  button: {
     position: "sticky", justifyContent: "center"
   }
 

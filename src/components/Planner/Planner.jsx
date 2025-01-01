@@ -63,15 +63,14 @@ const Planner = (setCoordinates) => {
         description: ''
     });
     const [showAdditionalInfo, setShowAdditionalInfo] = useState({});
-    const [displayingComponent, setDisplayingComponent] = useState('SelectPlan');
+    const [displayingComponent, setDisplayingComponent] = useState('Planner'); // This includes SelectPlan, Planner, AddActivity
 
     // --- Delete Activity ---
     const deleteActivity = (delIndex) => {
         let newActivityList = activityList.filter((_, index) => index !== delIndex)
-        setActivityList(() => newActivityList);
+        setActivityList(newActivityList);
         if (plan === null) return
         plan.dayList[currentDay].activities = newActivityList
-        savePlan(plan)
     };
     // ensure that the places updates after the activity list updates (for showing map pins and routes correctly)
     useEffect(() => {
@@ -81,6 +80,7 @@ const Planner = (setCoordinates) => {
 
     // Push new Activity when there's a new Activity to be added (clicked the FINISH button)
     useMemo(() => {
+        // add new activity to activityList
         activityList.push(
             new Activity(
                 toBeAddedActivity.name,  
@@ -92,10 +92,31 @@ const Planner = (setCoordinates) => {
                 toBeAddedActivity.description
             )
         )
-        setActivityList(activityList)
-        setPlaces(activityList.map(activity => activity.place.place))
+        // sort the activities according to the startDateTime
+        let sortedActivities = activityList.sort((a, b) => {
+            if (a.startDateTime && b.startDateTime) {
+                const dateA = new Date(
+                    a.startDateTime.years,
+                    a.startDateTime.months,
+                    a.startDateTime.date,
+                    a.startDateTime.hours,
+                    a.startDateTime.minutes
+                );
+                const dateB = new Date(
+                    b.startDateTime.years,
+                    b.startDateTime.months,
+                    b.startDateTime.date,
+                    b.startDateTime.hours,
+                    b.startDateTime.minutes
+                );
+                return dateA - dateB;
+            }
+            return 0;
+        });
+        setActivityList(sortedActivities);
+        setPlaces(sortedActivities.map(activity => activity.place.place))
         if (plan === null) return
-        plan.dayList[currentDay].activities = activityList
+        plan.dayList[currentDay].activities = sortedActivities
         savePlan(plan)
     }, [toBeAddedActivity])
 
@@ -133,7 +154,6 @@ const Planner = (setCoordinates) => {
     };
 
     useEffect(() => {
-        console.log(currentDay)
         setActivityList(plan?plan.dayList[currentDay].activities:[])
     }, [currentDay])
 
@@ -142,24 +162,6 @@ const Planner = (setCoordinates) => {
         const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
         return daysOfWeek[dayOfWeekNum];
     }
-
-    // Inside your Planner component
-
-    const swapActivities = (indexA, indexB) => {
-        if (indexA < 0 || indexB < 0 || indexA >= activityList.length || indexB >= activityList.length) return;
-        
-        const newActivityList = [...activityList];
-        const temp = newActivityList[indexA];
-        newActivityList[indexA] = newActivityList[indexB];
-        newActivityList[indexB] = temp;
-
-        setActivityList(newActivityList);
-
-        if (plan) {
-            plan.dayList[currentDay].activities = newActivityList;
-            savePlan(plan);
-        }
-    };
 
     const activityTypeName = ["Restaurant", "Hotel", "Attraction", "Flight", "Others"] 
     let currentDayJS = dayjs(plan?.startingDate?.add(currentDay, 'day'))
@@ -228,28 +230,6 @@ const Planner = (setCoordinates) => {
                                 <Button size="small" color="primary" onClick={() => deleteActivity(i)}>
                                     Delete
                                 </Button>
-                                <Button
-                                    size="small"
-                                    color="primary"
-                                    onClick={() => {
-                                        if (i >= 0 && i < activityList.length) {
-                                            swapActivities(i-1, i);
-                                        }
-                                    }}
-                                >
-                                    <ArrowUpwardIcon/>
-                                </Button>
-                                <Button
-                                    size="small"
-                                    color="primary"
-                                    onClick={() => {
-                                        if (i >= 0 && i < activityList.length) {
-                                            swapActivities(i, i + 1);
-                                        }
-                                    }}
-                                >
-                                    <ArrowDownwardIcon/>
-                                </Button>
                             </CardActions>
 
                             {showAdditionalInfo[i] && (
@@ -303,3 +283,29 @@ const Planner = (setCoordinates) => {
 }
 
 export default Planner;
+
+/*
+<Button
+    size="small"
+    color="primary"
+    onClick={() => {
+        if (i >= 0 && i < activityList.length) {
+            swapActivities(i-1, i);
+        }
+    }}
+>
+    <ArrowUpwardIcon/>
+</Button>
+<Button
+    size="small"
+    color="primary"
+    onClick={() => {
+        if (i >= 0 && i < activityList.length) {
+            swapActivities(i, i + 1);
+        }
+    }}
+>
+    <ArrowDownwardIcon/>
+</Button>
+
+*/

@@ -1,5 +1,17 @@
 import axios from 'axios';
 
+export const getWeatherData = async (latitude, longitude) => {
+  try {
+    const response = await axios.get(
+      `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${process.env.REACT_APP_OPENWEATHER_API_KEY}`
+    );
+    console.log(response.data); //You can see all the weather data in console log
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 export const getPlacesData = async (type, sw, ne) => {
     try {
         const { data: {data}} = await axios.get(`https://travel-advisor.p.rapidapi.com/${type}/list-in-boundary`, {

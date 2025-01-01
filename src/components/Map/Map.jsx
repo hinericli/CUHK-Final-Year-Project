@@ -120,7 +120,6 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
                 }:''}
             >
                 {places?.map((place, i) => {
-                    console.log({place})
                     if (typeof(place) === undefined || places == '') return;
 
                     if (displayingTable === "Planner") {

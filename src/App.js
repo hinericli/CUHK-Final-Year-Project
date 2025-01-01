@@ -103,6 +103,9 @@ const App = () => {
                     <LanguageIcon/>
                     <Button variant="text" onClick={() => setDisplayingTable('Discover')}>Discover</Button>
                 </Grid>
+                <Grid item xs={0} md={8} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
+                    
+                </Grid>
             </Grid>
             
             <Grid container spacing={3} style={{width: '100%'}}>
@@ -118,6 +121,7 @@ const App = () => {
                     />
                 </Grid>
             </Grid>
+            
             </CoordinatesContext.Provider>
             </MapPlacesContext.Provider>
             </DisplayingTableContext.Provider>

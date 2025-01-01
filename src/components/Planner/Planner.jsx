@@ -6,6 +6,9 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { Grid, Row, Col } from 'react-flexbox-grid';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
+import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
+import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
+
 import AddActivity from '../AddActivity/AddActivity';
 import dayjs from 'dayjs';
 
@@ -13,6 +16,8 @@ import useStyles from './styles';
 import { MapPlacesContext } from '../../App';
 import Activity from './Activity';
 import SelectPlan from '../SelectPlan/SelectPlan';
+import { savePlan } from '../../backend/SaveLoadPlan/SavePlan';
+import { getWeatherData } from '../../api';
 
 export const PlanContext = createContext();
 export const ActivitiesListContext = createContext();
@@ -46,7 +51,7 @@ const Planner = (setCoordinates) => {
 
     const [plan, setPlan] = useState(null);
     const [currentDay, setCurrentDay] = useState(0); // Index of the current viewing day
-
+    const [weatherData, setWeatherData] = useState(null);
     const [activityList, setActivityList] = useState([]);   
     const [toBeAddedActivity, setToBeAddedActivity] = useState({
         name: '',
@@ -57,6 +62,7 @@ const Planner = (setCoordinates) => {
         cost: 0,
         description: ''
     });
+    const [showAdditionalInfo, setShowAdditionalInfo] = useState({});
     const [displayingComponent, setDisplayingComponent] = useState('SelectPlan');
 
     // --- Delete Activity ---
@@ -65,11 +71,12 @@ const Planner = (setCoordinates) => {
         setActivityList(() => newActivityList);
         if (plan === null) return
         plan.dayList[currentDay].activities = newActivityList
-        
+        savePlan(plan)
     };
     // ensure that the places updates after the activity list updates (for showing map pins and routes correctly)
     useEffect(() => {
         setPlaces(activityList.map(activity => activity.place.place))
+        savePlan(plan)
     }, [activityList])
 
     // Push new Activity when there's a new Activity to be added (clicked the FINISH button)
@@ -89,11 +96,17 @@ const Planner = (setCoordinates) => {
         setPlaces(activityList.map(activity => activity.place.place))
         if (plan === null) return
         plan.dayList[currentDay].activities = activityList
+        savePlan(plan)
     }, [toBeAddedActivity])
 
     // pop out the empty object first when start
     useEffect(() => {
         activityList.pop()
+        //activityList[0]?.place?getWeatherData(22.314162085829565, 113.91225954047268)
+        //let lat = activityList[0]?.place?.place?.geometry?.location.lat(), lng=activityList[0]?.place?.place?.geometry?.location.lng();
+        //if (lat!=undefined && lng!=undefined) {
+        setWeatherData(getWeatherData(22.314162085829565, 113.91225954047268))
+        //}
     }, [])
 
     // Change Day
@@ -103,6 +116,20 @@ const Planner = (setCoordinates) => {
 
     const switchToNextDay = () => {
         setCurrentDay(currentDay + 1 >= plan.dayCount ? plan.dayCount - 1 : currentDay + 1);
+    };
+
+    const getCostSum = () => {
+        let costList = plan?.dayList[currentDay]?.activities.map(activity => Number(activity.cost)) || [];
+        let totalCost = costList.reduce((acc, cost) => acc + cost, 0);  // sum up all the cost
+        
+        return String(Number(totalCost).toFixed(2));
+    }
+
+    const toggleAdditionalInfo = (index) => {
+        setShowAdditionalInfo(prevState => ({
+            ...prevState,
+            [index]: !prevState[index]
+        }));
     };
 
     useEffect(() => {
@@ -116,8 +143,26 @@ const Planner = (setCoordinates) => {
         return daysOfWeek[dayOfWeekNum];
     }
 
-    let currentDayJS = dayjs(plan?.startingDate?.add(currentDay, 'day'))
+    // Inside your Planner component
 
+    const swapActivities = (indexA, indexB) => {
+        if (indexA < 0 || indexB < 0 || indexA >= activityList.length || indexB >= activityList.length) return;
+        
+        const newActivityList = [...activityList];
+        const temp = newActivityList[indexA];
+        newActivityList[indexA] = newActivityList[indexB];
+        newActivityList[indexB] = temp;
+
+        setActivityList(newActivityList);
+
+        if (plan) {
+            plan.dayList[currentDay].activities = newActivityList;
+            savePlan(plan);
+        }
+    };
+
+    const activityTypeName = ["Restaurant", "Hotel", "Attraction", "Flight", "Others"] 
+    let currentDayJS = dayjs(plan?.startingDate?.add(currentDay, 'day'))
     const components = {
         "Planner":   
         <>
@@ -135,8 +180,10 @@ const Planner = (setCoordinates) => {
 
         <Row>
             <Col xs={4} className={classes.title}> <Typography>{toDayName(currentDayJS.day())}</Typography> </Col>
-            <Col xs={4} className={classes.title}> <Typography>26° </Typography> <WbSunnyIcon/> </Col>
-            <Col xs={4} className={classes.title}> <Typography>Cost: $0</Typography> </Col>
+            <Col xs={4} className={classes.title}> <Typography>
+                21°
+            </Typography> <WbSunnyIcon/> </Col>
+            <Col xs={4} className={classes.title}> <Typography>Cost: ${getCostSum()}</Typography> </Col>
         </Row>
         
         <Row className={classes.subtitle}>
@@ -175,41 +222,45 @@ const Planner = (setCoordinates) => {
                                 <Typography gutterBottom variant="subtitle2">{handlePlaceName(activity.place.place)}</Typography>
                             </Box>
                             <CardActions display="flex" justifyContent="space-between">
-                                <Button size="small" color="primary" onClick={() => {}}>
-                                    More Info
+                                <Button size="small" color="primary" onClick={() => toggleAdditionalInfo(i)}>
+                                    {showAdditionalInfo[i] ? "Hide Info" : "More Info"}
                                 </Button>
                                 <Button size="small" color="primary" onClick={() => deleteActivity(i)}>
                                     Delete
                                 </Button>
-                                {/* <Button
-                                    id="swap-button"
-                                    aria-controls={anchorEl ? 'swap-menu' : undefined}
-                                    aria-haspopup="true"
-                                    aria-expanded={anchorEl ? 'true' : undefined}
-                                    onClick={handleClick}
-                                >
-                                    Swap
-                                </Button>
-                                <Menu
-                                    id="swap-menu"
-                                    anchorEl={anchorEl}
-                                    open={Boolean(anchorEl)}
-                                    onClose={handleClose}
-                                    MenuListProps={{
-                                        'aria-labelledby': 'swap-button',
+                                <Button
+                                    size="small"
+                                    color="primary"
+                                    onClick={() => {
+                                        if (i >= 0 && i < activityList.length) {
+                                            swapActivities(i-1, i);
+                                        }
                                     }}
                                 >
-                                    {activityList.map((activity, j) => (
-                                        (
-                                            <MenuItem key={j} onClick={handleClose}>
-                                                {j + 1}
-                                            </MenuItem>
-                                        )
-                                    ))}
-                                </Menu>
-                                */}
+                                    <ArrowUpwardIcon/>
+                                </Button>
+                                <Button
+                                    size="small"
+                                    color="primary"
+                                    onClick={() => {
+                                        if (i >= 0 && i < activityList.length) {
+                                            swapActivities(i, i + 1);
+                                        }
+                                    }}
+                                >
+                                    <ArrowDownwardIcon/>
+                                </Button>
                             </CardActions>
 
+                            {showAdditionalInfo[i] && (
+                            <>
+                                <Typography>Type: {activityTypeName[Number(activity.type)/10 - 1]}</Typography>
+                                <Typography>Cost: ${activity.cost}</Typography>
+                                <Typography>Description: {activity.description}</Typography>
+                                <Typography>Summary: {activity.place.editorialSummary?activity.place.editorialSummary:'-'}</Typography>
+                            </>
+                            )}
+                            
 
                         </CardContent>
                         </Col>

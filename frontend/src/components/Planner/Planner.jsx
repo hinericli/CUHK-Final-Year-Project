@@ -6,9 +6,6 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { Grid, Row, Col } from 'react-flexbox-grid';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
-import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
-import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
-
 import AddActivity from '../AddActivity/AddActivity';
 import dayjs from 'dayjs';
 

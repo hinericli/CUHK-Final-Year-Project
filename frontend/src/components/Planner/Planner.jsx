@@ -16,7 +16,6 @@ import useStyles from './styles';
 import { MapPlacesContext } from '../../App';
 import Activity from './Activity';
 import SelectPlan from '../SelectPlan/SelectPlan';
-import { savePlan } from '../../backend/SaveLoadPlan/SavePlan';
 import { getWeatherData } from '../../api';
 
 export const PlanContext = createContext();
@@ -26,6 +25,8 @@ const customParseFormat = require("dayjs/plugin/customParseFormat");
 var toObject = require("dayjs/plugin/toObject");
 dayjs.extend(customParseFormat);
 dayjs.extend(toObject)
+
+const savePlan = () => {};  // placeholder
 
 // add 0 to the single digit (for hours and minutes)
 function singleDigitTransformer(value) {

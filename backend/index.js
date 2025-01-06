@@ -12,8 +12,6 @@ db.once('open', function () {
   console.log("Connection is open...");
   // --- Setup MongoDB Schema ---
   const Schema = mongoose.Schema;
-<<<<<<< HEAD
-=======
   const ActivitySchema = Schema({
     name: {
         type: String,
@@ -72,7 +70,6 @@ db.once('open', function () {
     }
   })
   const Day = mongoose.model('Day', DaySchema);
->>>>>>> backend
 
   const PlanSchema = Schema({
     planId: {
@@ -92,24 +89,7 @@ db.once('open', function () {
         required: [true, "Ending date is required"],
     },
     dayList: [{
-<<<<<<< HEAD
-      day: Number,
-      date: Date,
-      activities: [{
-        name: String,
-        type: String,
-        startDateTime: Date,
-        endDateTime: Date,
-        place: String,
-        cost: Number,
-        description: String
-      }],
-      weather: String,
-      temperature: Number,
-      cost: Number
-=======
         type: Schema.Types.ObjectId, ref: 'Day' 
->>>>>>> backend
     }],
     dayCount: { 
         type: Number
@@ -126,7 +106,7 @@ db.once('open', function () {
   })
   const Plan = mongoose.model('Plan', PlanSchema);
 
-  module.exports = { Plan };
+  module.exports = { Activity, Day, Plan };
 
   async function parseJSON(jsonString) {
     try {
@@ -360,11 +340,7 @@ db.once('open', function () {
         console.log(data)
         res.set('Content-Type', 'text/plain');
 
-<<<<<<< HEAD
-        res.send("Check console." + data[0].dayList[0]);
-=======
         res.send(data);
->>>>>>> backend
     })
     .catch((err) => {
         console.error(err);

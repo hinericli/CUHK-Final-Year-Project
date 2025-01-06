@@ -12,65 +12,6 @@ db.once('open', function () {
   console.log("Connection is open...");
   const Schema = mongoose.Schema;
 
-  const ActivitySchema = Schema({
-    name: {
-        type: String,
-        required: [true, "Name is required"],
-    },
-    type: {
-        type: String,
-    },
-    startDateTime: {
-        type: Date,
-        required: [true, "Start date and time is required"],
-    },
-    endDateTime: {
-        type: Date,
-        required: [true, "End date and time is required"],
-    },
-    place: {
-        type: String,
-        required: [true, "Place is required"],
-    },
-    cost: {
-        type: Number,
-        validate: {
-            validator: function (value) {
-              return value > 0;
-            },
-            message: () => "Please enter a valid cost",
-          }
-    },
-    description: {
-        type: String,
-    }
-  });
-  const Activity = mongoose.model("Activity", ActivitySchema);
-
-  const DaySchema = Schema({
-    day: {
-        type: Number,
-        required: [true, "Day is required"],
-    },
-    date: {
-        type: Date,
-        required: [true, "Date is required"],
-    },
-    activities: {
-        type: Schema.Types.ObjectId, ref: 'Activity' 
-    },
-    weather: {
-        type: String
-    },
-    temperature: {
-        type: Number
-    },
-    cost: {
-        type: Number,
-    }
-  })
-  const Day = mongoose.model("Day", DaySchema);
-
   const PlanSchema = Schema({
     planId: {
         type: Number,
@@ -88,9 +29,22 @@ db.once('open', function () {
         type: Date,
         required: [true, "Ending date is required"],
     },
-    dayList: {
-        type: Schema.Types.ObjectId, ref: 'Day' 
-    },
+    dayList: [{
+      day: Number,
+      date: Date,
+      activities: [{
+        name: String,
+        type: String,
+        startDateTime: Date,
+        endDateTime: Date,
+        place: String,
+        cost: Number,
+        description: String
+      }],
+      weather: String,
+      temperature: Number,
+      cost: Number
+    }],
     dayCount: { 
         type: Number
     },
@@ -106,7 +60,7 @@ db.once('open', function () {
   })
   const Plan = mongoose.model("Plan", PlanSchema);
 
-  module.exports = { Activity, Day, Plan };
+  module.exports = { Plan };
 
   // list specific plan accoding to planId
   app.get('/plan/:planId', async (req, res) => {
@@ -117,7 +71,7 @@ db.once('open', function () {
         console.log(data)
         res.set('Content-Type', 'text/plain');
 
-        res.send("Check console.")
+        res.send("Check console." + data[0].dayList[0]);
     })
     .catch((err) => {
         console.error(err);

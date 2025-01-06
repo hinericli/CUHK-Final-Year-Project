@@ -5,7 +5,7 @@ import SearchIcon from '@material-ui/icons/Search';
 
 import useStyles from './styles';
 
-import { CoordinatesContext } from './../../App';
+import { CoordinatesContext } from '../../Viewer';
 
 const MapSearch = ({setActivityPlace}) => {
     const classes = useStyles();

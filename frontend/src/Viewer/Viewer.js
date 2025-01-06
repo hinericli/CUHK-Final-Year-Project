@@ -3,7 +3,7 @@ import { CssBaseline, Grid, Typography, Button } from '@material-ui/core';
 import EventNoteIcon from '@material-ui/icons/EventNote';
 import LanguageIcon from '@material-ui/icons/Language';
 
-import { getPlacesData } from './api';
+import { getPlacesData } from '../api';
 import Header from './components/Header/Header';
 import DiscoverList from './components/DiscoverList/DiscoverList';
 import Planner from './components/Planner/Planner';

@@ -5,9 +5,9 @@ import LocationOnOutlinedIcon from '@material-ui/icons/LocationOnOutlined';
 import Rating from '@material-ui/lab/Rating';
 
 import useStyles from './styles';
-import { MapPlacesContext } from '../../App';
+import { MapPlacesContext } from '../../Viewer';
 
-import { DisplayingTableContext } from '../../App';
+import { DisplayingTableContext } from '../../Viewer';
 import { LensOutlined } from '@material-ui/icons';
 
 const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {

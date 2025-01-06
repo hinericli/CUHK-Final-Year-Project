@@ -10,10 +10,10 @@ import AddActivity from '../AddActivity/AddActivity';
 import dayjs from 'dayjs';
 
 import useStyles from './styles';
-import { MapPlacesContext } from '../../App';
+import { MapPlacesContext } from '../../Viewer';
 import Activity from './Activity';
 import SelectPlan from '../SelectPlan/SelectPlan';
-import { getWeatherData } from '../../api';
+import { getWeatherData } from '../../../api';
 
 export const PlanContext = createContext();
 export const ActivitiesListContext = createContext();

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Card, CardContent } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -10,14 +10,16 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import useStyles from './styles';
 
+import { getPlan } from '../../../api';
 import { PlanContext } from '../Planner/Planner';
 import Plan from '../Planner/Plan';
 
-const SelectPlan = ({ plans, setDisplayingComponent }) => {
+const SelectPlan = ({ setDisplayingComponent }) => {
     const classes = useStyles();
 
     const {plan, setPlan} = useContext(PlanContext);
 
+    const [plans, setPlans] = useState([]); // list of plans
     const [openAddDialog, setOpenAddDialog] = useState(false);
     const [newPlanName, setNewPlanName] = useState('');
     const [startingDate, setStartDateTime] = useState(null);
@@ -60,6 +62,11 @@ const SelectPlan = ({ plans, setDisplayingComponent }) => {
         //console.log(createdPlans)
         setDisplayingComponent("Planner");
     };
+
+    useMemo(() => {
+        let dbPlans = plans.push(getPlan(1));
+        setPlans(dbPlans);
+    }, [])
 
     return (
         <div>

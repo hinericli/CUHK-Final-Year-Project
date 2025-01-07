@@ -61,7 +61,7 @@ const Planner = (setCoordinates) => {
         description: ''
     });
     const [showAdditionalInfo, setShowAdditionalInfo] = useState({});
-    const [displayingComponent, setDisplayingComponent] = useState('Planner'); // This includes SelectPlan, Planner, AddActivity
+    const [displayingComponent, setDisplayingComponent] = useState('SelectPlan'); // This includes SelectPlan, Planner, AddActivity
 
     // --- Delete Activity ---
     const deleteActivity = (delIndex) => {

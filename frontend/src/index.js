@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import Viewer from './Viewer/Viewer';
+import App from './App';
 
-ReactDOM.render(<Viewer />, document.getElementById('root'));
+ReactDOM.render(<App />, document.getElementById('root'));

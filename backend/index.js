@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
 
 const mongoose = require('mongoose');
@@ -331,6 +332,8 @@ db.once('open', function () {
 
   debug_test()*/
 
+  app.use(cors())
+
   // list specific plan accoding to planId
   app.get('/plan/:planId', async (req, res) => {
     const planId = req.params.planId;
@@ -338,9 +341,9 @@ db.once('open', function () {
     Plan.find({ planId: {$eq: planId} }).populate({path: 'dayList', populate: {path: 'activities', model: 'Activity'}})
     .then((data) => {
         console.log(data)
-        res.set('Content-Type', 'text/plain');
+        res.set('Content-Type', 'application/json');
 
-        res.send(data);
+        res.json(data);
     })
     .catch((err) => {
         console.error(err);

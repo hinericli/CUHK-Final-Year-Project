@@ -14,6 +14,8 @@ import { MapPlacesContext } from '../../Viewer';
 import Activity from './Activity';
 import SelectPlan from '../SelectPlan/SelectPlan';
 import { getWeatherData } from '../../../api';
+import { singleDigitTransformer } from '../../../utils/dayjsUtils';
+import { handlePlaceName } from '../../../utils/placeUtils';
 
 export const PlanContext = createContext();
 export const ActivitiesListContext = createContext();
@@ -24,24 +26,6 @@ dayjs.extend(customParseFormat);
 dayjs.extend(toObject)
 
 const savePlan = () => {};  // placeholder
-
-// add 0 to the single digit (for hours and minutes)
-function singleDigitTransformer(value) {
-    if (value.toString().length === 1) {
-        value = "0" + value;
-    }
-    return value;
-}
-
-function handlePlaceName(place) {
-    if (!place) return "/";
-
-    if (place.name === place.formatted_address) {
-        return place.name
-    } else {
-        return (place.name + ", " + place.formatted_address)
-    }
-}
 
 const Planner = (setCoordinates) => {
     const classes = useStyles();
@@ -162,7 +146,8 @@ const Planner = (setCoordinates) => {
     }
 
     const activityTypeName = ["Restaurant", "Hotel", "Attraction", "Flight", "Others"] 
-    let currentDayJS = dayjs(plan?.startingDate?.add(currentDay, 'day'))
+    let startingDate = dayjs(plan?.startingDate)
+    let currentDayJS = dayjs(startingDate.add(currentDay, 'day'))
     const components = {
         "Planner":   
         <>

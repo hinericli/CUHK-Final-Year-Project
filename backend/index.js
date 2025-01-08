@@ -333,6 +333,7 @@ db.once('open', function () {
   debug_test()*/
 
   app.use(cors())
+  app.use(express.json())
 
   // list specific plan accoding to planId
   app.get('/plan/:planId', async (req, res) => {
@@ -349,7 +350,55 @@ db.once('open', function () {
         console.error(err);
         res.status(404).send('PlanID Not Found');
     });
-});
+  });
+
+  // get the largest planId
+  app.get('/maxPlanId', async (req, res) => {
+    Plan.find().sort({planId: -1})
+    .then((data) => {
+        res.set('Content-Type', 'application/json');
+
+        res.json(data[0].planId);
+    })
+    .catch((err) => {
+        console.error(err);
+        res.status(404).send('PlanID Not Found');
+    });
+
+  })
+
+  // add new plan to database
+  app.post('/plan/', async (req, res) => {
+    const { name, startingDate, endingDate, dayList, dayCount, cost } = req.body;
+
+    try {
+      Plan.find().sort({planId: -1}) // sort the documents in descending order by planId
+      .then((response) => {
+        res.set('Content-Type', 'text/plain')
+        console.log(name, startingDate, endingDate, dayList, dayCount, cost);
+
+        const emptyPlan = new Plan(
+          {
+            planId: response[0].planId + 1,
+            name: name,
+            startingDate: startingDate,
+            endingDate: endingDate,
+            dayList: dayList,
+            dayCount: dayCount,
+            cost: cost
+          }
+        );
+
+        emptyPlan.save().then(() => {
+            console.log("Successfully added new empty plan to the database");
+        }).then(() => {
+            res.status(201).send("/plan/" + emptyPlan.planId)
+        }).catch((err)=>console.log("Failed to create new empty plan. ", err))
+      });
+    } catch (err) {
+        res.status(500).json({ error: 'Could not create empty plan' });
+    }
+  });
 
   // handle ALL requests
   app.all('/*', (req, res) => {

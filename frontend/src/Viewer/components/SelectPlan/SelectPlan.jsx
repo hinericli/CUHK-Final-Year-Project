@@ -10,7 +10,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import useStyles from './styles';
 
-import { getPlan } from '../../../api';
+import { getMaxPlanId, getPlan } from '../../../api';
 import { PlanContext } from '../Planner/Planner';
 import Plan from '../Planner/Plan';
 
@@ -19,7 +19,6 @@ const SelectPlan = ({ setDisplayingComponent }) => {
 
     const {plan, setPlan} = useContext(PlanContext);
 
-    const [plans, setPlans] = useState([]); // list of plans
     const [openAddDialog, setOpenAddDialog] = useState(false);
     const [newPlanName, setNewPlanName] = useState('');
     const [startingDate, setStartDateTime] = useState(null);
@@ -37,14 +36,31 @@ const SelectPlan = ({ setDisplayingComponent }) => {
         setEndDateTime(null);
     };
 
-    const handleSaveNewPlan = () => {
-        const plan = new Plan(
-            newPlanName,
-            startingDate,
-            endingDate,
-            dayjs(endingDate).diff(dayjs(startingDate), 'day') + 1,
-            0
-        )
+    const handleSaveNewPlan = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/plan/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: newPlanName,
+                    startingDate: startingDate,
+                    endingDate: endingDate,
+                    dayList: [],
+                    dayCount: dayjs(endingDate).diff(dayjs(startingDate), 'day') + 1,
+                    cost: 0
+                })
+            });
+
+            if (response.ok) {
+                const emptyPlan = await response.json();
+                console.log('Empty Plan object created:', emptyPlan);
+            }
+
+        } catch (error) {
+            console.error('Error creating empty Plan object: ', error);
+        }
 
         setCreatedPlans([...createdPlans, plan]);
 
@@ -59,30 +75,31 @@ const SelectPlan = ({ setDisplayingComponent }) => {
 
     const handleViewPlan = (plan) => {
         setPlan(plan)
-        //console.log(createdPlans)
+        console.log(plan)
         setDisplayingComponent("Planner");
     };
 
     useMemo(() => {
-        let dbPlans = plans.push(getPlan(1));
-        setPlans(dbPlans);
-    }, [])
+        let dbPlans = [];
+        getMaxPlanId().then(maxId => {
+            for (let i = 1; i <= maxId; i++) {
+                getPlan(i).then(plan => {
+                    dbPlans.push(plan[0]);
+                }).catch(err => {
+                    console.error(err);
+                });
+            }
+        }).then(_ => {
+            setCreatedPlans(dbPlans);
+        }).catch(err => {
+            console.error(err);
+        });
+        
+    }, []);
 
     return (
         <div>
             <Typography variant="h5" className={classes.title}>Select Plan</Typography>
-            {plans && plans.length > 0 && (
-                <div>
-                    {plans.map((plan, index) => (
-                        <Card key={index} className={classes.card}>
-                            <CardContent onClick={() => handleViewPlan(plan.name)}>
-                                <Typography variant="h6">{plan.name}</Typography>
-                                <Typography variant="body2">{plan.description}</Typography>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            )}
             <Button className={classes.button} variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleAddPlan}>
                 Add Plan
             </Button>
@@ -127,6 +144,7 @@ const SelectPlan = ({ setDisplayingComponent }) => {
                 </DialogActions>
             </Dialog>
 
+            {console.log(createdPlans)}
             {createdPlans.length > 0 && (
                 <div>
                     <Typography variant="h6">Created Plans:</Typography>

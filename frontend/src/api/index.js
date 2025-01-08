@@ -43,10 +43,26 @@ export const getPlan = async (i) => {
     if (!response.ok) {
       throw new Error(`Response status: ${response.status}`);
     }
-    const json = await response.json();
-    console.log(json);
+    const json = response.json();
     return json;
   } catch (error) {
     console.error(error.message);
   }
 };
+
+export const getMaxPlanId = async () => {
+  const url = `http://localhost:3000/maxPlanId/`;
+  try {
+    const response = await fetch(url, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+      });
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+    const json = response.json();
+    return json;
+  } catch (error) {
+    console.error(error.message);
+  }
+}

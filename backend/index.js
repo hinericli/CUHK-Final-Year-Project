@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 
+app.use(cors())
+app.use(express.json())
+
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://127.0.0.1:27017/myDatabase');
 
@@ -13,6 +16,25 @@ db.once('open', function () {
   console.log("Connection is open...");
   // --- Setup MongoDB Schema ---
   const Schema = mongoose.Schema;
+  const PlaceSchema = new Schema({
+    name: {
+      type: String,
+      required: [true, "Name is required"],
+    },
+    latitude: {
+      type: Number,
+      required: [true, "Latitude is required"],
+    },
+    longitude: {
+      type: Number,
+      required: [true, "Longitude is required"],
+    },
+    description: {
+      type: String,
+    }
+  });
+  const Place = mongoose.model('Place', PlaceSchema);
+
   const ActivitySchema = Schema({
     name: {
         type: String,
@@ -30,7 +52,7 @@ db.once('open', function () {
         required: [true, "End date and time is required"],
     },
     place: {
-        type: String,
+        type: Schema.Types.ObjectId, ref: 'Place',
         required: [true, "Place is required"],
     },
     cost: {
@@ -113,10 +135,30 @@ db.once('open', function () {
     try {
       const jsonData = JSON.parse(jsonString);
   
-      const activities = await Promise.all(jsonData.dayList.flatMap(day => 
-        day.activities.map(activityData => new Activity(activityData).save())
+      // First, save the places and create a mapping of place names to their ObjectIds
+      const places = await Promise.all(jsonData.dayList.flatMap(day => 
+        day.activities.map(activityData => {
+          const newPlace = new Place(activityData.place);
+          return newPlace.save();
+        })
       ));
   
+      // Create a mapping of place names to their ObjectIds
+      const placeMap = {};
+      places.forEach(place => {
+        placeMap[place.name] = place._id;
+      });
+  
+      // Now save the activities using the mapped ObjectIds
+      const activities = await Promise.all(jsonData.dayList.flatMap(day => 
+        day.activities.map(activityData => {
+          const { place, ...activityWithoutPlace } = activityData; // destructure to get place details
+          const activityToSave = new Activity({ ...activityWithoutPlace, place: placeMap[place.name] });
+          return activityToSave.save();
+        })
+      ));
+  
+      // Now save the days with their activities
       const days = await Promise.all(jsonData.dayList.map(dayData => {
         const dayActivities = activities.filter(activity => 
           dayData.activities.some(a => a.name === activity.name)
@@ -124,6 +166,7 @@ db.once('open', function () {
         return new Day({ ...dayData, activities: dayActivities }).save();
       }));
   
+      // Finally, save the plan
       const plan = new Plan({ ...jsonData, dayList: days });
       await plan.save();
   
@@ -133,217 +176,172 @@ db.once('open', function () {
     }
   }
   
-/*function debug_test() {
+function debug_test() {
   parseJSON(
 `
 {
-    "planId": 2,
-    "name": "5-Day Trip to Bangkok",
-    "startingDate": "2023-11-01T00:00:00.000Z",
-    "endingDate": "2023-11-05T23:59:59.000Z",
+    "planId": 1,
+    "name": "3-Day Trip to Tokyo",
+    "startingDate": "2023-12-01T00:00:00.000Z",
+    "endingDate": "2023-12-03T23:59:59.000Z",
     "dayList": [
       {
         "day": 1,
-        "date": "2023-11-01T00:00:00.000Z",
+        "date": "2023-12-01T00:00:00.000Z",
         "activities": [
           {
-            "name": "Visit Grand Palace",
+            "name": "Visit Senso-ji Temple",
             "type": "Sightseeing",
-            "startDateTime": "2023-11-01T09:00:00.000Z",
-            "endDateTime": "2023-11-01T12:00:00.000Z",
-            "place": "Phra Nakhon, Bangkok",
-            "cost": 500,
-            "description": "Explore the historic Grand Palace and its beautiful architecture."
+            "startDateTime": "2023-12-01T09:00:00.000Z",
+            "endDateTime": "2023-12-01T11:00:00.000Z",
+            "place": {
+              "name": "Senso-ji Temple",
+              "latitude": 35.7116,
+              "longitude": 139.7967,
+              "description": "Explore the historic Senso-ji Temple and its surroundings."
+            },
+            "cost": 0,
+            "description": "Explore the historic Senso-ji Temple and its surroundings."
           },
           {
-            "name": "Lunch at Chinatown",
+            "name": "Lunch at Tsukiji Outer Market",
             "type": "Food",
-            "startDateTime": "2023-11-01T13:00:00.000Z",
-            "endDateTime": "2023-11-01T14:30:00.000Z",
-            "place": "Chinatown, Bangkok",
-            "cost": 300,
-            "description": "Enjoy delicious street food in Chinatown."
+            "startDateTime": "2023-12-01T12:00:00.000Z",
+            "endDateTime": "2023-12-01T13:30:00.000Z",
+            "place": {
+              "name": "Tsukiji Outer Market",
+              "latitude": 35.6655,
+              "longitude": 139.7700,
+              "description": "Enjoy fresh sushi and other local delicacies."
+            },
+            "cost": 2000,
+            "description": "Enjoy fresh sushi and other local delicacies."
           },
           {
-            "name": "Visit Wat Arun",
+            "name": "Tokyo Skytree Visit",
             "type": "Sightseeing",
-            "startDateTime": "2023-11-01T15:00:00.000Z",
-            "endDateTime": "2023-11-01T17:00:00.000Z",
-            "place": "Wat Arun, Bangkok",
-            "cost": 100,
-            "description": "Visit the iconic Wat Arun temple."
+            "startDateTime": "2023-12-01T15:00:00.000Z",
+            "endDateTime": "2023-12-01T17:00:00.000Z",
+            "place": {
+              "name": "Tokyo Skytree",
+              "latitude": 35.7106,
+              "longitude": 139.8107,
+              "description": "Get a panoramic view of Tokyo from the Skytree observation deck."
+            },
+            "cost": 3000,
+            "description": "Get a panoramic view of Tokyo from the Skytree observation deck."
           }
         ],
         "weather": "Sunny",
-        "temperature": 30,
-        "cost": 900
+        "temperature": 15,
+        "cost": 5000
       },
       {
         "day": 2,
-        "date": "2023-11-02T00:00:00.000Z",
+        "date": "2023-12-02T00:00:00.000Z",
         "activities": [
           {
-            "name": "Visit Chatuchak Weekend Market",
-            "type": "Shopping",
-            "startDateTime": "2023-11-02T09:00:00.000Z",
-            "endDateTime": "2023-11-02T12:00:00.000Z",
-            "place": "Chatuchak, Bangkok",
-            "cost": 0,
-            "description": "Shop for unique items at the Chatuchak Weekend Market."
-          },
-          {
-            "name": "Lunch at Or Tor Kor Market",
-            "type": "Food",
-            "startDateTime": "2023-11-02T13:00:00.000Z",
-            "endDateTime": "2023-11-02T14:30:00.000Z",
-            "place": "Chatuchak, Bangkok",
-            "cost": 300,
-            "description": "Enjoy fresh and delicious food at Or Tor Kor Market."
-          },
-          {
-            "name": "Visit Jim Thompson House",
+            "name": "Visit Meiji Shrine",
             "type": "Sightseeing",
-            "startDateTime": "2023-11-02T15:00:00.000Z",
-            "endDateTime": "2023-11-02T17:00:00.000Z",
-            "place": "Pathum Wan, Bangkok",
-            "cost": 200,
-            "description": "Explore the Jim Thompson House and its beautiful gardens."
+            "startDateTime": "2023-12-02T09:00:00.000Z",
+            "endDateTime": "2023-12-02T11:00:00.000Z",
+            "place": {
+              "name": "Meiji Shrine",
+              "latitude": 35.6764,
+              "longitude": 139.7006,
+              "description": "Explore the serene Meiji Shrine and its forested surroundings."
+            },
+            "cost": 0,
+            "description": "Explore the serene Meiji Shrine and its forested surroundings."
+          },
+          {
+            "name": "Shopping in Harajuku",
+            "type": "Shopping",
+            "startDateTime": "2023-12-02T12:00:00.000Z",
+            "endDateTime": "2023-12-02T14:00:00.000Z",
+            "place": {
+              "name": "Harajuku",
+              "latitude": 35.6702,
+              "longitude": 139.7021,
+              "description": "Shop for trendy fashion and unique souvenirs in Harajuku."
+            },
+            "cost": 5000,
+            "description": "Shop for trendy fashion and unique souvenirs in Harajuku."
+          },
+          {
+            "name": "Dinner in Shibuya",
+            "type": "Food",
+            "startDateTime": "2023-12-02T19:00:00.000Z",
+            "endDateTime": "2023-12-02T21:00:00.000Z",
+            "place": {
+              "name": "Shibuya",
+              "latitude": 35.6586,
+              "longitude": 139.7012,
+              "description": "Enjoy a delicious dinner in the bustling Shibuya district."
+            },
+            "cost": 3000,
+            "description": "Enjoy a delicious dinner in the bustling Shibuya district."
           }
         ],
         "weather": "Cloudy",
-        "temperature": 28,
-        "cost": 500
+        "temperature": 13,
+        "cost": 8000
       },
       {
         "day": 3,
-        "date": "2023-11-03T00:00:00.000Z",
+        "date": "2023-12-03T00:00:00.000Z",
         "activities": [
           {
-            "name": "Visit Wat Pho",
-            "type": "Sightseeing",
-            "startDateTime": "2023-11-03T09:00:00.000Z",
-            "endDateTime": "2023-11-03T11:00:00.000Z",
-            "place": "Phra Nakhon, Bangkok",
-            "cost": 200,
-            "description": "Visit the famous Wat Pho temple and see the Reclining Buddha."
+            "name": "Visit Tokyo Disneyland",
+            "type": "Entertainment",
+            "startDateTime": "2023-12-03T09:00:00.000Z",
+            "endDateTime": "2023-12-03T18:00:00.000Z",
+            "place": {
+              "name": "Tokyo Disneyland",
+              "latitude": 35.6329,
+              "longitude": 139.8804,
+              "description": "Spend a fun-filled day at Tokyo Disneyland."
+            },
+            "cost": 8200,
+            "description": "Spend a fun-filled day at Tokyo Disneyland."
           },
           {
-            "name": "Lunch at Khao San Road",
+            "name": "Dinner in Odaiba",
             "type": "Food",
-            "startDateTime": "2023-11-03T12:00:00.000Z",
-            "endDateTime": "2023-11-03T13:30:00.000Z",
-            "place": "Khao San Road, Bangkok",
-            "cost": 300,
-            "description": "Enjoy a variety of street food at Khao San Road."
-          },
-          {
-            "name": "Visit MBK Center",
-            "type": "Shopping",
-            "startDateTime": "2023-11-03T15:00:00.000Z",
-            "endDateTime": "2023-11-03T18:00:00.000Z",
-            "place": "Pathum Wan, Bangkok",
-            "cost": 0,
-            "description": "Shop for electronics, clothes, and souvenirs at MBK Center."
+            "startDateTime": "2023-12-03T19:00:00.000Z",
+            "endDateTime": "2023-12-03T21:00:00.000Z",
+            "place": {
+              "name": "Odaiba",
+              "latitude": 35.6195,
+              "longitude": 139.7753,
+              "description": "Enjoy a waterfront dinner in Odaiba."
+            },
+            "cost": 4000,
+            "description": "Enjoy a waterfront dinner in Odaiba."
           }
         ],
         "weather": "Rainy",
-        "temperature": 27,
-        "cost": 500
-      },
-      {
-        "day": 4,
-        "date": "2023-11-04T00:00:00.000Z",
-        "activities": [
-          {
-            "name": "Visit Lumpini Park",
-            "type": "Sightseeing",
-            "startDateTime": "2023-11-04T09:00:00.000Z",
-            "endDateTime": "2023-11-04T11:00:00.000Z",
-            "place": "Pathum Wan, Bangkok",
-            "cost": 0,
-            "description": "Relax and enjoy the greenery at Lumpini Park."
-          },
-          {
-            "name": "Lunch at Terminal 21",
-            "type": "Food",
-            "startDateTime": "2023-11-04T12:00:00.000Z",
-            "endDateTime": "2023-11-04T13:30:00.000Z",
-            "place": "Watthana, Bangkok",
-            "cost": 300,
-            "description": "Enjoy a variety of international cuisines at Terminal 21."
-          },
-          {
-            "name": "Visit Erawan Shrine",
-            "type": "Sightseeing",
-            "startDateTime": "2023-11-04T15:00:00.000Z",
-            "endDateTime": "2023-11-04T16:00:00.000Z",
-            "place": "Pathum Wan, Bangkok",
-            "cost": 0,
-            "description": "Visit the famous Erawan Shrine."
-          }
-        ],
-        "weather": "Sunny",
-        "temperature": 29,
-        "cost": 300
-      },
-      {
-        "day": 5,
-        "date": "2023-11-05T00:00:00.000Z",
-        "activities": [
-          {
-            "name": "Visit Asiatique The Riverfront",
-            "type": "Shopping",
-            "startDateTime": "2023-11-05T09:00:00.000Z",
-            "endDateTime": "2023-11-05T12:00:00.000Z",
-            "place": "Bang Kho Laem, Bangkok",
-            "cost": 0,
-            "description": "Shop and dine at Asiatique The Riverfront."
-          },
-          {
-            "name": "Lunch at Asiatique",
-            "type": "Food",
-            "startDateTime": "2023-11-05T12:00:00.000Z",
-            "endDateTime": "2023-11-05T13:30:00.000Z",
-            "place": "Bang Kho Laem, Bangkok",
-            "cost": 300,
-            "description": "Enjoy a variety of food options at Asiatique."
-          },
-          {
-            "name": "Visit Wat Saket",
-            "type": "Sightseeing",
-            "startDateTime": "2023-11-05T15:00:00.000Z",
-            "endDateTime": "2023-11-05T17:00:00.000Z",
-            "place": "Pom Prap Sattru Phai, Bangkok",
-            "cost": 100,
-            "description": "Visit the Golden Mount at Wat Saket."
-          }
-        ],
-        "weather": "Cloudy",
-        "temperature": 28,
-        "cost": 400
+        "temperature": 12,
+        "cost": 12200
       }
     ],
-    "dayCount": 5,
-    "cost": 2600
-}
+    "dayCount": 3,
+    "cost": 25200
+  }
 `
   );
 }
 
-  debug_test()*/
-
-  app.use(cors())
-  app.use(express.json())
+  debug_test()
 
   // list specific plan accoding to planId
   app.get('/plan/:planId', async (req, res) => {
     const planId = req.params.planId;
 
-    Plan.find({ planId: {$eq: planId} }).populate({path: 'dayList', populate: {path: 'activities', model: 'Activity'}})
+    Plan.find({ planId: {$eq: planId} }).populate({ path: 'dayList', populate: { path: 'activities', model: 'Activity', populate: { path: 'place', model: 'Place' } } })
     .then((data) => {
         console.log(data)
         res.set('Content-Type', 'application/json');
-
         res.json(data);
     })
     .catch((err) => {
@@ -357,7 +355,6 @@ db.once('open', function () {
     Plan.find().sort({planId: -1})
     .then((data) => {
         res.set('Content-Type', 'application/json');
-
         res.json(data[0].planId);
     })
     .catch((err) => {

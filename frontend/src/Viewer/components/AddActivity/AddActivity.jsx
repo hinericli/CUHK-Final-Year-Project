@@ -16,13 +16,7 @@ dayjs.extend(customParseFormat);
 dayjs.extend(toObject)
 
 
-//const regex = /^([1-9]|([012][0-9])|(3[01]))\/([0]{0,1}[1-9]|1[012])\/\d\d\d\d\s([0-1]?[0-9]|2?[0-3]):([0-5]\d)$/   // date format
-
-
 function changeStartDateTime(newStartDateTimeDayJS, setStartDateTimeDayJS, setStartDateTime) {
-    /*if (regex.test(newStartDateTime)) {
-        setStartDateTime({newStartDateTime})
-    }*/
     setStartDateTimeDayJS(newStartDateTimeDayJS)
     setStartDateTime(newStartDateTimeDayJS.toObject())
 }
@@ -53,7 +47,6 @@ const AddActivity = ({
     const [place, setPlace] = React.useState('');
     const [cost, setCost] = React.useState(0);
     const [description, setDescription] = React.useState('');
-
 
     return (
         <>
@@ -172,9 +165,6 @@ const AddActivity = ({
         </Button>
         </>
     )
-
-
 }
-
 
 export default AddActivity;

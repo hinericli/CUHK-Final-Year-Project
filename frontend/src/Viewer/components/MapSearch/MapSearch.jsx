@@ -23,8 +23,6 @@ const MapSearch = ({setActivityPlace}) => {
 
         setCoordinates({lat, lng});
         console.log(coordinates)
-        //console.log(place)
-        //console.log(place.name + ", " + place.formatted_address)
         typeof(setActivityPlace) === 'function' ? setActivityPlace({place}) : console.error("No Set Activity Place Found");
     }
 

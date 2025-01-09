@@ -46,7 +46,7 @@ const Planner = (setCoordinates) => {
     });
     const [showAdditionalInfo, setShowAdditionalInfo] = useState({});
     const [displayingComponent, setDisplayingComponent] = useState('SelectPlan'); // This includes SelectPlan, Planner, AddActivity
-
+    
     // --- Delete Activity ---
     const deleteActivity = (delIndex) => {
         let newActivityList = activityList.filter((_, index) => index !== delIndex)
@@ -56,7 +56,7 @@ const Planner = (setCoordinates) => {
     };
     // ensure that the places updates after the activity list updates (for showing map pins and routes correctly)
     useEffect(() => {
-        setPlaces(activityList.map(activity => activity.place.place))
+        setPlaces(activityList.map(activity => activity.place))
         savePlan(plan)
     }, [activityList])
 
@@ -96,7 +96,7 @@ const Planner = (setCoordinates) => {
             return 0;
         });
         setActivityList(sortedActivities);
-        setPlaces(sortedActivities.map(activity => activity.place.place))
+        setPlaces(sortedActivities.map(activity => activity.place))
         if (plan === null) return
         plan.dayList[currentDay].activities = sortedActivities
         savePlan(plan)
@@ -111,6 +111,18 @@ const Planner = (setCoordinates) => {
         setWeatherData(getWeatherData(22.314162085829565, 113.91225954047268))
         //}
     }, [])
+
+    useEffect(() => {
+        let initialActivityList = [], i = 0;
+        if (plan?.dayList[currentDay] === null) return;
+
+        while (plan?.dayList[currentDay].activities[i] != null) {
+            initialActivityList.push(plan.dayList[currentDay].activities[i]);
+            i++;
+        }
+        setPlaces(initialActivityList.map(activity => activity.place));
+        setActivityList(initialActivityList);
+    }, [plan])
 
     // Change Day
     const switchToPreviousDay = () => {
@@ -189,11 +201,11 @@ const Planner = (setCoordinates) => {
                             <CardContent>
                                 <Typography variant="subtitle1">
                                     {activity.startDateTime? 
-                                        singleDigitTransformer(activity.startDateTime.hours) + ":" + singleDigitTransformer(activity.startDateTime.minutes) : 
+                                        singleDigitTransformer(activity?.startDateTime?.hours) + ":" + singleDigitTransformer(activity?.startDateTime?.minutes) : 
                                         '-'}
                                 </Typography>
                                 <Typography variant="subtitle1">
-                                    {activity.endDateTime ? singleDigitTransformer(activity.endDateTime.hours) + ":" + singleDigitTransformer(activity.endDateTime.minutes) : '-'}
+                                    {activity.endDateTime ? singleDigitTransformer(activity?.endDateTime?.hours) + ":" + singleDigitTransformer(activity?.endDateTime?.minutes) : '-'}
                                 </Typography>
                             </CardContent>
                         </Col>

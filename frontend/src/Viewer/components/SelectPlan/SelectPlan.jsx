@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Card, CardContent } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -24,6 +24,23 @@ const SelectPlan = ({ setDisplayingComponent }) => {
     const [startingDate, setStartDateTime] = useState(null);
     const [endingDate, setEndDateTime] = useState(null);
     const [createdPlans, setCreatedPlans] = useState([]);   // all plans are stored in here
+
+    const fetchPlans = async () => {
+        let dbPlans = [];
+        getMaxPlanId().then(maxId => {
+            for (let i = 1; i <= maxId; i++) {
+                getPlan(i).then(plan => {
+                    dbPlans.push(plan[0]);
+                }).catch(err => {
+                    console.error(err);
+                });
+            }
+        }).then(_ => {
+            setCreatedPlans(dbPlans);
+        }).catch(err => {
+            console.error(err);
+        });
+    }
 
     const handleAddPlan = () => {
         setOpenAddDialog(true);
@@ -61,9 +78,6 @@ const SelectPlan = ({ setDisplayingComponent }) => {
         } catch (error) {
             console.error('Error creating empty Plan object: ', error);
         }
-
-        setCreatedPlans([...createdPlans, plan]);
-
         handleCloseAddDialog();
     };
 
@@ -80,21 +94,7 @@ const SelectPlan = ({ setDisplayingComponent }) => {
     };
 
     useMemo(() => {
-        let dbPlans = [];
-        getMaxPlanId().then(maxId => {
-            for (let i = 1; i <= maxId; i++) {
-                getPlan(i).then(plan => {
-                    dbPlans.push(plan[0]);
-                }).catch(err => {
-                    console.error(err);
-                });
-            }
-        }).then(_ => {
-            setCreatedPlans(dbPlans);
-        }).catch(err => {
-            console.error(err);
-        });
-        
+        fetchPlans();
     }, []);
 
     return (

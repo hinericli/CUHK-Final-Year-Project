@@ -50,8 +50,8 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
             }
 
             if (places.length >= 2) {
-                origin = { lat: Number(places.slice(0, 1)[0].geometry.location.lat()), lng: Number(places.slice(0, 1)[0].geometry.location.lng())}
-                destination = { lat: Number(places.slice(-1)[0].geometry.location.lat()), lng: Number(places.slice(-1)[0].geometry.location.lng())}
+                origin = { lat: Number(places.slice(0, 1)[0].latitude), lng: Number(places.slice(0, 1)[0].longitude)}
+                destination = { lat: Number(places.slice(-1)[0].latitude), lng: Number(places.slice(-1)[0].longitude)}
                 directionsRenderer.setMap(null);
                 drawPath(mapCopy)
             }
@@ -60,7 +60,7 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
                 let tmp = places.slice(1, -1)
 
                 for (let i = 0; i < tmp.length; i++) {
-                    let lat = tmp[i].geometry.location.lat(), lng = tmp[i].geometry.location.lng();
+                    let lat = tmp[i].latitude, lng = tmp[i].longitude;
                     waypts.push({
                         location: new window.google.maps.LatLng(lat,lng)
                     })
@@ -126,8 +126,8 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
                         return (
                             <div 
                                 className={classes.markerContainer}
-                                lat={place.geometry.location.lat()}
-                                lng={place.geometry.location.lng()}
+                                lat={Number(place.latitude)}
+                                lng={Number(place.longitude)}
                                 key={i} >   
                                 <Paper elevation={3} className={classes.paper}>
                                     <Typography className={classes.typography} variant="subtitle2" gutterBottom>

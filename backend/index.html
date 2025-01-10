@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Debugger</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        textarea { width: 100%; height: 150px; }
+        button { margin-top: 10px; }
+        pre { background: #f4f4f4; padding: 10px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+
+<h1>API Debugger</h1>
+
+<h2>Get Plan by ID</h2>
+<input type="text" id="getPlanId" placeholder="Enter Plan ID">
+<button onclick="getPlan()">Get Plan</button>
+<pre id="getPlanResponse"></pre>
+
+<h2>Get Max Plan ID</h2>
+<button onclick="getMaxPlanId()">Get Max Plan ID</button>
+<pre id="maxPlanResponse"></pre>
+
+<h2>Add New Plan</h2>
+<textarea id="newPlanData" placeholder='{"name":"New Plan","startingDate":"2023-12-01T00:00:00.000Z","endingDate":"2023-12-03T23:59:59.000Z","dayList":[],"dayCount":3,"cost":0}'></textarea>
+<button onclick="addNewPlan()">Add Plan</button>
+<pre id="addPlanResponse"></pre>
+
+<h2>Update Plan</h2>
+<input type="text" id="updatePlanId" placeholder="Enter Plan ID">
+<textarea id="updatePlanData" placeholder='{"name":"Updated Plan","cost":500}'></textarea>
+<button onclick="updatePlan()">Update Plan</button>
+<pre id="updatePlanResponse"></pre>
+
+<script>
+    async function fetchData(url, method = 'GET', body = null) {
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: body ? JSON.stringify(body) : null,
+        };
+        const response = await fetch(url, options);
+        return response.json();
+    }
+
+    async function getPlan() {
+        const planId = document.getElementById('getPlanId').value;
+        const response = await fetchData(`http://localhost:3000/plan/${planId}`);
+        document.getElementById('getPlanResponse').textContent = JSON.stringify(response, null, 2);
+    }
+
+    async function getMaxPlanId() {
+        const response = await fetchData('http://localhost:3000/maxPlanId');
+        document.getElementById('maxPlanResponse').textContent = JSON.stringify(response, null, 2);
+    }
+
+    async function addNewPlan() {
+        const newData = document.getElementById('newPlanData').value;
+        const response = await fetchData('http://localhost:3000/plan/', 'POST', JSON.parse(newData));
+        document.getElementById('addPlanResponse').textContent = JSON.stringify(response, null, 2);
+    }
+
+    async function updatePlan() {
+        const planId = document.getElementById('updatePlanId').value;
+        const updateData = document.getElementById('updatePlanData').value;
+        const response = await fetchData(`http://localhost:3000/plan/${planId}`, 'POST', JSON.parse(updateData));
+        document.getElementById('updatePlanResponse').textContent = JSON.stringify(response, null, 2);
+    }
+</script>
+
+</body>
+</html>

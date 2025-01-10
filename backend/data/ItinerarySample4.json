@@ -1,0 +1,339 @@
+{
+    "planId": 4,
+    "name": "7-Day Trip to Canada",
+    "startingDate": "2023-12-01T00:00:00.000Z",
+    "endingDate": "2023-12-07T23:59:59.000Z",
+    "dayList": [
+        {
+            "day": 1,
+            "date": "2023-12-01T00:00:00.000Z",
+            "activities": [
+                {
+                    "name": "Arrive in Toronto",
+                    "type": "Travel",
+                    "startDateTime": "2023-12-01T08:00:00.000Z",
+                    "endDateTime": "2023-12-01T10:00:00.000Z",
+                    "place": {
+                        "name": "Toronto Pearson International Airport",
+                        "latitude": 43.6777,
+                        "longitude": -79.6248,
+                        "description": "Arrive in the vibrant city of Toronto."
+                    },
+                    "cost": 0,
+                    "description": "Transfer to hotel and settle in."
+                },
+                {
+                    "name": "Visit CN Tower",
+                    "type": "Sightseeing",
+                    "startDateTime": "2023-12-01T11:00:00.000Z",
+                    "endDateTime": "2023-12-01T13:00:00.000Z",
+                    "place": {
+                        "name": "CN Tower",
+                        "latitude": 43.6426,
+                        "longitude": -79.3871,
+                        "description": "Enjoy panoramic views of Toronto."
+                    },
+                    "cost": 38,
+                    "description": "Take the elevator to the observation deck."
+                },
+                {
+                    "name": "Dinner at St. Lawrence Market",
+                    "type": "Food",
+                    "startDateTime": "2023-12-01T18:00:00.000Z",
+                    "endDateTime": "2023-12-01T20:00:00.000Z",
+                    "place": {
+                        "name": "St. Lawrence Market",
+                        "latitude": 43.6480,
+                        "longitude": -79.3724,
+                        "description": "Explore local delicacies."
+                    },
+                    "cost": 50,
+                    "description": "Enjoy a variety of local foods."
+                }
+            ],
+            "weather": "Cloudy",
+            "temperature": 2,
+            "cost": 88
+        },
+        {
+            "day": 2,
+            "date": "2023-12-02T00:00:00.000Z",
+            "activities": [
+                {
+                    "name": "Day Trip to Niagara Falls",
+                    "type": "Sightseeing",
+                    "startDateTime": "2023-12-02T08:00:00.000Z",
+                    "endDateTime": "2023-12-02T17:00:00.000Z",
+                    "place": {
+                        "name": "Niagara Falls",
+                        "latitude": 43.0962,
+                        "longitude": -79.0377,
+                        "description": "Witness the stunning waterfalls."
+                    },
+                    "cost": 100,
+                    "description": "Take a guided tour of Niagara Falls."
+                },
+                {
+                    "name": "Lunch at Niagara Falls",
+                    "type": "Food",
+                    "startDateTime": "2023-12-02T12:00:00.000Z",
+                    "endDateTime": "2023-12-02T13:00:00.000Z",
+                    "place": {
+                        "name": "Restaurant overlooking the Falls",
+                        "latitude": 43.0962,
+                        "longitude": -79.0377,
+                        "description": "Enjoy lunch with a view."
+                    },
+                    "cost": 40,
+                    "description": "Experience dining with a breathtaking view."
+                }
+            ],
+            "weather": "Sunny",
+            "temperature": 5,
+            "cost": 140
+        },
+        {
+            "day": 3,
+            "date": "2023-12-03T00:00:00.000Z",
+            "activities": [
+                {
+                    "name": "Fly to Vancouver",
+                    "type": "Travel",
+                    "startDateTime": "2023-12-03T09:00:00.000Z",
+                    "endDateTime": "2023-12-03T11:00:00.000Z",
+                    "place": {
+                        "name": "Vancouver International Airport",
+                        "latitude": 49.1947,
+                        "longitude": -123.1832,
+                        "description": "Arrive in beautiful Vancouver."
+                    },
+                    "cost": 150,
+                    "description": "Transfer to hotel."
+                },
+                {
+                    "name": "Visit Stanley Park",
+                    "type": "Sightseeing",
+                    "startDateTime": "2023-12-03T12:00:00.000Z",
+                    "endDateTime": "2023-12-03T14:00:00.000Z",
+                    "place": {
+                        "name": "Stanley Park",
+                        "latitude": 49.3043,
+                        "longitude": -123.1444,
+                        "description": "Explore the park's beautiful trails."
+                    },
+                    "cost": 0,
+                    "description": "Enjoy walking or biking around the park."
+                },
+                {
+                    "name": "Dinner at Granville Island",
+                    "type": "Food",
+                    "startDateTime": "2023-12-03T18:00:00.000Z",
+                    "endDateTime": "2023-12-03T20:00:00.000Z",
+                    "place": {
+                        "name": "Granville Island Public Market",
+                        "latitude": 49.2714,
+                        "longitude": -123.1340,
+                        "description": "Taste local cuisines."
+                    },
+                    "cost": 60,
+                    "description": "Explore the market and enjoy dinner."
+                }
+            ],
+            "weather": "Rainy",
+            "temperature": 6,
+            "cost": 210
+        },
+        {
+            "day": 4,
+            "date": "2023-12-04T00:00:00.000Z",
+            "activities": [
+                {
+                    "name": "Visit Capilano Suspension Bridge",
+                    "type": "Sightseeing",
+                    "startDateTime": "2023-12-04T09:00:00.000Z",
+                    "endDateTime": "2023-12-04T12:00:00.000Z",
+                    "place": {
+                        "name": "Capilano Suspension Bridge Park",
+                        "latitude": 49.3043,
+                        "longitude": -123.1145,
+                        "description": "Walk across the famous bridge."
+                    },
+                    "cost": 54,
+                    "description": "Experience the thrill of the suspension bridge."
+                },
+                {
+                    "name": "Lunch at a Local Café",
+                    "type": "Food",
+                    "startDateTime": "2023-12-04T12:30:00.000Z",
+                    "endDateTime": "2023-12-04T13:30:00.000Z",
+                    "place": {
+                        "name": "Local Café",
+                        "latitude": 49.3043,
+                        "longitude": -123.1145,
+                        "description": "Enjoy a cozy lunch."
+                    },
+                    "cost": 30,
+                    "description": "Relax and recharge."
+                },
+                {
+                    "name": "Explore Gastown",
+                    "type": "Sightseeing",
+                    "startDateTime": "2023-12-04T14:00:00.000Z",
+                    "endDateTime": "2023-12-04T16:00:00.000Z",
+                    "place": {
+                        "name": "Gastown",
+                        "latitude": 49.2835,
+                        "longitude": -123.1105,
+                        "description": "Visit the historic district."
+                    },
+                    "cost": 0,
+                    "description": "Discover shops and the famous steam clock."
+                }
+            ],
+            "weather": "Sunny",
+            "temperature": 7,
+            "cost": 84
+        },
+        {
+            "day": 5,
+            "date": "2023-12-05T00:00:00.000Z",
+            "activities": [
+                {
+                    "name": "Day Trip to Whistler",
+                    "type": "Sightseeing",
+                    "startDateTime": "2023-12-05T08:00:00.000Z",
+                    "endDateTime": "2023-12-05T18:00:00.000Z",
+                    "place": {
+                        "name": "Whistler",
+                        "latitude": 50.1163,
+                        "longitude": -122.9574,
+                        "description": "Explore the famous ski resort."
+                    },
+                    "cost": 120,
+                    "description": "Enjoy skiing or snowboarding."
+                },
+                {
+                    "name": "Lunch in Whistler Village",
+                    "type": "Food",
+                    "startDateTime": "2023-12-05T12:00:00.000Z",
+                    "endDateTime": "2023-12-05T13:00:00.000Z",
+                    "place": {
+                        "name": "Whistler Village",
+                        "latitude": 50.1163,
+                        "longitude": -122.9574,
+                        "description": "Enjoy lunch with mountain views."
+                    },
+                    "cost": 50,
+                    "description": "Relax and enjoy the village atmosphere."
+                }
+            ],
+            "weather": "Sunny",
+            "temperature": 5,
+            "cost": 170
+        },
+        {
+            "day": 6,
+            "date": "2023-12-06T00:00:00.000Z",
+            "activities": [
+                {
+                    "name": "Fly to Montreal",
+                    "type": "Travel",
+                    "startDateTime": "2023-12-06T09:00:00.000Z",
+                    "endDateTime": "2023-12-06T11:00:00.000Z",
+                    "place": {
+                        "name": "Montréal-Pierre Elliott Trudeau International Airport",
+                        "latitude": 45.4695,
+                        "longitude": -73.7406,
+                        "description": "Arrive in vibrant Montreal."
+                    },
+                    "cost": 150,
+                    "description": "Transfer to hotel."
+                },
+                {
+                    "name": "Explore Old Montreal",
+                    "type": "Sightseeing",
+                    "startDateTime": "2023-12-06T12:00:00.000Z",
+                    "endDateTime": "2023-12-06T15:00:00.000Z",
+                    "place": {
+                        "name": "Old Montreal",
+                        "latitude": 45.5049,
+                        "longitude": -73.5569,
+                        "description": "Walk through historic streets."
+                    },
+                    "cost": 0,
+                    "description": "Discover charming shops and cafés."
+                },
+                {
+                    "name": "Dinner at a French Bistro",
+                    "type": "Food",
+                    "startDateTime": "2023-12-06T18:00:00.000Z",
+                    "endDateTime": "2023-12-06T20:00:00.000Z",
+                    "place": {
+                        "name": "French Bistro",
+                        "latitude": 45.5049,
+                        "longitude": -73.5569,
+                        "description": "Enjoy authentic French cuisine."
+                    },
+                    "cost": 80,
+                    "description": "Savor traditional dishes."
+                }
+            ],
+            "weather": "Snowy",
+            "temperature": -1,
+            "cost": 380
+        },
+        {
+            "day": 7,
+            "date": "2023-12-07T00:00:00.000Z",
+            "activities": [
+                {
+                    "name": "Visit Mount Royal",
+                    "type": "Sightseeing",
+                    "startDateTime": "2023-12-07T09:00:00.000Z",
+                    "endDateTime": "2023-12-07T11:00:00.000Z",
+                    "place": {
+                        "name": "Mount Royal Park",
+                        "latitude": 45.5078,
+                        "longitude": -73.5878,
+                        "description": "Enjoy views of the city."
+                    },
+                    "cost": 0,
+                    "description": "Hike or walk through the park."
+                },
+                {
+                    "name": "Lunch at Schwartz's Deli",
+                    "type": "Food",
+                    "startDateTime": "2023-12-07T12:00:00.000Z",
+                    "endDateTime": "2023-12-07T13:30:00.000Z",
+                    "place": {
+                        "name": "Schwartz's Deli",
+                        "latitude": 45.5128,
+                        "longitude": -73.5759,
+                        "description": "Famous for smoked meat sandwiches."
+                    },
+                    "cost": 25,
+                    "description": "Experience a Montreal classic."
+                },
+                {
+                    "name": "Departure from Montreal",
+                    "type": "Travel",
+                    "startDateTime": "2023-12-07T15:00:00.000Z",
+                    "endDateTime": "2023-12-07T17:00:00.000Z",
+                    "place": {
+                        "name": "Montréal-Pierre Elliott Trudeau International Airport",
+                        "latitude": 45.4695,
+                        "longitude": -73.7406,
+                        "description": "End of trip."
+                    },
+                    "cost": 0,
+                    "description": "Travel back home."
+                }
+            ],
+            "weather": "Sunny",
+            "temperature": 2,
+            "cost": 25
+        }
+    ],
+    "dayCount": 7,
+    "cost": 1457
+}

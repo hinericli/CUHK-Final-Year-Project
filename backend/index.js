@@ -135,7 +135,7 @@ db.once('open', function () {
     try {
       const jsonData = JSON.parse(jsonString);
   
-      // First, save the places and create a mapping of place names to their ObjectIds
+      // Save the places and create a mapping of place names to their ObjectIds
       const places = await Promise.all(jsonData.dayList.flatMap(day => 
         day.activities.map(activityData => {
           const newPlace = new Place(activityData.place);
@@ -365,8 +365,19 @@ function debug_test() {
 
   })
 
-  // add new plan to database
+  // load JSON plan to database
   app.post('/plan/', async (req, res) => {
+    try {
+      parseJSON(JSON.stringify(req.body));
+    } catch (err) {
+        res.status(500).json({ error: 'Could not add plan' });
+    }
+  });
+
+
+  // add new empty plan to database
+  app.post('/newPlan/', async (req, res) => {
+    console.log(req.body)
     const { name, startingDate, endingDate, dayList, dayCount, cost } = req.body;
 
     try {
@@ -375,7 +386,7 @@ function debug_test() {
         res.set('Content-Type', 'text/plain')
         console.log(name, startingDate, endingDate, dayList, dayCount, cost);
 
-        const emptyPlan = new Plan(
+        const newPlan = new Plan(
           {
             planId: response[0].planId + 1,
             name: name,
@@ -387,16 +398,44 @@ function debug_test() {
           }
         );
 
-        emptyPlan.save().then(() => {
-            console.log("Successfully added new empty plan to the database");
+        newPlan.save().then(() => {
+            console.log("Successfully added new plan to the database");
         }).then(() => {
-            res.status(201).send("/plan/" + emptyPlan.planId)
-        }).catch((err)=>console.log("Failed to create new empty plan. ", err))
+            res.status(201).send("/plan/" + newPlan.planId)
+        }).catch((err)=>console.log("Failed to create new plan. ", err))
       });
     } catch (err) {
-        res.status(500).json({ error: 'Could not create empty plan' });
+        res.status(500).json({ error: 'Could not create plan' });
     }
   });
+
+  app.post('/plan/:planId', async (req, res) => {
+    const planId = req.params.planId;
+    const updatedData = req.body;
+
+    try {
+        // Validate the incoming data if necessary
+        // For example, you can check if required fields are present
+
+        // Update the plan in the database
+        const updatedPlan = await Plan.findByIdAndUpdate(planId, updatedData, {
+            new: true, // Return the updated document
+            runValidators: true // Ensure the updated data meets schema validation
+        });
+
+        // Check if the plan was found and updated
+        if (!updatedPlan) {
+            return res.status(404).json({ message: 'Plan not found' });
+        }
+
+        // Return the updated plan
+        res.status(200).json(updatedPlan);
+    } catch (error) {
+        // Handle errors (e.g., validation errors, database errors)
+        console.error(error);
+        res.status(500).json({ message: 'Error updating plan', error: error.message });
+    }
+});
 
   // handle ALL requests
   app.all('/*', (req, res) => {

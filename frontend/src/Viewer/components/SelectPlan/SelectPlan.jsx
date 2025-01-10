@@ -55,7 +55,7 @@ const SelectPlan = ({ setDisplayingComponent }) => {
 
     const handleSaveNewPlan = async () => {
         try {
-            const response = await fetch('http://localhost:3000/plan/', {
+            const response = await fetch('http://localhost:3000/newPlan/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

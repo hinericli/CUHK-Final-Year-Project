@@ -1,110 +1,238 @@
 {
-  "planId": 1,
-  "name": "3-Day Trip to Tokyo",
-  "startingDate": "2023-12-01T00:00:00.000Z",
-  "endingDate": "2023-12-03T23:59:59.000Z",
-  "dayList": [
-    {
-      "day": 1,
-      "date": "2023-12-01T00:00:00.000Z",
-      "activities": [
-        {
-          "name": "Visit Senso-ji Temple",
-          "type": "Sightseeing",
-          "startDateTime": "2023-12-01T09:00:00.000Z",
-          "endDateTime": "2023-12-01T11:00:00.000Z",
-          "place": "Asakusa, Tokyo",
-          "cost": 0,
-          "description": "Explore the historic Senso-ji Temple and its surroundings."
-        },
-        {
-          "name": "Lunch at Tsukiji Outer Market",
-          "type": "Food",
-          "startDateTime": "2023-12-01T12:00:00.000Z",
-          "endDateTime": "2023-12-01T13:30:00.000Z",
-          "place": "Tsukiji, Tokyo",
-          "cost": 2000,
-          "description": "Enjoy fresh sushi and other local delicacies."
-        },
-        {
-          "name": "Tokyo Skytree Visit",
-          "type": "Sightseeing",
-          "startDateTime": "2023-12-01T15:00:00.000Z",
-          "endDateTime": "2023-12-01T17:00:00.000Z",
-          "place": "Sumida, Tokyo",
-          "cost": 3000,
-          "description": "Get a panoramic view of Tokyo from the Skytree observation deck."
-        }
-      ],
-      "weather": "Sunny",
-      "temperature": 15,
-      "cost": 5000
-    },
-    {
-      "day": 2,
-      "date": "2023-12-02T00:00:00.000Z",
-      "activities": [
-        {
-          "name": "Visit Meiji Shrine",
-          "type": "Sightseeing",
-          "startDateTime": "2023-12-02T09:00:00.000Z",
-          "endDateTime": "2023-12-02T11:00:00.000Z",
-          "place": "Shibuya, Tokyo",
-          "cost": 0,
-          "description": "Explore the serene Meiji Shrine and its forested surroundings."
-        },
-        {
-          "name": "Shopping in Harajuku",
-          "type": "Shopping",
-          "startDateTime": "2023-12-02T12:00:00.000Z",
-          "endDateTime": "2023-12-02T14:00:00.000Z",
-          "place": "Harajuku, Tokyo",
-          "cost": 5000,
-          "description": "Shop for trendy fashion and unique souvenirs in Harajuku."
-        },
-        {
-          "name": "Dinner in Shibuya",
-          "type": "Food",
-          "startDateTime": "2023-12-02T19:00:00.000Z",
-          "endDateTime": "2023-12-02T21:00:00.000Z",
-          "place": "Shibuya, Tokyo",
-          "cost": 3000,
-          "description": "Enjoy a delicious dinner in the bustling Shibuya district."
-        }
-      ],
-      "weather": "Cloudy",
-      "temperature": 13,
-      "cost": 8000
-    },
-    {
-      "day": 3,
-      "date": "2023-12-03T00:00:00.000Z",
-      "activities": [
-        {
-          "name": "Visit Tokyo Disneyland",
-          "type": "Entertainment",
-          "startDateTime": "2023-12-03T09:00:00.000Z",
-          "endDateTime": "2023-12-03T18:00:00.000Z",
-          "place": "Urayasu, Chiba",
-          "cost": 8200,
-          "description": "Spend a fun-filled day at Tokyo Disneyland."
-        },
-        {
-          "name": "Dinner in Odaiba",
-          "type": "Food",
-          "startDateTime": "2023-12-03T19:00:00.000Z",
-          "endDateTime": "2023-12-03T21:00:00.000Z",
-          "place": "Odaiba, Tokyo",
-          "cost": 4000,
-          "description": "Enjoy a waterfront dinner in Odaiba."
-        }
-      ],
-      "weather": "Rainy",
-      "temperature": 12,
-      "cost": 12200
-    }
-  ],
-  "dayCount": 3,
-  "cost": 25200
+    "planId": 1,
+    "name": "2-Day Trip to Hong Kong",
+    "startingDate": "2023-11-01T00:00:00.000Z",
+    "endingDate": "2023-11-02T23:59:59.000Z",
+    "dayList": [
+      {
+        "day": 1,
+        "date": "2023-11-01T00:00:00.000Z",
+        "activities": [
+          {
+            "name": "Breakfast at Australia Dairy Company",
+            "type": "Food",
+            "startDateTime": "2023-11-01T08:00:00.000Z",
+            "endDateTime": "2023-11-01T09:00:00.000Z",
+            "place": {
+              "name": "Australia Dairy Company",
+              "latitude": 22.3024,
+              "longitude": 114.1734,
+              "description": "Start your day with a classic Hong Kong breakfast."
+            },
+            "cost": 100,
+            "description": "Enjoy Hong Kong-style toast and milk tea."
+          },
+          {
+            "name": "Visit Victoria Peak",
+            "type": "Sightseeing",
+            "startDateTime": "2023-11-01T09:30:00.000Z",
+            "endDateTime": "2023-11-01T11:00:00.000Z",
+            "place": {
+              "name": "Victoria Peak",
+              "latitude": 22.2755,
+              "longitude": 114.1450,
+              "description": "Take the Peak Tram for stunning views."
+            },
+            "cost": 50,
+            "description": "Experience breathtaking views of Hong Kong."
+          },
+          {
+            "name": "Explore the Hong Kong Museum of History",
+            "type": "Cultural",
+            "startDateTime": "2023-11-01T11:30:00.000Z",
+            "endDateTime": "2023-11-01T13:00:00.000Z",
+            "place": {
+              "name": "Hong Kong Museum of History",
+              "latitude": 22.3022,
+              "longitude": 114.1738,
+              "description": "Discover Hong Kong's rich heritage."
+            },
+            "cost": 20,
+            "description": "Engage with fascinating exhibits."
+          },
+          {
+            "name": "Lunch at Tim Ho Wan",
+            "type": "Food",
+            "startDateTime": "2023-11-01T13:30:00.000Z",
+            "endDateTime": "2023-11-01T14:30:00.000Z",
+            "place": {
+              "name": "Tim Ho Wan",
+              "latitude": 22.2865,
+              "longitude": 114.1577,
+              "description": "Enjoy Michelin-starred dim sum."
+            },
+            "cost": 200,
+            "description": "Savor delicious dim sum."
+          },
+          {
+            "name": "Stroll through Tsim Sha Tsui Promenade",
+            "type": "Sightseeing",
+            "startDateTime": "2023-11-01T15:00:00.000Z",
+            "endDateTime": "2023-11-01T16:30:00.000Z",
+            "place": {
+              "name": "Tsim Sha Tsui Promenade",
+              "latitude": 22.2955,
+              "longitude": 114.1728,
+              "description": "Walk along the waterfront."
+            },
+            "cost": 0,
+            "description": "Take in views of the skyline."
+          },
+          {
+            "name": "Dinner at Temple Street Night Market",
+            "type": "Food",
+            "startDateTime": "2023-11-01T18:00:00.000Z",
+            "endDateTime": "2023-11-01T20:00:00.000Z",
+            "place": {
+              "name": "Temple Street Night Market",
+              "latitude": 22.3132,
+              "longitude": 114.1863,
+              "description": "Experience local street food."
+            },
+            "cost": 150,
+            "description": "Enjoy vibrant street food atmosphere."
+          },
+          {
+            "name": "Night View from Sky100",
+            "type": "Sightseeing",
+            "startDateTime": "2023-11-01T20:30:00.000Z",
+            "endDateTime": "2023-11-01T22:00:00.000Z",
+            "place": {
+              "name": "Sky100",
+              "latitude": 22.3652,
+              "longitude": 114.1694,
+              "description": "Panoramic views from the 100th floor."
+            },
+            "cost": 200,
+            "description": "End your day with stunning city views."
+          }
+        ],
+        "weather": "Sunny",
+        "temperature": 30,
+        "cost": 820
+      },
+      {
+        "day": 2,
+        "date": "2023-11-02T00:00:00.000Z",
+        "activities": [
+          {
+            "name": "Breakfast at a Local Cha Chaan Teng",
+            "type": "Food",
+            "startDateTime": "2023-11-02T08:00:00.000Z",
+            "endDateTime": "2023-11-02T09:00:00.000Z",
+            "place": {
+              "name": "Local Cha Chaan Teng",
+              "latitude": 22.3024,
+              "longitude": 114.1734,
+              "description": "Enjoy a traditional Hong Kong breakfast."
+            },
+            "cost": 80,
+            "description": "Savor milk tea and macaroni soup."
+          },
+          {
+            "name": "Visit Wong Tai Sin Temple",
+            "type": "Sightseeing",
+            "startDateTime": "2023-11-02T09:30:00.000Z",
+            "endDateTime": "2023-11-02T10:30:00.000Z",
+            "place": {
+              "name": "Wong Tai Sin Temple",
+              "latitude": 22.9995,
+              "longitude": 114.1952,
+              "description": "Explore this famous temple."
+            },
+            "cost": 0,
+            "description": "Experience fortune-telling and beautiful architecture."
+          },
+          {
+            "name": "Explore the Nan Lian Garden",
+            "type": "Sightseeing",
+            "startDateTime": "2023-11-02T11:00:00.000Z",
+            "endDateTime": "2023-11-02T12:30:00.000Z",
+            "place": {
+              "name": "Nan Lian Garden",
+              "latitude": 22.3393,
+              "longitude": 114.1974,
+              "description": "Wander through this beautifully landscaped garden."
+            },
+            "cost": 0,
+            "description": "Enjoy serene landscapes and traditional architecture."
+          },
+          {
+            "name": "Lunch at Mido Cafe",
+            "type": "Food",
+            "startDateTime": "2023-11-02T13:00:00.000Z",
+            "endDateTime": "2023-11-02T14:00:00.000Z",
+            "place": {
+              "name": "Mido Cafe",
+              "latitude": 22.3184,
+              "longitude": 114.1690,
+              "description": "Savor classic Hong Kong café dishes."
+            },
+            "cost": 150,
+            "description": "Enjoy curry beef brisket and egg tarts."
+          },
+          {
+            "name": "Visit the Hong Kong Science Museum",
+            "type": "Cultural",
+            "startDateTime": "2023-11-02T14:30:00.000Z",
+            "endDateTime": "2023-11-02T16:00:00.000Z",
+            "place": {
+              "name": "Hong Kong Science Museum",
+              "latitude": 22.3022,
+              "longitude": 114.1740,
+              "description": "Engage with interactive science exhibits."
+            },
+            "cost": 30,
+            "description": "Make science fun and engaging."
+          },
+          {
+            "name": "Take a Star Ferry Ride",
+            "type": "Sightseeing",
+            "startDateTime": "2023-11-02T16:30:00.000Z",
+            "endDateTime": "2023-11-02T17:00:00.000Z",
+            "place": {
+              "name": "Star Ferry",
+              "latitude": 22.2968,
+              "longitude": 114.1691,
+              "description": "Enjoy a scenic ferry ride across the harbor."
+            },
+            "cost": 5,
+            "description": "Experience the iconic ferry ride."
+          },
+          {
+            "name": "Shopping at Mong Kok",
+            "type": "Shopping",
+            "startDateTime": "2023-11-02T17:30:00.000Z",
+            "endDateTime": "2023-11-02T19:00:00.000Z",
+            "place": {
+              "name": "Mong Kok",
+              "latitude": 22.3193,
+              "longitude": 114.1694,
+              "description": "Explore the vibrant shopping streets."
+            },
+            "cost": 0,
+            "description": "Shop for unique items and souvenirs."
+          },
+          {
+            "name": "Dinner at a Rooftop Restaurant",
+            "type": "Food",
+            "startDateTime": "2023-11-02T19:30:00.000Z",
+            "endDateTime": "2023-11-02T21:00:00.000Z",
+            "place": {
+              "name": "Rooftop Restaurant",
+              "latitude": 22.3652,
+              "longitude": 114.1694,
+              "description": "Enjoy dinner with stunning views."
+            },
+            "cost": 300,
+            "description": "End your trip with a memorable dining experience."
+          }
+        ],
+        "weather": "Cloudy",
+        "temperature": 28,
+        "cost": 715
+      }
+    ],
+    "dayCount": 2,
+    "cost": 1535
 }
-

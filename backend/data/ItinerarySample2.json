@@ -1,190 +1,265 @@
 {
-    "planId": 2,
-    "name": "5-Day Trip to Bangkok",
-    "startingDate": "2023-11-01T00:00:00.000Z",
-    "endingDate": "2023-11-05T23:59:59.000Z",
-    "dayList": [
-      {
-        "day": 1,
-        "date": "2023-11-01T00:00:00.000Z",
-        "activities": [
-          {
-            "name": "Visit Grand Palace",
-            "type": "Sightseeing",
-            "startDateTime": "2023-11-01T09:00:00.000Z",
-            "endDateTime": "2023-11-01T12:00:00.000Z",
-            "place": "Phra Nakhon, Bangkok",
-            "cost": 500,
+  "planId": 2,
+  "name": "5-Day Trip to Bangkok",
+  "startingDate": "2023-11-01T00:00:00.000Z",
+  "endingDate": "2023-11-05T23:59:59.000Z",
+  "dayList": [
+    {
+      "day": 1,
+      "date": "2023-11-01T00:00:00.000Z",
+      "activities": [
+        {
+          "name": "Visit Grand Palace",
+          "type": "Sightseeing",
+          "startDateTime": "2023-11-01T09:00:00.000Z",
+          "endDateTime": "2023-11-01T12:00:00.000Z",
+          "place": {
+            "name": "Grand Palace",
+            "latitude": 13.7500,
+            "longitude": 100.4910,
             "description": "Explore the historic Grand Palace and its beautiful architecture."
           },
-          {
-            "name": "Lunch at Chinatown",
-            "type": "Food",
-            "startDateTime": "2023-11-01T13:00:00.000Z",
-            "endDateTime": "2023-11-01T14:30:00.000Z",
-            "place": "Chinatown, Bangkok",
-            "cost": 300,
+          "cost": 500,
+          "description": "Explore the historic Grand Palace and its beautiful architecture."
+        },
+        {
+          "name": "Lunch at Chinatown",
+          "type": "Food",
+          "startDateTime": "2023-11-01T13:00:00.000Z",
+          "endDateTime": "2023-11-01T14:30:00.000Z",
+          "place": {
+            "name": "Chinatown",
+            "latitude": 13.7360,
+            "longitude": 100.5140,
             "description": "Enjoy delicious street food in Chinatown."
           },
-          {
-            "name": "Visit Wat Arun",
-            "type": "Sightseeing",
-            "startDateTime": "2023-11-01T15:00:00.000Z",
-            "endDateTime": "2023-11-01T17:00:00.000Z",
-            "place": "Wat Arun, Bangkok",
-            "cost": 100,
+          "cost": 300,
+          "description": "Enjoy delicious street food in Chinatown."
+        },
+        {
+          "name": "Visit Wat Arun",
+          "type": "Sightseeing",
+          "startDateTime": "2023-11-01T15:00:00.000Z",
+          "endDateTime": "2023-11-01T17:00:00.000Z",
+          "place": {
+            "name": "Wat Arun",
+            "latitude": 13.7436,
+            "longitude": 100.4882,
             "description": "Visit the iconic Wat Arun temple."
-          }
-        ],
-        "weather": "Sunny",
-        "temperature": 30,
-        "cost": 900
-      },
-      {
-        "day": 2,
-        "date": "2023-11-02T00:00:00.000Z",
-        "activities": [
-          {
-            "name": "Visit Chatuchak Weekend Market",
-            "type": "Shopping",
-            "startDateTime": "2023-11-02T09:00:00.000Z",
-            "endDateTime": "2023-11-02T12:00:00.000Z",
-            "place": "Chatuchak, Bangkok",
-            "cost": 0,
+          },
+          "cost": 100,
+          "description": "Visit the iconic Wat Arun temple."
+        }
+      ],
+      "weather": "Sunny",
+      "temperature": 30,
+      "cost": 900
+    },
+    {
+      "day": 2,
+      "date": "2023-11-02T00:00:00.000Z",
+      "activities": [
+        {
+          "name": "Visit Chatuchak Weekend Market",
+          "type": "Shopping",
+          "startDateTime": "2023-11-02T09:00:00.000Z",
+          "endDateTime": "2023-11-02T12:00:00.000Z",
+          "place": {
+            "name": "Chatuchak Weekend Market",
+            "latitude": 13.8000,
+            "longitude": 100.5600,
             "description": "Shop for unique items at the Chatuchak Weekend Market."
           },
-          {
-            "name": "Lunch at Or Tor Kor Market",
-            "type": "Food",
-            "startDateTime": "2023-11-02T13:00:00.000Z",
-            "endDateTime": "2023-11-02T14:30:00.000Z",
-            "place": "Chatuchak, Bangkok",
-            "cost": 300,
+          "cost": 0,
+          "description": "Shop for unique items at the Chatuchak Weekend Market."
+        },
+        {
+          "name": "Lunch at Or Tor Kor Market",
+          "type": "Food",
+          "startDateTime": "2023-11-02T13:00:00.000Z",
+          "endDateTime": "2023-11-02T14:30:00.000Z",
+          "place": {
+            "name": "Or Tor Kor Market",
+            "latitude": 13.8000,
+            "longitude": 100.5580,
             "description": "Enjoy fresh and delicious food at Or Tor Kor Market."
           },
-          {
-            "name": "Visit Jim Thompson House",
-            "type": "Sightseeing",
-            "startDateTime": "2023-11-02T15:00:00.000Z",
-            "endDateTime": "2023-11-02T17:00:00.000Z",
-            "place": "Pathum Wan, Bangkok",
-            "cost": 200,
+          "cost": 300,
+          "description": "Enjoy fresh and delicious food at Or Tor Kor Market."
+        },
+        {
+          "name": "Visit Jim Thompson House",
+          "type": "Sightseeing",
+          "startDateTime": "2023-11-02T15:00:00.000Z",
+          "endDateTime": "2023-11-02T17:00:00.000Z",
+          "place": {
+            "name": "Jim Thompson House",
+            "latitude": 13.7466,
+            "longitude": 100.5270,
             "description": "Explore the Jim Thompson House and its beautiful gardens."
-          }
-        ],
-        "weather": "Cloudy",
-        "temperature": 28,
-        "cost": 500
-      },
-      {
-        "day": 3,
-        "date": "2023-11-03T00:00:00.000Z",
-        "activities": [
-          {
-            "name": "Visit Wat Pho",
-            "type": "Sightseeing",
-            "startDateTime": "2023-11-03T09:00:00.000Z",
-            "endDateTime": "2023-11-03T11:00:00.000Z",
-            "place": "Phra Nakhon, Bangkok",
-            "cost": 200,
+          },
+          "cost": 200,
+          "description": "Explore the Jim Thompson House and its beautiful gardens."
+        }
+      ],
+      "weather": "Cloudy",
+      "temperature": 28,
+      "cost": 500
+    },
+    {
+      "day": 3,
+      "date": "2023-11-03T00:00:00.000Z",
+      "activities": [
+        {
+          "name": "Visit Wat Pho",
+          "type": "Sightseeing",
+          "startDateTime": "2023-11-03T09:00:00.000Z",
+          "endDateTime": "2023-11-03T11:00:00.000Z",
+          "place": {
+            "name": "Wat Pho",
+            "latitude": 13.7460,
+            "longitude": 100.4920,
             "description": "Visit the famous Wat Pho temple and see the Reclining Buddha."
           },
-          {
-            "name": "Lunch at Khao San Road",
-            "type": "Food",
-            "startDateTime": "2023-11-03T12:00:00.000Z",
-            "endDateTime": "2023-11-03T13:30:00.000Z",
-            "place": "Khao San Road, Bangkok",
-            "cost": 300,
+          "cost": 200,
+          "description": "Visit the famous Wat Pho temple and see the Reclining Buddha."
+        },
+        {
+          "name": "Lunch at Khao San Road",
+          "type": "Food",
+          "startDateTime": "2023-11-03T12:00:00.000Z",
+          "endDateTime": "2023-11-03T13:30:00.000Z",
+          "place": {
+            "name": "Khao San Road",
+            "latitude": 13.7600,
+            "longitude": 100.4980,
             "description": "Enjoy a variety of street food at Khao San Road."
           },
-          {
-            "name": "Visit MBK Center",
-            "type": "Shopping",
-            "startDateTime": "2023-11-03T15:00:00.000Z",
-            "endDateTime": "2023-11-03T18:00:00.000Z",
-            "place": "Pathum Wan, Bangkok",
-            "cost": 0,
+          "cost": 300,
+          "description": "Enjoy a variety of street food at Khao San Road."
+        },
+        {
+          "name": "Visit MBK Center",
+          "type": "Shopping",
+          "startDateTime": "2023-11-03T15:00:00.000Z",
+          "endDateTime": "2023-11-03T18:00:00.000Z",
+          "place": {
+            "name": "MBK Center",
+            "latitude": 13.7462,
+            "longitude": 100.5325,
             "description": "Shop for electronics, clothes, and souvenirs at MBK Center."
-          }
-        ],
-        "weather": "Rainy",
-        "temperature": 27,
-        "cost": 500
-      },
-      {
-        "day": 4,
-        "date": "2023-11-04T00:00:00.000Z",
-        "activities": [
-          {
-            "name": "Visit Lumpini Park",
-            "type": "Sightseeing",
-            "startDateTime": "2023-11-04T09:00:00.000Z",
-            "endDateTime": "2023-11-04T11:00:00.000Z",
-            "place": "Pathum Wan, Bangkok",
-            "cost": 0,
+          },
+          "cost": 0,
+          "description": "Shop for electronics, clothes, and souvenirs at MBK Center."
+        }
+      ],
+      "weather": "Rainy",
+      "temperature": 27,
+      "cost": 500
+    },
+    {
+      "day": 4,
+      "date": "2023-11-04T00:00:00.000Z",
+      "activities": [
+        {
+          "name": "Visit Lumpini Park",
+          "type": "Sightseeing",
+          "startDateTime": "2023-11-04T09:00:00.000Z",
+          "endDateTime": "2023-11-04T11:00:00.000Z",
+          "place": {
+            "name": "Lumpini Park",
+            "latitude": 13.7333,
+            "longitude": 100.5417,
             "description": "Relax and enjoy the greenery at Lumpini Park."
           },
-          {
-            "name": "Lunch at Terminal 21",
-            "type": "Food",
-            "startDateTime": "2023-11-04T12:00:00.000Z",
-            "endDateTime": "2023-11-04T13:30:00.000Z",
-            "place": "Watthana, Bangkok",
-            "cost": 300,
+          "cost": 0,
+          "description": "Relax and enjoy the greenery at Lumpini Park."
+        },
+        {
+          "name": "Lunch at Terminal 21",
+          "type": "Food",
+          "startDateTime": "2023-11-04T12:00:00.000Z",
+          "endDateTime": "2023-11-04T13:30:00.000Z",
+          "place": {
+            "name": "Terminal 21",
+            "latitude": 13.7366,
+            "longitude": 100.5589,
             "description": "Enjoy a variety of international cuisines at Terminal 21."
           },
-          {
-            "name": "Visit Erawan Shrine",
-            "type": "Sightseeing",
-            "startDateTime": "2023-11-04T15:00:00.000Z",
-            "endDateTime": "2023-11-04T16:00:00.000Z",
-            "place": "Pathum Wan, Bangkok",
-            "cost": 0,
+          "cost": 300,
+          "description": "Enjoy a variety of international cuisines at Terminal 21."
+        },
+        {
+          "name": "Visit Erawan Shrine",
+          "type": "Sightseeing",
+          "startDateTime": "2023-11-04T15:00:00.000Z",
+          "endDateTime": "2023-11-04T16:00:00.000Z",
+          "place": {
+            "name": "Erawan Shrine",
+            "latitude": 13.7450,
+            "longitude": 100.5580,
             "description": "Visit the famous Erawan Shrine."
-          }
-        ],
-        "weather": "Sunny",
-        "temperature": 29,
-        "cost": 300
-      },
-      {
-        "day": 5,
-        "date": "2023-11-05T00:00:00.000Z",
-        "activities": [
-          {
-            "name": "Visit Asiatique The Riverfront",
-            "type": "Shopping",
-            "startDateTime": "2023-11-05T09:00:00.000Z",
-            "endDateTime": "2023-11-05T12:00:00.000Z",
-            "place": "Bang Kho Laem, Bangkok",
-            "cost": 0,
+          },
+          "cost": 0,
+          "description": "Visit the famous Erawan Shrine."
+        }
+      ],
+      "weather": "Sunny",
+      "temperature": 29,
+      "cost": 300
+    },
+    {
+      "day": 5,
+      "date": "2023-11-05T00:00:00.000Z",
+      "activities": [
+        {
+          "name": "Visit Asiatique The Riverfront",
+          "type": "Shopping",
+          "startDateTime": "2023-11-05T09:00:00.000Z",
+          "endDateTime": "2023-11-05T12:00:00.000Z",
+          "place": {
+            "name": "Asiatique The Riverfront",
+            "latitude": 13.7000,
+            "longitude": 100.5000,
             "description": "Shop and dine at Asiatique The Riverfront."
           },
-          {
-            "name": "Lunch at Asiatique",
-            "type": "Food",
-            "startDateTime": "2023-11-05T12:00:00.000Z",
-            "endDateTime": "2023-11-05T13:30:00.000Z",
-            "place": "Bang Kho Laem, Bangkok",
-            "cost": 300,
+          "cost": 0,
+          "description": "Shop and dine at Asiatique The Riverfront."
+        },
+        {
+          "name": "Lunch at Asiatique",
+          "type": "Food",
+          "startDateTime": "2023-11-05T12:00:00.000Z",
+          "endDateTime": "2023-11-05T13:30:00.000Z",
+          "place": {
+            "name": "Asiatique",
+            "latitude": 13.7000,
+            "longitude": 100.5000,
             "description": "Enjoy a variety of food options at Asiatique."
           },
-          {
-            "name": "Visit Wat Saket",
-            "type": "Sightseeing",
-            "startDateTime": "2023-11-05T15:00:00.000Z",
-            "endDateTime": "2023-11-05T17:00:00.000Z",
-            "place": "Pom Prap Sattru Phai, Bangkok",
-            "cost": 100,
+          "cost": 300,
+          "description": "Enjoy a variety of food options at Asiatique."
+        },
+        {
+          "name": "Visit Wat Saket",
+          "type": "Sightseeing",
+          "startDateTime": "2023-11-05T15:00:00.000Z",
+          "endDateTime": "2023-11-05T17:00:00.000Z",
+          "place": {
+            "name": "Wat Saket",
+            "latitude": 13.7510,
+            "longitude": 100.5060,
             "description": "Visit the Golden Mount at Wat Saket."
-          }
-        ],
-        "weather": "Cloudy",
-        "temperature": 28,
-        "cost": 400
-      }
-    ],
-    "dayCount": 5,
-    "cost": 2600
+          },
+          "cost": 100,
+          "description": "Visit the Golden Mount at Wat Saket."
+        }
+      ],
+      "weather": "Cloudy",
+      "temperature": 28,
+      "cost": 400
+    }
+  ],
+  "dayCount": 5,
+  "cost": 2600
 }

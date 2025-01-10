@@ -7,6 +7,7 @@ import { DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import MapSearch from '../MapSearch/MapSearch';
+import { PlanContext } from '../Planner/Planner';
 
 import useStyle from "./style"
 
@@ -30,6 +31,8 @@ const AddActivity = ({
     setDisplayingComponent, 
     setToBeAddedActivity
 }) => {
+    const { plan, setPlan } = useContext(PlanContext);
+
     const classes = useStyle();
 
     const [name, setName] = React.useState('');
@@ -150,12 +153,18 @@ const AddActivity = ({
             className={classes.finishButton} 
             variant="outlined" 
             onClick={() => {
+                console.log(place)
                 setToBeAddedActivity({
                     name: name,
                     type: type,
                     startDateTime: startDateTime,
                     endDateTime: endDateTime,
-                    place: place,
+                    place: {
+                        name: place.place.name,
+                        latitude: Number(place.place.geometry.location.lat()),
+                        longitude: Number(place.place.geometry.location.lng()),
+                        description: place.place.description
+                    },
                     cost: cost,
                     description: description
                     }

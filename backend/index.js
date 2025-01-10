@@ -176,6 +176,7 @@ db.once('open', function () {
     }
   }
   
+  /*
 function debug_test() {
   parseJSON(
 `
@@ -332,7 +333,7 @@ function debug_test() {
   );
 }
 
-  debug_test()
+  debug_test()*/
 
   // list specific plan accoding to planId
   app.get('/plan/:planId', async (req, res) => {

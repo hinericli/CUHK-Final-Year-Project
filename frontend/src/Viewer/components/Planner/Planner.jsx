@@ -25,7 +25,9 @@ var toObject = require("dayjs/plugin/toObject");
 dayjs.extend(customParseFormat);
 dayjs.extend(toObject)
 
-const savePlan = () => {};  // placeholder
+const savePlan = () => {
+
+};  // placeholder
 
 const Planner = (setCoordinates) => {
     const classes = useStyles();
@@ -64,15 +66,15 @@ const Planner = (setCoordinates) => {
     useMemo(() => {
         // add new activity to activityList
         activityList.push(
-            new Activity(
-                toBeAddedActivity.name,  
-                toBeAddedActivity.type,
-                toBeAddedActivity.startDateTime,
-                toBeAddedActivity.endDateTime,
-                toBeAddedActivity.place,
-                toBeAddedActivity.cost,
-                toBeAddedActivity.description
-            )
+            {
+                name: toBeAddedActivity.name,  
+                type: toBeAddedActivity.type,
+                startDateTime: toBeAddedActivity.startDateTime,
+                endDateTime: toBeAddedActivity.endDateTime,
+                place: toBeAddedActivity.place,
+                cost: toBeAddedActivity.cost,
+                description: toBeAddedActivity.description
+            }
         )
         // sort the activities according to the startDateTime
         let sortedActivities = activityList.sort((a, b) => {
@@ -95,6 +97,7 @@ const Planner = (setCoordinates) => {
             }
             return 0;
         });
+        console.log(sortedActivities)
         setActivityList(sortedActivities);
         setPlaces(sortedActivities.map(activity => activity.place))
         if (plan === null) return
@@ -250,8 +253,7 @@ const Planner = (setCoordinates) => {
         </>
         ,
         "AddActivity": 
-            <AddActivity 
-                setCoordinates={setCoordinates}
+            <AddActivity
                 setDisplayingComponent={setDisplayingComponent}
                 setToBeAddedActivity={setToBeAddedActivity}/>
         ,

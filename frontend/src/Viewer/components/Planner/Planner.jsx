@@ -14,7 +14,7 @@ import { MapPlacesContext } from '../../Viewer';
 import Activity from './Activity';
 import SelectPlan from '../SelectPlan/SelectPlan';
 import { getWeatherData } from '../../../api';
-import { singleDigitTransformer } from '../../../utils/dayjsUtils';
+import { singleDigitTransformer, stringToDate } from '../../../utils/DateUtils';
 import { handlePlaceName } from '../../../utils/placeUtils';
 
 export const PlanContext = createContext();
@@ -158,8 +158,7 @@ const Planner = (setCoordinates) => {
     }
 
     const activityTypeName = ["Restaurant", "Hotel", "Attraction", "Flight", "Others"] 
-    let startingDate = dayjs(plan?.startingDate)
-    let currentDayJS = dayjs(startingDate.add(currentDay, 'day'))
+    let startingDate = dayjs(plan?.startingDate), currentDayJS = dayjs(startingDate.add(currentDay, 'day'));
     const components = {
         "Planner":   
         <>
@@ -191,7 +190,6 @@ const Planner = (setCoordinates) => {
                 <Typography>Activity</Typography>
             </Col>
         </Row>
-        
         {
             activityList?.map((activity, i) => {
                 return (
@@ -200,12 +198,12 @@ const Planner = (setCoordinates) => {
                         <Col xs={4} md={3}>
                             <CardContent>
                                 <Typography variant="subtitle1">
-                                    {activity.startDateTime? 
-                                        singleDigitTransformer(activity?.startDateTime?.hours) + ":" + singleDigitTransformer(activity?.startDateTime?.minutes) : 
-                                        '-'}
+                                    {singleDigitTransformer(stringToDate(plan?.dayList[currentDay]?.activities[i]?.startDateTime)?.hours) + ":"
+                                    + singleDigitTransformer(stringToDate(plan?.dayList[currentDay]?.activities[i]?.startDateTime)?.minutes)}
                                 </Typography>
                                 <Typography variant="subtitle1">
-                                    {activity.endDateTime ? singleDigitTransformer(activity?.endDateTime?.hours) + ":" + singleDigitTransformer(activity?.endDateTime?.minutes) : '-'}
+                                    {singleDigitTransformer(stringToDate(plan?.dayList[currentDay]?.activities[i]?.endDateTime)?.hours) + ":"
+                                    + singleDigitTransformer(stringToDate(plan?.dayList[currentDay]?.activities[i]?.endDateTime)?.minutes)}
                                 </Typography>
                             </CardContent>
                         </Col>

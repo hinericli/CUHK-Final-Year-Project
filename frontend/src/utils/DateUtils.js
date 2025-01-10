@@ -22,5 +22,8 @@ export const stringToDate = (str) => {
     } catch (e) {
         console.error("Unable to convert string to Date, " + e);
     }
-    
 }
+
+export const dayJSObjtoString = (obj) => {
+    return ''+obj.years+'-'+singleDigitTransformer(obj.months+1)+'-'+singleDigitTransformer(obj.date)+'T'+singleDigitTransformer(obj.hours)+':'+singleDigitTransformer(obj.minutes)+':00Z';
+} 

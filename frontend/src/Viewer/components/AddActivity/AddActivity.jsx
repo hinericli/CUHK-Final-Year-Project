@@ -10,6 +10,7 @@ import MapSearch from '../MapSearch/MapSearch';
 import { PlanContext } from '../Planner/Planner';
 
 import useStyle from "./style"
+import { dayJSObjtoString } from '../../../utils/DateUtils';
 
 const customParseFormat = require("dayjs/plugin/customParseFormat");
 const toObject = require("dayjs/plugin/toObject");
@@ -97,7 +98,7 @@ const AddActivity = ({
                 slotProps={{
                     textField: {
                         onBlur: (event) => {
-                            console.log(event.target.value)
+                            //console.log(event.target.value)
                             let dayObj = dayjs(event.target.value, 'DD/MM/YYYY HH:mm')
                             changeStartDateTime(dayObj, setStartDateTimeDayJS, setStartDateTime)
                         }
@@ -153,12 +154,11 @@ const AddActivity = ({
             className={classes.finishButton} 
             variant="outlined" 
             onClick={() => {
-                console.log(place)
                 setToBeAddedActivity({
                     name: name,
                     type: type,
-                    startDateTime: startDateTime,
-                    endDateTime: endDateTime,
+                    startDateTime: dayJSObjtoString(startDateTime),
+                    endDateTime: dayJSObjtoString(endDateTime),
                     place: {
                         name: place.place.name,
                         latitude: Number(place.place.geometry.location.lat()),

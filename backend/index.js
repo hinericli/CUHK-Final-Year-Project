@@ -374,13 +374,14 @@ function debug_test() {
     }
   });
 
-
   // add new empty plan to database
   app.post('/newPlan/', async (req, res) => {
     console.log(req.body)
     const { name, startingDate, endingDate, dayList, dayCount, cost } = req.body;
 
     try {
+      console.log(dayList);
+
       Plan.find().sort({planId: -1}) // sort the documents in descending order by planId
       .then((response) => {
         res.set('Content-Type', 'text/plain')
@@ -388,7 +389,7 @@ function debug_test() {
 
         const newPlan = new Plan(
           {
-            planId: response[0].planId + 1,
+            planId: response[0] ? response[0].planId+1 : 1,
             name: name,
             startingDate: startingDate,
             endingDate: endingDate,
@@ -436,6 +437,60 @@ function debug_test() {
         res.status(500).json({ message: 'Error updating plan', error: error.message });
     }
 });
+
+
+  app.put('/plan/:planId/:day', async (req, res) => {
+    const planId = req.params.planId;
+    const day = req.params.day;
+    const { name, type, startDateTime, endDateTime, place, cost, description } = req.body;
+    //console.log(name, type, startDateTime, endDateTime, place, cost, description)
+
+    Plan.findOne({planId: {$eq: planId}}).populate({ path: 'dayList', populate: { path: 'activities', model: 'Activity', populate: { path: 'place', model: 'Place' } } })
+    .then((response) => {
+      const newPlace = new Place(
+        {
+            name: place.name,
+            latitude: place.latitude,
+            longitude: place.longitude,
+            description: place.description
+        }
+      )
+      newPlace.save().then(() => {
+        console.log("Successfully added new place to the database")
+      })
+      
+      const newActivity = new Activity(
+          {
+              name: name,
+              type: type,
+              startDateTime: startDateTime,
+              endDateTime: endDateTime,
+              place: newPlace,
+              cost: cost,
+              description: description
+          }
+      );
+
+      response.dayList[day].activities.push(newActivity);
+      /*
+      Plan.findOneAndUpdate({planId: {$eq: planId}}, { $push: { dayList: { $each: [response.dayList[day]], $position: day } } }, {new: true})
+      .then(() => {
+        response.save().then(() => {
+          console.log(response.dayList[day].activities);
+      });*/
+
+      newActivity.save().then(() => {
+          console.log("Successfully added new activity to the database");
+      }).then(() => {
+          res.status(201).send("/plan/" + planId)
+      })
+
+      return response
+  }).then((response) => {
+    console.log(response[day].activities)
+    Plan.findOneAndUpdate({planId: {$eq: planId}}, response)
+    })
+  })
 
   // handle ALL requests
   app.all('/*', (req, res) => {

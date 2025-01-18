@@ -441,7 +441,7 @@ function debug_test() {
 
   app.put('/plan/:planId/:day', async (req, res) => {
     const planId = req.params.planId;
-    const day = req.params.day;
+    const day = Number(req.params.day)>0 ? Number(req.params.day)-1 : 0;
     const { name, type, startDateTime, endDateTime, place, cost, description } = req.body;
     //console.log(name, type, startDateTime, endDateTime, place, cost, description)
 
@@ -470,7 +470,7 @@ function debug_test() {
               description: description
           }
       );
-
+      
       response.dayList[day].activities.push(newActivity);
       /*
       Plan.findOneAndUpdate({planId: {$eq: planId}}, { $push: { dayList: { $each: [response.dayList[day]], $position: day } } }, {new: true})
@@ -487,9 +487,15 @@ function debug_test() {
 
       return response
   }).then((response) => {
-    console.log(response[day].activities)
-    Plan.findOneAndUpdate({planId: {$eq: planId}}, response)
+    const newActivityId = response.dayList[day].activities[response.dayList[day].activities.length-1]._id
+    console.log(response.dayList[day])
+
+    Plan.findOne({planId: {$eq: planId}}).populate({ path: 'dayList', populate: { path: 'activities', model: 'Activity', populate: { path: 'place', model: 'Place' } } })
+    .then((response) => {
+      Day.findById(response.dayList[day]._id).updateOne({}, { $push: { activities: newActivityId } })
+      .then(() => {console.log("Successfully updated Day")})
     })
+  })
   })
 
   // handle ALL requests

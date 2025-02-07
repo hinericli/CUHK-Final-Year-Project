@@ -130,7 +130,7 @@
         }
 
         async function getMaxPlanId() {
-            const response = await apiRequest(`${apiBaseUrl}/maxPlanId`);
+            const response = await apiRequest(`${apiBaseUrl}/max-plan-id`);
             document.getElementById('getMaxPlanIdResponse').textContent = JSON.stringify(response.data, null, 2);
         }
 
@@ -149,7 +149,7 @@
             const jsonInput = document.getElementById('newPlanInput').value;
             try {
                 const jsonData = JSON.parse(jsonInput);
-                const response = await apiRequest(`${apiBaseUrl}/newPlan/`, 'POST', jsonData);
+                const response = await apiRequest(`${apiBaseUrl}/new-plan/`, 'POST', jsonData);
                 document.getElementById('newPlanResponse').textContent = JSON.stringify(response.data, null, 2);
             } catch (error) {
                 document.getElementById('newPlanResponse').textContent = 'Invalid JSON input';

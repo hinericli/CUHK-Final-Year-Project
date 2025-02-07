@@ -15,25 +15,13 @@ db.on('error', console.error.bind(console, 'Connection error:'));
 // Upon opening the database successfully
 db.once('open', function () {
   console.log("Connection is open...");
-  // --- Setup MongoDB Schema ---
-  const Place = require('./models/placeModel');
-  const Activity = require('./models/activityModel');
-  const Day = require('./models/dayModel');
   const Plan = require('./models/planModel');
 
-  // list specific plan accoding to planId
-  route.get('/plan/:planId', (req, res) => getPlan(req, res));
+  route.get('/plan/:planId', (req, res) => getPlan(req, res));  // obtain specific plan accoding to planId
+  route.get('/max-plan-id', async (req, res) => getMaxPlanId(req, res));  // get the largest planId
 
-  // get the largest planId
-  route.get('/maxPlanId', async (req, res) => getMaxPlanId(req, res));
-
-  // load JSON plan to database
-  route.post('/plan/', async (req, res) => loadPlan(req, res));
-
-  // add new empty plan to database
-  route.post('/newPlan/', async (req, res) => createEmptyPlan(req, res));
-
-  // WIP: update plan
+  route.post('/plan/', async (req, res) => loadPlan(req, res)); // load JSON plan to database
+  route.post('/new-plan/', async (req, res) => createEmptyPlan(req, res)); // add new empty plan to database
   route.post('/plan/:planId', async (req, res) => {
     const planId = req.params.planId;
     const updatedData = req.body;
@@ -60,10 +48,10 @@ db.once('open', function () {
         console.error(error);
         res.status(500).json({ message: 'Error updating plan', error: error.message });
     }
-});
+});// WIP: update plan
+  route.post('/plan-suggestion/')
 
-
-  route.put('/plan/:planId/:day', async (req, res) => addNewActivity(req, res));
+  route.put('/plan/:planId/:day', async (req, res) => addNewActivity(req, res)); // add activtity to specific day
 
   // handle ALL requests
   route.all('/*', (req, res) => {

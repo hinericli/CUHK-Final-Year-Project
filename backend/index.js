@@ -1,12 +1,16 @@
 const express = require('express');
 const cors = require('cors');
+const bodyParser = require('body-parser'); 
+
 const route = express();
 
 route.use(cors())
+route.use(bodyParser.text({type:"*/*"}));
 route.use(express.json())
 
 const mongoose = require('mongoose');
 const { getPlan, getMaxPlanId, loadPlan, createEmptyPlan, addNewActivity } = require('./controllers/planController');
+const { getSuggestion } = require('./controllers/GeminiController');
 mongoose.connect('mongodb://127.0.0.1:27017/myDatabase');
 
 const db = mongoose.connection;
@@ -22,42 +26,12 @@ db.once('open', function () {
 
   route.post('/plan/', async (req, res) => loadPlan(req, res)); // load JSON plan to database
   route.post('/new-plan/', async (req, res) => createEmptyPlan(req, res)); // add new empty plan to database
-  route.post('/plan/:planId', async (req, res) => {
-    const planId = req.params.planId;
-    const updatedData = req.body;
-
-    try {
-        // Validate the incoming data if necessary
-        // For example, you can check if required fields are present
-
-        // Update the plan in the database
-        const updatedPlan = await Plan.findByIdAndUpdate(planId, updatedData, {
-            new: true, // Return the updated document
-            runValidators: true // Ensure the updated data meets schema validation
-        });
-
-        // Check if the plan was found and updated
-        if (!updatedPlan) {
-            return res.status(404).json({ message: 'Plan not found' });
-        }
-
-        // Return the updated plan
-        res.status(200).json(updatedPlan);
-    } catch (error) {
-        // Handle errors (e.g., validation errors, database errors)
-        console.error(error);
-        res.status(500).json({ message: 'Error updating plan', error: error.message });
-    }
-});// WIP: update plan
-  route.post('/plan-suggestion/')
+  route.post('/plan-suggestion', async (req, res) => {
+    const response = await getSuggestion(req.body);
+    res.send(response);
+  })
 
   route.put('/plan/:planId/:day', async (req, res) => addNewActivity(req, res)); // add activtity to specific day
-
-  // handle ALL requests
-  route.all('/*', (req, res) => {
-    // send this to client
-    res.send('Hello World!');
-  });
 })
 
 // listen to port 3000

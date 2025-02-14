@@ -3,35 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Debug Interface</title>
+    <title>API Debug and Test</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f9;
+            margin: 20px;
+            max-width: 800px;
         }
         h1 {
-            text-align: center;
             color: #333;
         }
-        .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
         }
-        .section h2 {
-            margin-top: 0;
-            color: #444;
-        }
-        input, textarea, button {
+        input, textarea, button, select {
+            margin-top: 5px;
             width: 100%;
             padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            font-size: 16px;
         }
         button {
             background-color: #007BFF;
@@ -43,141 +34,174 @@
             background-color: #0056b3;
         }
         .response {
-            background: #f9f9f9;
+            margin-top: 20px;
             padding: 10px;
+            background: #f9f9f9;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 5px;
+            white-space: pre-wrap;
             overflow-x: auto;
         }
     </style>
 </head>
 <body>
-    <h1>API Debug Interface</h1>
+    <h1>API Debug and Test</h1>
 
-    <div class="section">
-        <h2>Get Plan by Plan ID</h2>
-        <label for="getPlanId">Plan ID:</label>
-        <input type="number" id="getPlanId" placeholder="Enter Plan ID">
-        <button onclick="getPlan()">Get Plan</button>
-        <div class="response" id="getPlanResponse"></div>
-    </div>
+    <h2>Get Plan by ID</h2>
+    <label for="get-plan-id">Plan ID:</label>
+    <input type="text" id="get-plan-id" placeholder="Enter Plan ID">
+    <button onclick="getPlan()">Fetch Plan</button>
+    <pre id="get-plan-response" class="response"></pre>
 
-    <div class="section">
-        <h2>Get Maximum Plan ID</h2>
-        <button onclick="getMaxPlanId()">Get Max Plan ID</button>
-        <div class="response" id="getMaxPlanIdResponse"></div>
-    </div>
+    <h2>Get Max Plan ID</h2>
+    <button onclick="getMaxPlanId()">Fetch Max Plan ID</button>
+    <pre id="max-plan-response" class="response"></pre>
 
-    <div class="section">
-        <h2>Load JSON Plan to Database</h2>
-        <textarea id="loadJsonInput" rows="10" placeholder="Enter JSON data for the plan"></textarea>
-        <button onclick="loadJsonPlan()">Load Plan</button>
-        <div class="response" id="loadJsonResponse"></div>
-    </div>
+    <h2>Create Empty Plan</h2>
+    <button onclick="createEmptyPlan()">Create New Empty Plan</button>
+    <pre id="create-plan-response" class="response"></pre>
 
-    <div class="section">
-        <h2>Create a New Empty Plan</h2>
-        <textarea id="newPlanInput" rows="10" placeholder='Enter JSON like {"name": "New Plan", "startingDate": "2025-01-01", "endingDate": "2025-01-07", "dayList": [], "dayCount": 0, "cost": 0}'></textarea>
-        <button onclick="createNewPlan()">Create Plan</button>
-        <div class="response" id="newPlanResponse"></div>
-    </div>
+    <h2>Load Plan</h2>
+    <label for="load-plan-json">Plan JSON:</label>
+    <textarea id="load-plan-json" placeholder='Enter JSON data for plan' rows="5"></textarea>
+    <button onclick="loadPlan()">Load Plan</button>
+    <pre id="load-plan-response" class="response"></pre>
 
-    <div class="section">
-        <h2>Update Plan by Plan ID</h2>
-        <label for="updatePlanId">Plan ID:</label>
-        <input type="number" id="updatePlanId" placeholder="Enter Plan ID">
-        <textarea id="updatePlanInput" rows="10" placeholder='Enter JSON data to update the plan'></textarea>
-        <button onclick="updatePlan()">Update Plan</button>
-        <div class="response" id="updatePlanResponse"></div>
-    </div>
+    <h2>Update a Plan</h2>
+    <label for="update-plan-id">Plan ID:</label>
+    <input type="text" id="update-plan-id" placeholder="Enter Plan ID">
+    <label for="update-plan-json">Updated Plan JSON:</label>
+    <textarea id="update-plan-json" placeholder='Enter updated JSON data' rows="5"></textarea>
+    <button onclick="updatePlan()">Update Plan</button>
+    <pre id="update-plan-response" class="response"></pre>
 
-    <div class="section">
-        <h2>Add Activity to a Specific Day</h2>
-        <label for="addActivityPlanId">Plan ID:</label>
-        <input type="number" id="addActivityPlanId" placeholder="Enter Plan ID">
-        <label for="addActivityDay">Day Index:</label>
-        <input type="number" id="addActivityDay" placeholder="Enter Day Index">
-        <textarea id="addActivityInput" rows="10" placeholder='Enter JSON like {"name": "New Activity", "type": "Sightseeing", "startDateTime": "2025-01-01T09:00:00Z", "endDateTime": "2025-01-01T12:00:00Z", "place": {"name": "Place Name", "latitude": 0, "longitude": 0, "description": "Description"}, "cost": 100, "description": "Activity Description"}'></textarea>
-        <button onclick="addActivity()">Add Activity</button>
-        <div class="response" id="addActivityResponse"></div>
-    </div>
+    <h2>Add New Activity</h2>
+    <label for="add-activity-plan-id">Plan ID:</label>
+    <input type="text" id="add-activity-plan-id" placeholder="Enter Plan ID">
+    <label for="add-activity-day">Day:</label>
+    <input type="text" id="add-activity-day" placeholder="Enter Day">
+    <label for="add-activity-json">Activity JSON:</label>
+    <textarea id="add-activity-json" placeholder='Enter activity JSON' rows="5"></textarea>
+    <button onclick="addNewActivity()">Add Activity</button>
+    <pre id="add-activity-response" class="response"></pre>
+
+    <h2>Get Plan Suggestions</h2>
+    <label for="suggestion-json">Suggestion Input JSON:</label>
+    <textarea id="suggestion-json" placeholder='Enter JSON data for suggestions' rows="5"></textarea>
+    <button onclick="getSuggestion()">Get Suggestions</button>
+    <pre id="suggestion-response" class="response"></pre>
 
     <script>
-        const apiBaseUrl = 'http://localhost:3000';
-
-        async function apiRequest(url, method = 'GET', body = null) {
-            const options = {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            };
-            if (body) options.body = JSON.stringify(body);
-
-            try {
-                const response = await fetch(url, options);
-                const data = await response.json();
-                return { status: response.status, data };
-            } catch (error) {
-                return { status: 500, data: { error: 'Request failed' } };
-            }
-        }
+        const apiBase = "http://localhost:3000";
 
         async function getPlan() {
-            const planId = document.getElementById('getPlanId').value;
-            const response = await apiRequest(`${apiBaseUrl}/plan/${planId}`);
-            document.getElementById('getPlanResponse').textContent = JSON.stringify(response.data, null, 2);
+            const planId = document.getElementById('get-plan-id').value;
+            const responseElement = document.getElementById('get-plan-response');
+            try {
+                const response = await fetch(`${apiBase}/plan/${planId}`);
+                const data = await response.json();
+                responseElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responseElement.textContent = error.message;
+            }
         }
 
         async function getMaxPlanId() {
-            const response = await apiRequest(`${apiBaseUrl}/max-plan-id`);
-            document.getElementById('getMaxPlanIdResponse').textContent = JSON.stringify(response.data, null, 2);
-        }
-
-        async function loadJsonPlan() {
-            const jsonInput = document.getElementById('loadJsonInput').value;
+            const responseElement = document.getElementById('max-plan-response');
             try {
-                const jsonData = JSON.parse(jsonInput);
-                const response = await apiRequest(`${apiBaseUrl}/plan/`, 'POST', jsonData);
-                document.getElementById('loadJsonResponse').textContent = JSON.stringify(response.data, null, 2);
+                const response = await fetch(`${apiBase}/max-plan-id`);
+                const data = await response.json();
+                responseElement.textContent = JSON.stringify(data, null, 2);
             } catch (error) {
-                document.getElementById('loadJsonResponse').textContent = 'Invalid JSON input';
+                responseElement.textContent = error.message;
             }
         }
 
-        async function createNewPlan() {
-            const jsonInput = document.getElementById('newPlanInput').value;
+        async function createEmptyPlan() {
+            const responseElement = document.getElementById('create-plan-response');
             try {
-                const jsonData = JSON.parse(jsonInput);
-                const response = await apiRequest(`${apiBaseUrl}/new-plan/`, 'POST', jsonData);
-                document.getElementById('newPlanResponse').textContent = JSON.stringify(response.data, null, 2);
+                const response = await fetch(`${apiBase}/new-plan/`, { 
+                    method: 'POST' 
+                });
+                const data = await response.json();
+                responseElement.textContent = JSON.stringify(data, null, 2);
             } catch (error) {
-                document.getElementById('newPlanResponse').textContent = 'Invalid JSON input';
+                responseElement.textContent = error.message;
+            }
+        }
+
+        async function loadPlan() {
+            const planJson = document.getElementById('load-plan-json').value;
+            const responseElement = document.getElementById('load-plan-response');
+            try {
+                const response = await fetch(`${apiBase}/plan/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: planJson
+                });
+                const data = await response.json();
+                responseElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responseElement.textContent = error.message;
             }
         }
 
         async function updatePlan() {
-            const planId = document.getElementById('updatePlanId').value;
-            const jsonInput = document.getElementById('updatePlanInput').value;
+            const planId = document.getElementById('update-plan-id').value;
+            const planJson = document.getElementById('update-plan-json').value;
+            const responseElement = document.getElementById('update-plan-response');
             try {
-                const jsonData = JSON.parse(jsonInput);
-                const response = await apiRequest(`${apiBaseUrl}/plan/${planId}`, 'POST', jsonData);
-                document.getElementById('updatePlanResponse').textContent = JSON.stringify(response.data, null, 2);
+                const response = await fetch(`${apiBase}/plan/${planId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: planJson
+                });
+                const data = await response.json();
+                responseElement.textContent = JSON.stringify(data, null, 2);
             } catch (error) {
-                document.getElementById('updatePlanResponse').textContent = 'Invalid JSON input';
+                responseElement.textContent = error.message;
             }
         }
 
-        async function addActivity() {
-            const planId = document.getElementById('addActivityPlanId').value;
-            const dayIndex = document.getElementById('addActivityDay').value;
-            const jsonInput = document.getElementById('addActivityInput').value;
+        async function addNewActivity() {
+            const planId = document.getElementById('add-activity-plan-id').value;
+            const day = document.getElementById('add-activity-day').value;
+            const activityJson = document.getElementById('add-activity-json').value;
+            const responseElement = document.getElementById('add-activity-response');
             try {
-                const jsonData = JSON.parse(jsonInput);
-                const response = await apiRequest(`${apiBaseUrl}/plan/${planId}/${dayIndex}`, 'PUT', jsonData);
-                document.getElementById('addActivityResponse').textContent = JSON.stringify(response.data, null, 2);
+                const response = await fetch(`${apiBase}/plan/${planId}/${day}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: activityJson
+                });
+                const data = await response.json();
+                responseElement.textContent = JSON.stringify(data, null, 2);
             } catch (error) {
-                document.getElementById('addActivityResponse').textContent = 'Invalid JSON input';
+                responseElement.textContent = error.message;
+            }
+        }
+
+        async function getSuggestion() {
+            const suggestionJson = document.getElementById('suggestion-json').value;
+            const responseElement = document.getElementById('suggestion-response');
+            try {
+                const response = await fetch(`${apiBase}/plan-suggestion/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: suggestionJson
+                });
+                const data = await response.json();
+                responseElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responseElement.textContent = error.message;
             }
         }
     </script>

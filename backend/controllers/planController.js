@@ -77,7 +77,8 @@ export async function getMaxPlanId (req, res) {
 
 export async function loadPlan (req, res) {
     try {
-      parseJSON(JSON.stringify(req.body));
+        let inputString = JSON.stringify(req.body).replace(/[\n\r\t\s]+/g, ' ').trim();
+        parseJSON(inputString);
     } catch (err) {
         res.status(500).json({ error: 'Could not add plan' });
     }

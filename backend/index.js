@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const route = express();
 
 route.use(cors())
-route.use(bodyParser.text({type:"*/*"}));
+route.use('/plan-suggestion', bodyParser.text({type:"*/*"}));
 route.use(express.json())
 
 const mongoose = require('mongoose');

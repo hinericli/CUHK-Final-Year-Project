@@ -30,7 +30,7 @@ const SelectPlan = ({ setDisplayingComponent }) => {
         getMaxPlanId().then(maxId => {
             for (let i = 1; i <= maxId; i++) {
                 getPlan(i).then(plan => {
-                    dbPlans.push(plan[0]);
+                    if (JSON.stringify(plan, null, 2) !== '[]') dbPlans.push(plan[0]); // skip non-exist plan (undefined)
                 }).catch(err => {
                     console.error(err);
                 });

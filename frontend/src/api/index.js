@@ -51,7 +51,7 @@ export const getPlan = async (i) => {
 };
 
 export const getMaxPlanId = async () => {
-  const url = `http://localhost:3000/maxPlanId/`;
+  const url = `http://localhost:3000/max-plan-id/`;
   try {
     const response = await fetch(url, {
           method: 'GET',

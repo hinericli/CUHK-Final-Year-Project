@@ -1,8 +1,9 @@
 import React, { useRef, useContext, useEffect, useMemo, useState } from 'react';
 import GoogleMapReact from 'google-map-react';
-import { Paper, Typography, useMediaQuery } from '@material-ui/core';
+import { Paper, Typography, useMediaQuery, Button } from '@material-ui/core';
 import LocationOnOutlinedIcon from '@material-ui/icons/LocationOnOutlined';
 import Rating from '@material-ui/lab/Rating';
+import AddIcon from '@material-ui/icons/Add';
 
 import useStyles from './styles';
 import { MapPlacesContext } from '../../Viewer';
@@ -159,10 +160,18 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
                                         </Typography>
                                         <img
                                             className={classes.pointer}
-                                            src={place.photo?place.photo.images.large.url:'https://cdn-icons-png.flaticon.com/512/1147/1147856.png'}
+                                            src={place.photo ? place.photo.images.large.url : 'https://cdn-icons-png.flaticon.com/512/1147/1147856.png'}
                                             alt={place.name}
                                         />
                                         <Rating size="small" value={Number(place.rating)} readOnly/>
+                                        <Button
+                                            variant="contained"
+                                            startIcon={<AddIcon />}
+                                            size="small"
+                                            sx={{ mt: 1 }} // Adds some margin-top for spacing
+                                        >
+                                            Add
+                                        </Button>
                                     </Paper>
 
                                 )

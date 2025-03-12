@@ -55,7 +55,7 @@ const SelectPlan = ({ setDisplayingComponent }) => {
 
     const handleSaveNewPlan = async () => {
         try {
-            const response = await fetch('http://localhost:3000/newPlan/', {
+            const response = await fetch('http://localhost:3000/new-plan/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -94,6 +94,10 @@ const SelectPlan = ({ setDisplayingComponent }) => {
     };
 
     useMemo(() => {
+        fetchPlans();
+    }, []);
+
+    useEffect(() => {
         fetchPlans();
     }, []);
 

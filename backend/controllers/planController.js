@@ -162,7 +162,7 @@ export async function addNewActivity (req, res) {
       newActivity.save().then(() => {
           console.log("Successfully added new activity to the database");
       }).then(() => {
-          res.status(201).send("/plan/" + planId)
+          res.status(201).json("/plan/" + planId)
       })
 
       return response

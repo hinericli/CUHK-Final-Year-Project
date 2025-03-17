@@ -7,10 +7,11 @@ import { DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import MapSearch from '../MapSearch/MapSearch';
-import { PlanContext } from '../Planner/Planner';
+import { CurrentDayContext, PlanContext } from '../Planner/Planner';
 
 import useStyle from "./style"
 import { dayJSObjtoString } from '../../../utils/DateUtils';
+import { addActivityToPlan } from '../../../api';
 
 const customParseFormat = require("dayjs/plugin/customParseFormat");
 const toObject = require("dayjs/plugin/toObject");
@@ -30,9 +31,9 @@ function changeEndDateTime(newEndDateTimeDayJS, setEndDateTimeDayJS, setEndDateT
 
 const AddActivity = ({
     setDisplayingComponent, 
-    setToBeAddedActivity
 }) => {
     const { plan, setPlan } = useContext(PlanContext);
+    const { currentDay, setCurrentDay } = useContext(CurrentDayContext);
 
     const classes = useStyle();
 
@@ -153,22 +154,24 @@ const AddActivity = ({
         <Button 
             className={classes.finishButton} 
             variant="outlined" 
-            onClick={() => {
-                setToBeAddedActivity({
-                    name: name,
-                    type: type,
-                    startDateTime: dayJSObjtoString(startDateTime),
-                    endDateTime: dayJSObjtoString(endDateTime),
-                    place: {
-                        name: place.place.name,
-                        latitude: Number(place.place.geometry.location.lat()),
-                        longitude: Number(place.place.geometry.location.lng()),
-                        description: place.place.description
-                    },
-                    cost: cost,
-                    description: description
-                    }
-                )
+            onClick={async () => {
+                const updatedPlan = await addActivityToPlan(plan.planId, currentDay, 
+                    {
+                        name: name,
+                        type: type,
+                        startDateTime: dayJSObjtoString(startDateTime),
+                        endDateTime: dayJSObjtoString(endDateTime),
+                        place: {
+                            name: place.place.name,
+                            latitude: Number(place.place.geometry.location.lat()),
+                            longitude: Number(place.place.geometry.location.lng()),
+                            description: place.place.description
+                        },
+                        cost: cost,
+                        description: description
+                    });
+                // Update local state or trigger refresh
+                console.log('Activity added:', updatedPlan);
                 setDisplayingComponent('Planner')
             }}> <Typography>Finish</Typography>
         </Button>

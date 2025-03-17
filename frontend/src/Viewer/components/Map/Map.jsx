@@ -44,7 +44,6 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
     // beginning, midpoints and end of the path
     let origin = { lat: 22.3134736, lng: 113.9137283 }, waypts = [], destination = { lat: 22.3474872, lng: 114.1023164 };
     useEffect(() => {
-        console.log({places})
         if (displayingTable === "Planner") {
             if (places.length <= 1) {
                 directionsRenderer.setMap(null);    // clear path on map

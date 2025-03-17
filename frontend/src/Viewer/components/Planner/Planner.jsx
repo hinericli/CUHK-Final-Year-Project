@@ -13,12 +13,13 @@ import useStyles from './styles';
 import { MapPlacesContext } from '../../Viewer';
 import Activity from './Activity';
 import SelectPlan from '../SelectPlan/SelectPlan';
-import { getWeatherData } from '../../../api';
+import { getPlan, getWeatherData } from '../../../api';
 import { singleDigitTransformer, stringToDate } from '../../../utils/DateUtils';
 import { handlePlaceName } from '../../../utils/placeUtils';
 
 export const PlanContext = createContext();
 export const ActivitiesListContext = createContext();
+export const CurrentDayContext = createContext();
 
 const customParseFormat = require("dayjs/plugin/customParseFormat");
 var toObject = require("dayjs/plugin/toObject");
@@ -37,15 +38,6 @@ const Planner = (setCoordinates) => {
     const [currentDay, setCurrentDay] = useState(0); // Index of the current viewing day
     const [weatherData, setWeatherData] = useState(null);
     const [activityList, setActivityList] = useState([]);   
-    const [toBeAddedActivity, setToBeAddedActivity] = useState({
-        name: '',
-        type: '',
-        startDateTime: null,
-        endDateTime: null,
-        place: '',
-        cost: 0,
-        description: ''
-    });
     const [showAdditionalInfo, setShowAdditionalInfo] = useState({});
     const [displayingComponent, setDisplayingComponent] = useState('SelectPlan'); // This includes SelectPlan, Planner, AddActivity
     
@@ -62,48 +54,14 @@ const Planner = (setCoordinates) => {
         savePlan(plan)
     }, [activityList])
 
-    // Push new Activity when there's a new Activity to be added (clicked the FINISH button)
-    useMemo(() => {
-        // add new activity to activityList
-        activityList.push(
-            {
-                name: toBeAddedActivity.name,  
-                type: toBeAddedActivity.type,
-                startDateTime: toBeAddedActivity.startDateTime,
-                endDateTime: toBeAddedActivity.endDateTime,
-                place: toBeAddedActivity.place,
-                cost: toBeAddedActivity.cost,
-                description: toBeAddedActivity.description
-            }
-        )
-        // sort the activities according to the startDateTime
-        let sortedActivities = activityList.sort((a, b) => {
-            if (a.startDateTime && b.startDateTime) {
-                const dateA = new Date(
-                    a.startDateTime.years,
-                    a.startDateTime.months,
-                    a.startDateTime.date,
-                    a.startDateTime.hours,
-                    a.startDateTime.minutes
-                );
-                const dateB = new Date(
-                    b.startDateTime.years,
-                    b.startDateTime.months,
-                    b.startDateTime.date,
-                    b.startDateTime.hours,
-                    b.startDateTime.minutes
-                );
-                return dateA - dateB;
-            }
-            return 0;
-        });
-        console.log(sortedActivities)
-        setActivityList(sortedActivities);
-        setPlaces(sortedActivities.map(activity => activity.place))
-        if (plan === null) return
-        plan.dayList[currentDay].activities = sortedActivities
-        savePlan(plan)
-    }, [toBeAddedActivity])
+    useEffect(() => {
+        const updatePlan = async () => {
+            const updatedPlan = await getPlan(plan?.planId);
+            setPlan(updatedPlan);
+        };
+
+        updatePlan();
+    }, [displayingComponent]);
 
     // pop out the empty object first when start
     useEffect(() => {
@@ -217,7 +175,7 @@ const Planner = (setCoordinates) => {
                             <Typography gutterBottom variant="subtitle1">{activity.name? activity.name : '?'}</Typography>
                             <Box display="flex">
                                 <LocationOnIcon/> 
-                                <Typography gutterBottom variant="subtitle2">{handlePlaceName(activity.place.place)}</Typography>
+                                <Typography gutterBottom variant="subtitle2">{handlePlaceName(activity.place)}</Typography>
                             </Box>
                             <CardActions display="flex" justifyContent="space-between">
                                 <Button size="small" color="primary" onClick={() => toggleAdditionalInfo(i)}>
@@ -254,8 +212,7 @@ const Planner = (setCoordinates) => {
         ,
         "AddActivity": 
             <AddActivity
-                setDisplayingComponent={setDisplayingComponent}
-                setToBeAddedActivity={setToBeAddedActivity}/>
+                setDisplayingComponent={setDisplayingComponent}/>
         ,
         "SelectPlan":
             <SelectPlan 
@@ -266,11 +223,14 @@ const Planner = (setCoordinates) => {
 
     return (
         <>
+        <CurrentDayContext.Provider value={{currentDay, setCurrentDay}}>
         <PlanContext.Provider value={{plan, setPlan}}>
         <ActivitiesListContext.Provider value={{activityList, setActivityList}}>
             {components[displayingComponent]}
         </ActivitiesListContext.Provider>
         </PlanContext.Provider>
+        </CurrentDayContext.Provider>
+       
 
         </>
     );

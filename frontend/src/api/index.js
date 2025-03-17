@@ -66,3 +66,24 @@ export const getMaxPlanId = async () => {
     console.error(error.message);
   }
 }
+
+export const addActivityToPlan = async (planId, day, activityData) => {
+  try {
+    const response = await fetch(`http://localhost:3000/plan/${planId}/${day}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(activityData)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to add activity');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding activity:', error);
+    throw error;
+  }
+};

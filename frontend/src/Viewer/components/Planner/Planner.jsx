@@ -54,15 +54,6 @@ const Planner = (setCoordinates) => {
         savePlan(plan)
     }, [activityList])
 
-    useEffect(() => {
-        const updatePlan = async () => {
-            const updatedPlan = await getPlan(plan?.planId);
-            setPlan(updatedPlan);
-        };
-
-        updatePlan();
-    }, [displayingComponent]);
-
     // pop out the empty object first when start
     useEffect(() => {
         activityList.pop()

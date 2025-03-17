@@ -12,6 +12,7 @@ import Map from './components/Map/Map';
 export const CoordinatesContext = createContext();
 export const MapPlacesContext = createContext();
 export const DisplayingTableContext = createContext();
+export const toBeAddedActivityContext = createContext();
 
 const App = () => {
     const [places, setPlaces] = useState([]);
@@ -25,6 +26,16 @@ const App = () => {
     const [isLoading, setIsLoading] = useState(false);  // loading state
     const [type, setType] = useState('restaurants');
     const [rating, setRating] = useState('');
+
+    const [toBeAddedActivity, setToBeAddedActivity] = useState({
+        name: '',
+        type: '',
+        startDateTime: null,
+        endDateTime: null,
+        place: '',
+        cost: 0,
+        description: ''
+    });
 
     const [displayingTable, setDisplayingTable] = useState('Planner');
 
@@ -84,6 +95,7 @@ const App = () => {
             <CssBaseline />
             <Header />
 
+            <toBeAddedActivityContext.Provider value={{toBeAddedActivity, setToBeAddedActivity}}>
             <DisplayingTableContext.Provider value={{displayingTable, setDisplayingTable}}>
             <MapPlacesContext.Provider value={{places, setPlaces}}>
             <CoordinatesContext.Provider value={{coordinates, setCoordinates}}>
@@ -125,6 +137,8 @@ const App = () => {
             </CoordinatesContext.Provider>
             </MapPlacesContext.Provider>
             </DisplayingTableContext.Provider>
+            </toBeAddedActivityContext.Provider>
+            
         </>
 
 

@@ -8,6 +8,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import MapSearch from '../MapSearch/MapSearch';
 import { CurrentDayContext, PlanContext } from '../Planner/Planner';
+import { toBeAddedActivityContext } from '../../Viewer';
 
 import useStyle from "./style"
 import { dayJSObjtoString } from '../../../utils/DateUtils';
@@ -34,6 +35,7 @@ const AddActivity = ({
 }) => {
     const { plan, setPlan } = useContext(PlanContext);
     const { currentDay, setCurrentDay } = useContext(CurrentDayContext);
+    const { toBeAddedActivity, setToBeAddedActivity } = useContext(toBeAddedActivityContext);
 
     const classes = useStyle();
 
@@ -155,23 +157,24 @@ const AddActivity = ({
             className={classes.finishButton} 
             variant="outlined" 
             onClick={async () => {
-                const updatedPlan = await addActivityToPlan(plan.planId, currentDay, 
-                    {
-                        name: name,
-                        type: type,
-                        startDateTime: dayJSObjtoString(startDateTime),
-                        endDateTime: dayJSObjtoString(endDateTime),
-                        place: {
-                            name: place.place.name,
-                            latitude: Number(place.place.geometry.location.lat()),
-                            longitude: Number(place.place.geometry.location.lng()),
-                            description: place.place.description
-                        },
-                        cost: cost,
-                        description: description
-                    });
-                // Update local state or trigger refresh
+                console.log(startDateTime)
+                const newActivity = {
+                    name: name,
+                    type: type,
+                    startDateTime: dayJSObjtoString(startDateTime),
+                    endDateTime: dayJSObjtoString(endDateTime),
+                    place: {
+                        name: place.place.name,
+                        latitude: Number(place.place.geometry.location.lat()),
+                        longitude: Number(place.place.geometry.location.lng()),
+                        description: place.place.description
+                    },
+                    cost: cost,
+                    description: description
+                }
+                const updatedPlan = await addActivityToPlan(plan.planId, currentDay, newActivity);
                 console.log('Activity added:', updatedPlan);
+                setToBeAddedActivity(newActivity)
                 setDisplayingComponent('Planner')
             }}> <Typography>Finish</Typography>
         </Button>

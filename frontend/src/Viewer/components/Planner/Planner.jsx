@@ -14,8 +14,11 @@ import { MapPlacesContext } from '../../Viewer';
 import Activity from './Activity';
 import SelectPlan from '../SelectPlan/SelectPlan';
 import { getPlan, getWeatherData } from '../../../api';
-import { singleDigitTransformer, stringToDate } from '../../../utils/DateUtils';
+import { singleDigitTransformer, stringToDateObj } from '../../../utils/DateUtils';
 import { handlePlaceName } from '../../../utils/placeUtils';
+
+import { toBeAddedActivityContext } from '../../Viewer'; 
+import { sortActivities } from '../../../utils/ActivitiesUtils';
 
 export const PlanContext = createContext();
 export const ActivitiesListContext = createContext();
@@ -33,6 +36,7 @@ const savePlan = () => {
 const Planner = (setCoordinates) => {
     const classes = useStyles();
     const {places, setPlaces} = useContext(MapPlacesContext);   // places to be displayed on map
+    const {toBeAddedActivity, setToBeActivity} = useContext(toBeAddedActivityContext);
 
     const [plan, setPlan] = useState(null);
     const [currentDay, setCurrentDay] = useState(0); // Index of the current viewing day
@@ -51,7 +55,6 @@ const Planner = (setCoordinates) => {
     // ensure that the places updates after the activity list updates (for showing map pins and routes correctly)
     useEffect(() => {
         setPlaces(activityList.map(activity => activity.place))
-        savePlan(plan)
     }, [activityList])
 
     // pop out the empty object first when start
@@ -64,6 +67,27 @@ const Planner = (setCoordinates) => {
         //}
     }, [])
 
+    // Push new Activity when there's a new Activity to be added (clicked the FINISH button)
+    useMemo(() => {
+        // add new activity to activityList
+        activityList.push(
+            {
+                name: toBeAddedActivity.name,  
+                type: toBeAddedActivity.type,
+                startDateTime: toBeAddedActivity.startDateTime,
+                endDateTime: toBeAddedActivity.endDateTime,
+                place: toBeAddedActivity.place,
+                cost: toBeAddedActivity.cost,
+                description: toBeAddedActivity.description
+            }
+        )
+        const sortedActivities = sortActivities(activityList)
+        setActivityList(sortedActivities)
+        setPlaces(activityList.map(activity => activity.place))
+        if (plan === null) return
+        plan.dayList[currentDay].activities = activityList
+    }, [toBeAddedActivity])
+
     useEffect(() => {
         let initialActivityList = [], i = 0;
         if (plan?.dayList[currentDay] === null) return;
@@ -73,7 +97,8 @@ const Planner = (setCoordinates) => {
             i++;
         }
         setPlaces(initialActivityList.map(activity => activity.place));
-        setActivityList(initialActivityList);
+        const sortedActivities = sortActivities(initialActivityList)
+        setActivityList(sortedActivities)
     }, [plan])
 
     // Change Day
@@ -150,12 +175,12 @@ const Planner = (setCoordinates) => {
                         <Col xs={4} md={3}>
                             <CardContent>
                                 <Typography variant="subtitle1">
-                                    {singleDigitTransformer(stringToDate(plan?.dayList[currentDay]?.activities[i]?.startDateTime)?.hours) + ":"
-                                    + singleDigitTransformer(stringToDate(plan?.dayList[currentDay]?.activities[i]?.startDateTime)?.minutes)}
+                                    {singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.startDateTime)?.hours) + ":"
+                                    + singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.startDateTime)?.minutes)}
                                 </Typography>
                                 <Typography variant="subtitle1">
-                                    {singleDigitTransformer(stringToDate(plan?.dayList[currentDay]?.activities[i]?.endDateTime)?.hours) + ":"
-                                    + singleDigitTransformer(stringToDate(plan?.dayList[currentDay]?.activities[i]?.endDateTime)?.minutes)}
+                                    {singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.endDateTime)?.hours) + ":"
+                                    + singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.endDateTime)?.minutes)}
                                 </Typography>
                             </CardContent>
                         </Col>

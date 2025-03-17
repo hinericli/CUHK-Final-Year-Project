@@ -7,7 +7,7 @@ export const singleDigitTransformer = (value) => {
     return value;
 }
 
-export const stringToDate = (str) => {
+export const stringToDateObj = (str) => {
     try {
         const date = new Date(str);
         

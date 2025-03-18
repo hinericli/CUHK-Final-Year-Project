@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useMemo, act, createContext } from 'react';
-import { Typography, Button, Container, CardContent, CardActions, Box, MenuItem, Menu } from '@material-ui/core';
+import { Typography, Button, Container, CardContent, CardActions, Box, MenuItem, Menu, Card, CardMedia, Chip } from '@material-ui/core';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 import WbSunnyIcon from '@material-ui/icons/WbSunny';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
@@ -28,10 +28,6 @@ const customParseFormat = require("dayjs/plugin/customParseFormat");
 var toObject = require("dayjs/plugin/toObject");
 dayjs.extend(customParseFormat);
 dayjs.extend(toObject)
-
-const savePlan = () => {
-
-};  // placeholder
 
 const Planner = (setCoordinates) => {
     const classes = useStyles();
@@ -178,41 +174,36 @@ const Planner = (setCoordinates) => {
                                     {singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.startDateTime)?.hours) + ":"
                                     + singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.startDateTime)?.minutes)}
                                 </Typography>
-                                <Typography variant="subtitle1">
-                                    {singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.endDateTime)?.hours) + ":"
-                                    + singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.endDateTime)?.minutes)}
-                                </Typography>
                             </CardContent>
                         </Col>
 
                         <Col xs={8} md={9}>
-                        <CardContent>
-                            {i+1}
-                            <Typography gutterBottom variant="subtitle1">{activity.name? activity.name : '?'}</Typography>
-                            <Box display="flex">
-                                <LocationOnIcon/> 
-                                <Typography gutterBottom variant="subtitle2">{handlePlaceName(activity.place)}</Typography>
-                            </Box>
-                            <CardActions display="flex" justifyContent="space-between">
-                                <Button size="small" color="primary" onClick={() => toggleAdditionalInfo(i)}>
-                                    {showAdditionalInfo[i] ? "Hide Info" : "More Info"}
-                                </Button>
-                                <Button size="small" color="primary" onClick={() => deleteActivity(i)}>
-                                    Delete
-                                </Button>
-                            </CardActions>
+                        <Card elevation={2}>
+                            <CardContent>
+                                <Typography gutterBottom variant="h5">{activity.name ? activity.name : '?'}</Typography>
+                                <Box display="flex">
+                                    <LocationOnIcon/> 
+                                    <Typography gutterBottom variant="subtitle2">{handlePlaceName(activity.place)}</Typography>
+                                </Box>
+                                <CardActions display="flex" justifyContent="space-between">
+                                    <Button size="small" color="primary" onClick={() => toggleAdditionalInfo(i)}>
+                                        {showAdditionalInfo[i] ? "Hide Info" : "More Info"}
+                                    </Button>
+                                    <Button size="small" color="primary" onClick={() => deleteActivity(i)}>
+                                        Delete
+                                    </Button>
+                                </CardActions>
 
-                            {showAdditionalInfo[i] && (
-                            <>
-                                <Typography>Type: {activityTypeName[Number(activity.type)/10 - 1]}</Typography>
-                                <Typography>Cost: ${activity.cost}</Typography>
-                                <Typography>Description: {activity.description}</Typography>
-                                <Typography>Summary: {activity.place.editorialSummary?activity.place.editorialSummary:'-'}</Typography>
-                            </>
-                            )}
-                            
-
-                        </CardContent>
+                                {showAdditionalInfo[i] && (
+                                <>
+                                    <Typography>Type: {activityTypeName[Number(activity.type)/10 - 1]}</Typography>
+                                    <Typography>Cost: ${activity.cost}</Typography>
+                                    <Typography>Description: {activity.description}</Typography>
+                                    <Typography>Summary: {activity.place.editorialSummary?activity.place.editorialSummary:'-'}</Typography>
+                                </>
+                                )}
+                            </CardContent>
+                        </Card>
                         </Col>
                     </Row>
                     </>

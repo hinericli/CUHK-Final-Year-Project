@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 
 // add 0 to the single digit (for hours and minutes)
 export const singleDigitTransformer = (value) => {
@@ -27,3 +28,7 @@ export const stringToDateObj = (str) => {
 export const dayJSObjtoString = (obj) => {
     return ''+obj.years+'-'+singleDigitTransformer(obj.months+1)+'-'+singleDigitTransformer(obj.date)+'T'+singleDigitTransformer(obj.hours)+':'+singleDigitTransformer(obj.minutes)+':00Z';
 } 
+
+export const isoStringToDayJS = (str) => {
+    return dayjs(str)
+}

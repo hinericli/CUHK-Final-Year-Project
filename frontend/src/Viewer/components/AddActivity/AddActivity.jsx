@@ -5,6 +5,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 
 import MapSearch from '../MapSearch/MapSearch';
 import { CurrentDayContext, PlanContext } from '../Planner/Planner';
@@ -43,8 +44,8 @@ const AddActivity = ({
     const [type, setType] = React.useState('');
 
     // For showing time on the screen
-    const [startDateTimeDayJS, setStartDateTimeDayJS] = React.useState(dayjs(), 'DD/MM/YYYY HH:mm');
-    const [endDateTimeDayJS, setEndDateTimeDayJS] = React.useState(dayjs(), 'DD/MM/YYYY HH:mm');
+    const [startDateTimeDayJS, setStartDateTimeDayJS] = React.useState(dayjs(plan.dayList[currentDay].date), 'DD/MM/YYYY HH:mm');
+    const [endDateTimeDayJS, setEndDateTimeDayJS] = React.useState(dayjs(plan.dayList[currentDay].date), 'DD/MM/YYYY HH:mm');
     // For representation of date in itinerary
     let todayDateTime = dayjs()
     const [startDateTime, setStartDateTime] = React.useState(dayjs(todayDateTime, 'DD/MM/YYYY HH:mm').toObject());
@@ -57,6 +58,12 @@ const AddActivity = ({
 
     return (
         <>
+        <Button 
+            startIcon={<ArrowBackIcon />} 
+            onClick={() => setDisplayingComponent('Planner')}
+        >
+            Back
+        </Button>
         <Typography variant="h6" className={classes.title}>Add Activity</Typography>
 
         <FormControl fullWidth className={classes.formControl}>
@@ -97,6 +104,9 @@ const AddActivity = ({
                 ampm={false}
                 closeOnSelect={false}
                 value={startDateTimeDayJS}
+                onChange={(newValue) => {
+                    changeStartDateTime(newValue, setStartDateTimeDayJS, setStartDateTime);
+                }}
                 onError={''}
                 slotProps={{
                     textField: {
@@ -116,6 +126,9 @@ const AddActivity = ({
                 ampm={false}
                 closeOnSelect={false}
                 value={endDateTimeDayJS}
+                onChange={(newValue) => {
+                    changeEndDateTime(newValue, setEndDateTimeDayJS, setEndDateTime);
+                }}
                 onError={''}
                 slotProps={{
                     textField: {

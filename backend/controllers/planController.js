@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Place from '../models/placeModel.js';
 import Activity from '../models/activityModel.js';
 import Day from '../models/dayModel.js';
@@ -48,6 +49,22 @@ async function parseJSON(jsonString) {
     }
 }
 
+async function getMaxPlanIdBackend () {
+    // for backend
+    try {
+        const plans = await Plan.find().sort({ planId: -1 }).limit(1).exec(); // Get the highest planId
+        if (!plans || plans.length === 0) {
+            console.log('No plans found, returning 0');
+            return 0; // Return 0 if no plans exist
+        }
+        console.log('Max plan ID found:', plans[0].planId);
+        return plans[0].planId; // Return the highest planId
+    } catch (error) {
+        console.error('Error in getMaxPlanId:', error.message);
+        throw error; // Propagate the error
+    }
+}
+
 export async function getPlan (req, res) {
     const planId = req.params.planId;
 
@@ -81,6 +98,92 @@ export async function loadPlan (req, res) {
         parseJSON(inputString);
     } catch (err) {
         res.status(500).json({ error: 'Could not add plan' });
+    }
+}
+
+export async function saveJson(req, res) {
+    try {
+        const tripData = req.body;
+
+        // Validate input
+        if (!tripData || typeof tripData !== 'object' || tripData === null) {
+            throw new Error('Invalid trip data: Must be a non-null object');
+        }
+
+        if (!Array.isArray(tripData.dayList)) {
+            throw new Error('Invalid trip data: dayList must be an array');
+        }
+
+        // Save Places and Activities for each Day
+        const dayIds = [];
+        for (const dayData of tripData.dayList) {
+            if (!dayData || !Array.isArray(dayData.activities)) {
+                throw new Error(`Invalid day data for day ${dayData?.day}: activities must be an array`);
+            }
+
+            const activityIds = [];
+            for (const activityData of dayData.activities) {
+                if (!activityData || !activityData.place) {
+                    throw new Error('Invalid activity data: place is required');
+                }
+
+                // Save place
+                const place = new Place({
+                    name: activityData.place.name,
+                    latitude: activityData.place.latitude,
+                    longitude: activityData.place.longitude,
+                    description: activityData.place.description,
+                });
+                const savedPlace = await place.save();
+
+                // Save activity
+                const activity = new Activity({
+                    name: activityData.name,
+                    type: activityData.type,
+                    startDateTime: new Date(activityData.startDateTime),
+                    endDateTime: new Date(activityData.endDateTime),
+                    place: savedPlace._id,
+                    cost: activityData.cost,
+                    description: activityData.description,
+                });
+                const savedActivity = await activity.save();
+                activityIds.push(savedActivity._id);
+            }
+
+            // Save day
+            const day = new Day({
+                day: dayData.day,
+                date: new Date(dayData.date),
+                activities: activityIds,
+                weather: dayData.weather,
+                temperature: dayData.temperature,
+                cost: dayData.cost,
+            });
+            const savedDay = await day.save();
+            dayIds.push(savedDay._id);
+        }
+
+        // Save the Plan
+        const maxPlanId = await getMaxPlanIdBackend(); // Await the result
+        console.log('Max Plan ID:', maxPlanId);
+
+        const plan = new Plan({
+            planId: Number(maxPlanId) + 1,
+            name: tripData.name,
+            startingDate: new Date(tripData.startingDate),
+            endingDate: new Date(tripData.endingDate),
+            dayList: dayIds,
+            dayCount: tripData.dayCount,
+            cost: tripData.cost,
+        });
+        const savedPlan = await plan.save();
+
+        console.log('Trip plan saved successfully with ID:', savedPlan._id);
+        return savedPlan; // Return the saved plan to the caller
+
+    } catch (error) {
+        console.error('Error saving trip plan:', error.message);
+        throw error; // Re-throw the error to be handled by the caller
     }
 }
 

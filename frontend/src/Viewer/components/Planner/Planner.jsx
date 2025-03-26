@@ -11,13 +11,13 @@ import dayjs from 'dayjs';
 
 import useStyles from './styles';
 import { MapPlacesContext } from '../../Viewer';
-import Activity from './Activity';
 import SelectPlan from '../SelectPlan/SelectPlan';
 import { getPlan, getWeatherData } from '../../../api';
 import { singleDigitTransformer, stringToDateObj } from '../../../utils/DateUtils';
 import { handlePlaceName } from '../../../utils/placeUtils';
 
 import { toBeAddedActivityContext } from '../../Viewer'; 
+import { DisplayingComponentContext } from '../../Viewer';
 import { sortActivities } from '../../../utils/ActivitiesUtils';
 
 export const PlanContext = createContext();
@@ -33,13 +33,14 @@ const Planner = (setCoordinates) => {
     const classes = useStyles();
     const {places, setPlaces} = useContext(MapPlacesContext);   // places to be displayed on map
     const {toBeAddedActivity, setToBeActivity} = useContext(toBeAddedActivityContext);
+    const {displayingComponent, setDisplayingComponent} = useContext(DisplayingComponentContext)
 
     const [plan, setPlan] = useState(null);
     const [currentDay, setCurrentDay] = useState(0); // Index of the current viewing day
     const [weatherData, setWeatherData] = useState(null);
     const [activityList, setActivityList] = useState([]);   
     const [showAdditionalInfo, setShowAdditionalInfo] = useState({});
-    const [displayingComponent, setDisplayingComponent] = useState('SelectPlan'); // This includes SelectPlan, Planner, AddActivity
+    //const [displayingComponent, setDisplayingComponent] = useState('SelectPlan'); // This includes SelectPlan, Planner, AddActivity
     
     // --- Delete Activity ---
     const deleteActivity = (delIndex) => {
@@ -173,6 +174,9 @@ const Planner = (setCoordinates) => {
                                 <Typography variant="subtitle1">
                                     {singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.startDateTime)?.hours) + ":"
                                     + singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.startDateTime)?.minutes)}
+                                    -
+                                    {singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.endDateTime)?.hours) + ":"
+                                    + singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.endDateTime)?.minutes)}
                                 </Typography>
                             </CardContent>
                         </Col>
@@ -212,7 +216,7 @@ const Planner = (setCoordinates) => {
         }
 
         <Row className={classes.plusButton}>
-            <Button variant="outlined" onClick={() => {setDisplayingComponent('AddActivity')}}> <AddCircleIcon/> </Button>
+            <Button variant="outlined" onClick={() => {setDisplayingComponent("AddActivity")}}> <AddCircleIcon/> </Button>
         </Row>
         </Grid>
         </>

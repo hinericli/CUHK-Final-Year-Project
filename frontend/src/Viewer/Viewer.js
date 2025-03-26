@@ -8,11 +8,13 @@ import Header from './components/Header/Header';
 import DiscoverList from './components/DiscoverList/DiscoverList';
 import Planner from './components/Planner/Planner';
 import Map from './components/Map/Map';
+import PlanSuggestion from './components/PlanSuggestion/PlanSuggestion';
 
 export const CoordinatesContext = createContext();
 export const MapPlacesContext = createContext();
 export const DisplayingTableContext = createContext();
 export const toBeAddedActivityContext = createContext();
+export const DisplayingComponentContext = createContext();
 
 const App = () => {
     const [places, setPlaces] = useState([]);
@@ -38,6 +40,7 @@ const App = () => {
     });
 
     const [displayingTable, setDisplayingTable] = useState('Planner');
+    const [displayingComponent, setDisplayingComponent] = useState('SelectPlan'); // This includes SelectPlan, Planner, AddActivity
 
     // only happens at the start
     useEffect(() => {
@@ -95,6 +98,7 @@ const App = () => {
             <CssBaseline />
             <Header />
 
+            <DisplayingComponentContext.Provider value={{displayingComponent, setDisplayingComponent}}>
             <toBeAddedActivityContext.Provider value={{toBeAddedActivity, setToBeAddedActivity}}>
             <DisplayingTableContext.Provider value={{displayingTable, setDisplayingTable}}>
             <MapPlacesContext.Provider value={{places, setPlaces}}>
@@ -116,7 +120,7 @@ const App = () => {
                     <Button variant="text" onClick={() => setDisplayingTable('Discover')}>Discover</Button>
                 </Grid>
                 <Grid item xs={0} md={8} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
-                    
+                    <PlanSuggestion/>
                 </Grid>
             </Grid>
             
@@ -138,7 +142,7 @@ const App = () => {
             </MapPlacesContext.Provider>
             </DisplayingTableContext.Provider>
             </toBeAddedActivityContext.Provider>
-            
+            </DisplayingComponentContext.Provider>
         </>
 
 

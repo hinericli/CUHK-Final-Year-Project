@@ -87,3 +87,36 @@ export const addActivityToPlan = async (planId, day, activityData) => {
     throw error;
   }
 };
+
+export const loadPlan = async (planJson) => {
+  // for TEXT input
+  try {
+      const response = await fetch(`http://localhost:3000/plan/`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: planJson
+      });
+      const data = await response.json();
+  } catch (error) {
+      console.log(error.message);
+  }
+}
+
+export const saveJson = async (planJson) => {
+  // for JSON OBJECT input
+  try {
+    console.log(planJson)
+      const response = await fetch(`http://localhost:3000/save-json/`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(planJson)
+      });
+      const data = await response.json();
+  } catch (error) {
+      console.log(error.message);
+  }
+}

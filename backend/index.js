@@ -9,7 +9,7 @@ route.use('/plan-suggestion', bodyParser.text({type:"*/*"}));
 route.use(express.json())
 
 const mongoose = require('mongoose');
-const { getPlan, getMaxPlanId, loadPlan, createEmptyPlan, addNewActivity } = require('./controllers/planController');
+const { getPlan, getMaxPlanId, loadPlan, createEmptyPlan, addNewActivity, saveJson } = require('./controllers/planController');
 const { getSuggestion } = require('./controllers/GeminiController');
 mongoose.connect('mongodb://127.0.0.1:27017/myDatabase');
 
@@ -24,7 +24,15 @@ db.once('open', function () {
   route.get('/plan/:planId', (req, res) => getPlan(req, res));  // obtain specific plan accoding to planId
   route.get('/max-plan-id', async (req, res) => getMaxPlanId(req, res));  // get the largest planId
 
-  route.post('/plan/', async (req, res) => loadPlan(req, res)); // load JSON plan to database
+  route.post('/plan/', async (req, res) => loadPlan(req, res)); // load plan to database (plan is in "text" string)
+  route.post('/save-json/', async (req, res) => {
+    try {
+      saveJson(req, res)
+    } catch {
+      throw error;
+    } 
+
+  }); // save JSON plan to database
   route.post('/new-plan/', async (req, res) => createEmptyPlan(req, res)); // add new empty plan to database
   route.post('/plan-suggestion', async (req, res) => {
     const response = await getSuggestion(req.body);

@@ -9,7 +9,9 @@ import useStyles from './styles';
 import { MapPlacesContext } from '../../Viewer';
 
 import { DisplayingTableContext } from '../../Viewer';
+import { DisplayingComponentContext } from '../../Viewer';
 import { LensOutlined } from '@material-ui/icons';
+import AddActivity from '../AddActivity/AddActivity';
 
 const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
     const classes = useStyles();
@@ -17,6 +19,7 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
 
     const {places, setPlaces} = useContext(MapPlacesContext);   // all places to have pins placed
     const {displayingTable, setDisplayingTable} = useContext(DisplayingTableContext);
+    const {displayingComponent, setDisplayingComponent} = useContext(DisplayingComponentContext)
 
     // for directions and routes
     const [directionsService, setDirectionsService] = useState(null);
@@ -168,6 +171,10 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
                                             startIcon={<AddIcon />}
                                             size="small"
                                             sx={{ mt: 1 }} // Adds some margin-top for spacing
+                                            onClick={() => {
+                                                setDisplayingTable("Planner")
+                                                setDisplayingComponent("AddActivity")
+                                            }}
                                         >
                                             Add
                                         </Button>

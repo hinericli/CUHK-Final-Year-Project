@@ -12,6 +12,7 @@ import useStyles from './styles';
 
 import { getMaxPlanId, getPlan } from '../../../api';
 import { PlanContext } from '../Planner/Planner';
+import { PlanResponseDataContext} from '../PlanSuggestion/PlanSuggestion'
 import Plan from '../Planner/Plan';
 
 const SelectPlan = ({ setDisplayingComponent }) => {

@@ -281,3 +281,52 @@ export async function addNewActivity (req, res) {
     })
   })
 }
+
+export async function deletePlanById(planId) {
+    try {
+        // Find the plan
+        const plan = await Plan.findOne({ planId: planId }).populate({
+            path: 'dayList',
+            populate: {
+                path: 'activities',
+                populate: {
+                    path: 'place'
+                }
+            }
+        });
+
+        if (!plan) {
+            throw new Error(`Plan with planId ${planId} not found`);
+        }
+
+        // Extract IDs of related documents
+        const dayIds = plan.dayList.map(day => day._id);
+        const activityIds = plan.dayList.flatMap(day => day.activities.map(activity => activity._id));
+        const placeIds = plan.dayList
+            .flatMap(day => day.activities.map(activity => activity.place._id))
+            .filter(id => id); // Remove null/undefined values
+
+        // Delete all related documents
+        await Place.deleteMany({ _id: { $in: placeIds } });
+        await Activity.deleteMany({ _id: { $in: activityIds } });
+        await Day.deleteMany({ _id: { $in: dayIds } });
+        await Plan.deleteOne({ planId: planId });
+
+        return {
+            success: true,
+            message: `Plan with planId ${planId} and all related data deleted successfully`,
+            deletedData: {
+                planId: planId,
+                deletedDays: dayIds.length,
+                deletedActivities: activityIds.length,
+                deletedPlaces: placeIds.length
+            }
+        };
+    } catch (error) {
+        return {
+            success: false,
+            message: error.message,
+            error: error
+        };
+    }
+}

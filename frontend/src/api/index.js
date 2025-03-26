@@ -120,3 +120,16 @@ export const saveJson = async (planJson) => {
       console.log(error.message);
   }
 }
+
+export const deletePlanById = async (planId) => {
+  try {
+    const response = await fetch(`http://localhost:3000/plan/${planId}`, {
+        method: 'DELETE',
+    });
+    const data = await response.text();
+    console.log(data)
+  } catch (error) {
+      console.log(error.message);
+  }
+
+}

@@ -15,6 +15,7 @@ export const MapPlacesContext = createContext();
 export const DisplayingTableContext = createContext();
 export const toBeAddedActivityContext = createContext();
 export const DisplayingComponentContext = createContext();
+export const GeneratedResponseDataContext = createContext();
 
 const App = () => {
     const [places, setPlaces] = useState([]);
@@ -41,6 +42,8 @@ const App = () => {
 
     const [displayingTable, setDisplayingTable] = useState('Planner');
     const [displayingComponent, setDisplayingComponent] = useState('SelectPlan'); // This includes SelectPlan, Planner, AddActivity
+
+    const [generatedResponseData, setGeneratedResponseData] = useState(null);
 
     // only happens at the start
     useEffect(() => {
@@ -98,6 +101,7 @@ const App = () => {
             <CssBaseline />
             <Header />
 
+            <GeneratedResponseDataContext.Provider value={{generatedResponseData, setGeneratedResponseData}}>
             <DisplayingComponentContext.Provider value={{displayingComponent, setDisplayingComponent}}>
             <toBeAddedActivityContext.Provider value={{toBeAddedActivity, setToBeAddedActivity}}>
             <DisplayingTableContext.Provider value={{displayingTable, setDisplayingTable}}>
@@ -120,7 +124,9 @@ const App = () => {
                     <Button variant="text" onClick={() => setDisplayingTable('Discover')}>Discover</Button>
                 </Grid>
                 <Grid item xs={0} md={8} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
-                    <PlanSuggestion/>
+                    <PlanSuggestion
+                        setGeneratedResponseData={setGeneratedResponseData}
+                    />
                 </Grid>
             </Grid>
             
@@ -143,6 +149,8 @@ const App = () => {
             </DisplayingTableContext.Provider>
             </toBeAddedActivityContext.Provider>
             </DisplayingComponentContext.Provider>
+            </GeneratedResponseDataContext.Provider>
+            
         </>
 
 

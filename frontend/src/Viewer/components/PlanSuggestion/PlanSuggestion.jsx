@@ -8,13 +8,10 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import { saveJson } from '../../../api';
 
-export const PlanResponseDataContext = createContext();
-
-const PlanSuggestion = () => {
+const PlanSuggestion = ({setGeneratedResponseData}) => {
     // --- For AI text query 
     const [query, setQuery] = useState('');
     const [isLoadingAPI, setIsLoadingAPI] = useState(false);
-    const [responseData, setResponseData] = useState(null);
     const [openDialog, setOpenDialog] = useState(false); // New state for dialog
     const apiBase = 'http://localhost:3000';
 
@@ -31,13 +28,13 @@ const PlanSuggestion = () => {
             });
             const data = await response.json();
             //console.log(data)
-            setResponseData(data);
-            setQuery('');
             saveJson(data)
+            setQuery('');
+            setGeneratedResponseData(data);
             setOpenDialog(true); // Open dialog on success
         } catch (error) {
             console.error('Error:', error);
-            setResponseData({ error: error.message });
+            setGeneratedResponseData({ error: error.message });
         } finally {
             setIsLoadingAPI(false);
         }
@@ -49,7 +46,6 @@ const PlanSuggestion = () => {
 
     return (
         <>
-        <PlanResponseDataContext.Provider value={{responseData, setResponseData}}>
         <div style={{display: 'flex', alignItems: 'center', width: '100%'}}>
                 <TextField 
                     variant="outlined"
@@ -99,7 +95,6 @@ const PlanSuggestion = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </PlanResponseDataContext.Provider>
         </>
     )
 }

@@ -13,9 +13,14 @@ const PlanSuggestion = ({setGeneratedResponseData}) => {
     const [query, setQuery] = useState('');
     const [isLoadingAPI, setIsLoadingAPI] = useState(false);
     const [openDialog, setOpenDialog] = useState(false); // New state for dialog
+    const [openErrorDialog, setOpenErrorDialog] = useState(false); // New state for error dialog
     const apiBase = 'http://localhost:3000';
 
     const handleSubmit = async () => {
+        if (!query.trim()) {
+            setOpenErrorDialog(true); // Open error dialog if query is empty
+            return;
+        }
         setIsLoadingAPI(true);
         try {
             const suggestionJson = JSON.stringify({ query: query });
@@ -44,12 +49,16 @@ const PlanSuggestion = ({setGeneratedResponseData}) => {
         setOpenDialog(false);
     };
 
+    const handleCloseErrorDialog = () => {
+        setOpenErrorDialog(false);
+    };
+
     return (
         <>
         <div style={{display: 'flex', alignItems: 'center', width: '100%'}}>
                 <TextField 
                     variant="outlined"
-                    placeholder="Enter your query"
+                    placeholder="Enter your travel plan request"
                     size="small"
                     sx={{ width: '100%' }}
                     value={query}
@@ -73,7 +82,7 @@ const PlanSuggestion = ({setGeneratedResponseData}) => {
                         style={{ marginLeft: '10px' }}
                         disabled={isLoadingAPI}
                     >
-                        Submit
+                        Generate
                     </Button>
                 )}
             </div>
@@ -91,6 +100,24 @@ const PlanSuggestion = ({setGeneratedResponseData}) => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseDialog} color="primary">
+                        OK
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Dialog for empty input error */}
+            <Dialog
+                open={openErrorDialog}
+                onClose={handleCloseErrorDialog}
+                aria-labelledby="error-dialog-title"
+            >
+                <DialogContent>
+                    <DialogContentText style={{ color: 'red' }}>
+                        Please enter your plan request.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseErrorDialog} color="primary">
                         OK
                     </Button>
                 </DialogActions>

@@ -6,6 +6,8 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { Grid, Row, Col } from 'react-flexbox-grid';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
+import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+
 import AddActivity from '../AddActivity/AddActivity';
 import dayjs from 'dayjs';
 
@@ -96,6 +98,7 @@ const Planner = (setCoordinates) => {
         setPlaces(initialActivityList.map(activity => activity.place));
         const sortedActivities = sortActivities(initialActivityList)
         setActivityList(sortedActivities)
+        setCurrentDay(0)
     }, [plan])
 
     // Change Day
@@ -146,6 +149,9 @@ const Planner = (setCoordinates) => {
         </Grid>
 
         <Grid fluid >
+        <Button variant="text" onClick={() => setDisplayingComponent("SelectPlan")}>
+            <ArrowBackIcon/> 
+        </Button>
         <Row className={classes.title}> <Typography>{currentDayJS.format('DD/MM/YYYY')}</Typography> </Row>
 
         <Row>
@@ -187,7 +193,7 @@ const Planner = (setCoordinates) => {
                                 <Typography gutterBottom variant="h5">{activity.name ? activity.name : '?'}</Typography>
                                 <Box display="flex">
                                     <LocationOnIcon/> 
-                                    <Typography gutterBottom variant="subtitle2">{handlePlaceName(activity.place)}</Typography>
+                                    <Typography gutterBottom variant="subtitle2">{activity.place ? handlePlaceName(activity.place) : ""}</Typography>
                                 </Box>
                                 <CardActions display="flex" justifyContent="space-between">
                                     <Button size="small" color="primary" onClick={() => toggleAdditionalInfo(i)}>

@@ -124,6 +124,11 @@ const Planner = (setCoordinates) => {
         }));
     };
 
+    const handleBackButtonClick = () => {
+        setDisplayingComponent("SelectPlan")
+        setPlaces([])
+    }
+
     useEffect(() => {
         setActivityList(plan?plan.dayList[currentDay].activities:[])
     }, [currentDay])
@@ -149,7 +154,7 @@ const Planner = (setCoordinates) => {
         </Grid>
 
         <Grid fluid >
-        <Button variant="text" onClick={() => setDisplayingComponent("SelectPlan")}>
+        <Button variant="text" onClick={() => handleBackButtonClick()}>
             <ArrowBackIcon/> 
         </Button>
         <Row className={classes.title}> <Typography>{currentDayJS.format('DD/MM/YYYY')}</Typography> </Row>

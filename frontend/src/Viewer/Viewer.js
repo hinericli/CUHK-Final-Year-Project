@@ -79,7 +79,7 @@ const App = () => {
             setIsLoading(false);
         }
         
-    }, [type, bounds]);
+    }, [type, bounds, displayingTable]);
 
     const components = {
         "Planner": 

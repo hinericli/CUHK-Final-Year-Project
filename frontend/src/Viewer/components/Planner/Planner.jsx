@@ -266,7 +266,7 @@ const Planner = () => {
                                     <LocationOnIcon />
                                     <Typography variant="subtitle2">{activity.place ? handlePlaceName(activity.place) : ""}</Typography>
                                 </Box>
-                                <Box display="flex" flexDirection="column">
+                                <Box gutterBottom display="flex" flexDirection="column">
                                     <Typography
                                     className={classes.valueTypography}
                                     style={{ lineHeight: 1.5 }}
@@ -309,6 +309,80 @@ const Planner = () => {
                                 }
                             </CardContent>
                         </Card>
+                        {activity.subActivities?.map((subActivity, j) => (
+                            <Card
+                                key={`subactivity-${i}-${j}`}
+                                elevation={1}
+                                className={`${classes.styledCard} ${classes.subActivityCard}`}
+                            >
+                                <CardContent className={classes.subActivityCardContent}>
+                                    <Box display="flex" alignItems="center" justifyContent="space-between">
+                                        <Typography variant="subtitle1" className={classes.subActivityTitle}>
+                                            {subActivity.name ? subActivity.name : '?'}
+                                        </Typography>
+                                        <Checkbox
+                                            checked={subActivity.isVisited || false}
+                                            onChange={() => toggleVisited(j, true, i)}
+                                            color="primary"
+                                            inputProps={{ 'aria-label': 'Mark sub-activity as visited' }}
+                                        />
+                                    </Box>
+                                    <Box display="flex" alignItems="center" mb={1}>
+                                        <Typography variant="caption" className={classes.subActivityTime}>
+                                            {singleDigitTransformer(stringToDateObj(subActivity?.startDateTime)?.hours) + ":" +
+                                            singleDigitTransformer(stringToDateObj(subActivity?.startDateTime)?.minutes)} - 
+                                            {singleDigitTransformer(stringToDateObj(subActivity?.endDateTime)?.hours) + ":" +
+                                            singleDigitTransformer(stringToDateObj(subActivity?.endDateTime)?.minutes)}
+                                        </Typography>
+                                    </Box>
+                                    <Box display="flex" alignItems="center">
+                                        <LocationOnIcon fontSize="small" color="action" />
+                                        <Typography variant="subtitle2" className={classes.subActivityPlace}>
+                                            {subActivity.place ? handlePlaceName(subActivity.place) : ""}
+                                        </Typography>
+                                    </Box>
+                                    <Typography
+                                        variant="body2"
+                                        className={classes.subActivityDescription}
+                                        style={{ lineHeight: 1.5 }}
+                                    >
+                                        {subActivity.description || 'No description available'}
+                                    </Typography>
+                                    {showAdditionalInfo[`sub_${i}_${j}`] && (
+                                        <Fade in={showAdditionalInfo[`sub_${i}_${j}`]} timeout={500}>
+                                            <Box mt={2} p={1} bgcolor="grey.100" borderRadius={4}>
+                                                <Box display="flex" alignItems="center">
+                                                    <Typography className={classes.labelTypography}>Type:</Typography>
+                                                    <Typography className={classes.valueTypography}>
+                                                        {activityTypeName[Number(subActivity.type) / 10 - 1] || 'N/A'}
+                                                    </Typography>
+                                                </Box>
+                                                <Box display="flex" alignItems="center">
+                                                    <Typography className={classes.labelTypography}>Cost:</Typography>
+                                                    <Typography className={classes.valueTypography}>
+                                                        {subActivity.cost ? `$${subActivity.cost.toFixed(2)}` : 'Free'}
+                                                    </Typography>
+                                                </Box>
+                                                <Box display="flex" flexDirection="column">
+                                                    <Typography className={classes.labelTypography}>Summary:</Typography>
+                                                    <Typography
+                                                        className={classes.valueTypography}
+                                                        style={{ lineHeight: 1.5 }}
+                                                    >
+                                                        {subActivity.place?.editorialSummary || 'No summary available'}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </Fade>
+                                    )}
+                                </CardContent>
+                                <CardActions>
+                                    <Button size="small" onClick={(e) => handleMenuOpen(e, j, true, i)}>
+                                        <MoreVertIcon />
+                                    </Button>
+                                </CardActions>
+                            </Card>
+                            ))}
                         </Col>
 
                         <Col xs={1} md={1}>

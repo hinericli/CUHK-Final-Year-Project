@@ -65,19 +65,34 @@ async function getMaxPlanIdBackend () {
     }
 }
 
-export async function getPlan (req, res) {
+export async function getPlan(req, res) {
     const planId = req.params.planId;
 
-    Plan.find({ planId: {$eq: planId} }).populate({ path: 'dayList', populate: { path: 'activities', model: 'Activity', populate: { path: 'place', model: 'Place' } } })
-    .then((data) => {
-        console.log(data)
-        res.set('Content-Type', 'application/json');
-        res.json(data);
-    })
-    .catch((err) => {
-        console.error(err);
-        res.status(404).send('PlanID Not Found');
-    });
+    Plan.find({ planId: { $eq: planId } })
+        .populate({
+            path: 'dayList',
+            populate: {
+                path: 'activities',
+                model: 'Activity',
+                populate: [
+                    { path: 'place', model: 'Place' },
+                    {
+                        path: 'subActivities',
+                        model: 'Activity',
+                        populate: { path: 'place', model: 'Place' }
+                    }
+                ]
+            }
+        })
+        .then((data) => {
+            console.log(data);
+            res.set('Content-Type', 'application/json');
+            res.json(data);
+        })
+        .catch((err) => {
+            console.error(err);
+            res.status(404).send('PlanID Not Found');
+        });
 }
 
 export async function getMaxPlanId (req, res) {
@@ -136,6 +151,39 @@ export async function saveJson(req, res) {
                 });
                 const savedPlace = await place.save();
 
+                // Save subActivities (if any)
+                const subActivityIds = [];
+                if (Array.isArray(activityData.subActivities)) {
+                    for (const subActivityData of activityData.subActivities) {
+                        if (!subActivityData || !subActivityData.place) {
+                            throw new Error('Invalid subActivity data: place is required');
+                        }
+
+                        // Save subActivity place
+                        const subPlace = new Place({
+                            name: subActivityData.place.name,
+                            latitude: subActivityData.place.latitude,
+                            longitude: subActivityData.place.longitude,
+                            description: subActivityData.place.description,
+                        });
+                        const savedSubPlace = await subPlace.save();
+
+                        // Save subActivity
+                        const subActivity = new Activity({
+                            name: subActivityData.name,
+                            type: subActivityData.type,
+                            startDateTime: new Date(subActivityData.startDateTime),
+                            endDateTime: new Date(subActivityData.endDateTime),
+                            place: savedSubPlace._id,
+                            cost: subActivityData.cost,
+                            description: subActivityData.description,
+                            isVisited: subActivityData.isVisited,
+                        });
+                        const savedSubActivity = await subActivity.save();
+                        subActivityIds.push(savedSubActivity._id);
+                    }
+                }
+
                 // Save activity
                 const activity = new Activity({
                     name: activityData.name,
@@ -146,6 +194,7 @@ export async function saveJson(req, res) {
                     cost: activityData.cost,
                     description: activityData.description,
                     isVisited: activityData.isVisited,
+                    subActivities: subActivityIds,
                 });
                 const savedActivity = await activity.save();
                 activityIds.push(savedActivity._id);

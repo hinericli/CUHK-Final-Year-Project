@@ -36,7 +36,11 @@ const ActivitySchema = new mongoose.Schema({
         type: Boolean,
         default: false,
         description: "Indicates whether the user has visited the place in the activity",
-    }
+    },
+    subActivities: [{
+        type: mongoose.Schema.Types.ObjectId, ref: 'Activity',
+        description: "List of smaller activities associated with this activity",
+    }]
 });
 
 module.exports = mongoose.model('Activity', ActivitySchema);

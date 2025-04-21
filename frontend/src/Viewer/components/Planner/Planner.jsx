@@ -20,11 +20,9 @@ import { getPlan, getWeatherData, updateActivityInPlan } from '../../../api';
 import { singleDigitTransformer, stringToDateObj } from '../../../utils/DateUtils';
 import { handlePlaceName } from '../../../utils/placeUtils';
 
-import { toBeAddedActivityContext } from '../../Viewer';
-import { DisplayingComponentContext } from '../../Viewer';
+import { toBeAddedActivityContext, DisplayingComponentContext, PlanContext } from '../../Viewer';
 import { sortActivities } from '../../../utils/ActivitiesUtils';
 
-export const PlanContext = createContext();
 export const ActivitiesListContext = createContext();
 export const CurrentDayContext = createContext();
 
@@ -35,12 +33,12 @@ dayjs.extend(toObject)
 
 const Planner = () => {
     const classes = useStyles();
-    const {places, setPlaces} = useContext(MapPlacesContext);   // places to be displayed on map
-    const {toBeAddedActivity, setToBeActivity} = useContext(toBeAddedActivityContext);
-    const {displayingComponent, setDisplayingComponent} = useContext(DisplayingComponentContext)
+    const { plan, setPlan } = useContext(PlanContext);
+    const { places, setPlaces } = useContext(MapPlacesContext);
+    const { toBeAddedActivity, setToBeActivity } = useContext(toBeAddedActivityContext);
+    const { displayingComponent, setDisplayingComponent } = useContext(DisplayingComponentContext);
 
-    const [plan, setPlan] = useState(null);
-    const [currentDay, setCurrentDay] = useState(0); // Index of the current viewing day
+    const [currentDay, setCurrentDay] = useState(0);
     const [weatherData, setWeatherData] = useState(null);
     const [activityList, setActivityList] = useState([]);
     const [showAdditionalInfo, setShowAdditionalInfo] = useState({});
@@ -49,9 +47,9 @@ const Planner = () => {
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [selectedActivity, setSelectedActivity] = useState(null);
 
-    const handleMenuOpen = (event, index) => {
+    const handleMenuOpen = (event, index, isSubActivity = false, parentIndex = null) => {
         setMenuAnchorEl(event.currentTarget);
-        setMenuActivityIndex(index);
+        setMenuActivityIndex({ index, isSubActivity, parentIndex });
     };
 
     const handleMenuClose = () => {
@@ -60,14 +58,17 @@ const Planner = () => {
     };
 
     const handleMenuAction = (action) => {
-        console.log('Menu action triggered:', action, 'for activity index:', menuActivityIndex);
+        const { index, isSubActivity, parentIndex } = menuActivityIndex || {};
+        console.log('Menu action triggered:', action, 'for activity:', { index, isSubActivity, parentIndex });
         if (action === "toggleInfo") {
-            toggleAdditionalInfo(menuActivityIndex);
+            toggleAdditionalInfo(index, isSubActivity, parentIndex);
         } else if (action === "delete") {
-            deleteActivity(menuActivityIndex);
+            deleteActivity(index, isSubActivity, parentIndex);
         } else if (action === "edit") {
-            console.log('Edit action: setting selected activity and opening dialog');
-            setSelectedActivity(activityList[menuActivityIndex]);
+            const activity = isSubActivity
+                ? activityList[parentIndex].subActivities[index]
+                : activityList[index];
+            setSelectedActivity({ ...activity, parentIndex: isSubActivity ? parentIndex : null });
             setEditDialogOpen(true);
             setDisplayingComponent("EditActivity");
         }
@@ -75,84 +76,117 @@ const Planner = () => {
     };
 
     // --- Delete Activity ---
-    const deleteActivity = (delIndex) => {
-        let newActivityList = activityList.filter((_, index) => index !== delIndex)
+    const deleteActivity = (delIndex, isSubActivity = false, parentIndex = null) => {
+        let newActivityList = [...activityList];
+        if (isSubActivity && parentIndex !== null) {
+            newActivityList[parentIndex].subActivities = newActivityList[parentIndex].subActivities.filter((_, i) => i !== delIndex);
+        } else {
+            newActivityList = newActivityList.filter((_, index) => index !== delIndex);
+        }
         setActivityList(newActivityList);
-        if (plan === null) return
-        plan.dayList[currentDay].activities = newActivityList
+        if (plan) {
+            plan.dayList[currentDay].activities = newActivityList;
+        }
     };
 
     // --- Toggle Visited Status ---
-    const toggleVisited = async (index) => {
+    const toggleVisited = async (index, isSubActivity = false, parentIndex = null) => {
         console.log("activityList before toggleVisited: ", activityList);
         const updatedActivityList = [...activityList];
-        const targetedActivity = updatedActivityList[index]
-        targetedActivity.isVisited = !updatedActivityList[index].isVisited; // Toggle the isVisited status
-        setActivityList(updatedActivityList);  
-        // Update the activity in the plan database
-        console.log("targetedActivity: ", targetedActivity);
-        const updatedPlan = await updateActivityInPlan(plan.planId, currentDay, targetedActivity._id, targetedActivity);
-        console.log('Activity updated:', updatedPlan);
+        let targetedActivity;
 
-        console.log("activityList after toggleVisited: ", activityList);
-        if (plan) {
+        if (isSubActivity && parentIndex !== null) {
+            targetedActivity = updatedActivityList[parentIndex].subActivities[index];
+            targetedActivity.isVisited = !targetedActivity.isVisited;
+        } else {
+            targetedActivity = updatedActivityList[index];
+            targetedActivity.isVisited = !targetedActivity.isVisited;
+        }
+
+        setActivityList(updatedActivityList);
+        console.log("targetedActivity: ", targetedActivity);
+
+        if (plan && targetedActivity._id) {
+            const updatedPlan = await updateActivityInPlan(
+                plan.planId,
+                currentDay,
+                targetedActivity._id,
+                targetedActivity
+            );
+            console.log('Activity updated:', updatedPlan);
             plan.dayList[currentDay].activities = updatedActivityList;
         }
+
+        console.log("activityList after toggleVisited: ", activityList);
     };
 
-    // ensure that the places updates after the activity list updates (for showing map pins and routes correctly)
-    useEffect(() => {
-        setPlaces(activityList.map(activity => activity.place))
-    }, [activityList])
+    // --- Toggle Additional Info ---
+    const toggleAdditionalInfo = (index, isSubActivity = false, parentIndex = null) => {
+        const key = isSubActivity ? `sub_${parentIndex}_${index}` : index;
+        setShowAdditionalInfo(prevState => ({
+            ...prevState,
+            [key]: !prevState[key]
+        }));
+    };
 
-    // pop out the empty object first when start
+    // Update places for map display (only main activities)
     useEffect(() => {
-        activityList.pop()
-        const sortedActivities = sortActivities(activityList)
-        setActivityList(sortedActivities)
-        setWeatherData(getWeatherData(22.314162085829565, 113.91225954047268))
-    }, [])
+        const mainActivityPlaces = activityList.map(activity => activity.place);
+        setPlaces(mainActivityPlaces);
+    }, [activityList]);
 
-    // Push new Activity when there's a new Activity to be added (clicked the FINISH button)
+    // Initialize on mount
+    useEffect(() => {
+        activityList.pop();
+        const sortedActivities = sortActivities(activityList);
+        setActivityList(sortedActivities);
+        setWeatherData(getWeatherData(22.314162085829565, 113.91225954047268));
+    }, []);
+
+    // Handle new activity addition
     useMemo(() => {
-        if (!toBeAddedActivity || !toBeAddedActivity.name) return; // Prevent adding empty activities
+        if (!toBeAddedActivity || !toBeAddedActivity.name) return;
         console.log('Adding new activity:', toBeAddedActivity);
-        activityList.push(
-            {
-                name: toBeAddedActivity.name,
-                type: toBeAddedActivity.type,
-                startDateTime: toBeAddedActivity.startDateTime,
-                endDateTime: toBeAddedActivity.endDateTime,
-                place: toBeAddedActivity.place,
-                cost: toBeAddedActivity.cost,
-                description: toBeAddedActivity.description,
-                isVisited: false // Initialize isVisited as false for new activities
-            }
-        )
-        const sortedActivities = sortActivities(activityList)
-        setActivityList(sortedActivities)
-        setPlaces(activityList.map(activity => activity.place))
-        if (plan === null) return
-        plan.dayList[currentDay].activities = activityList
-    }, [toBeAddedActivity])
+        const newActivity = {
+            name: toBeAddedActivity.name,
+            type: toBeAddedActivity.type,
+            startDateTime: toBeAddedActivity.startDateTime,
+            endDateTime: toBeAddedActivity.endDateTime,
+            place: toBeAddedActivity.place,
+            cost: toBeAddedActivity.cost,
+            description: toBeAddedActivity.description,
+            isVisited: false,
+            subActivities: toBeAddedActivity.subActivities || []
+        };
+        const updatedActivityList = [...activityList, newActivity];
+        const sortedActivities = sortActivities(updatedActivityList);
+        setActivityList(sortedActivities);
+        if (plan) {
+            plan.dayList[currentDay].activities = sortedActivities;
+        }
+    }, [toBeAddedActivity]);
 
+    // Initialize activity list from plan
     useEffect(() => {
         console.log('Current Plan: ', plan);
-        let initialActivityList = [], i = 0;
-        if (plan?.dayList[currentDay] === null) return;
+        if (!plan?.dayList[currentDay]) return;
+        const initialActivityList = plan.dayList[currentDay].activities.map(activity => ({
+            ...activity,
+            isVisited: activity.isVisited || false,
+            subActivities: activity.subActivities || []
+        }));
+        const sortedActivities = sortActivities(initialActivityList);
+        setActivityList(sortedActivities);
+        setCurrentDay(0);
+    }, [plan]);
 
-        while (plan?.dayList[currentDay].activities[i] != null) {
-            initialActivityList.push({
-                ...plan.dayList[currentDay].activities[i],
-                isVisited: plan.dayList[currentDay].activities[i].isVisited || false // Ensure isVisited is set
-            });
-            i++;
-        }
-        setPlaces(initialActivityList.map(activity => activity.place));
-        const sortedActivities = sortActivities(initialActivityList)
-        setActivityList(sortedActivities)
-        setCurrentDay(0)
-    }, [plan])
+    // Update activity list on day change
+    useEffect(() => {
+        const initialActivityList = plan?.dayList[currentDay]?.activities || [];
+        const sortedActivities = sortActivities(initialActivityList);
+        setActivityList(sortedActivities);
+        console.log('Day changed; sorted activities:', sortedActivities);
+    }, [currentDay]);
 
     // Change Day
     const switchToPreviousDay = () => {
@@ -163,225 +197,230 @@ const Planner = () => {
         setCurrentDay(currentDay + 1 >= plan.dayCount ? plan.dayCount - 1 : currentDay + 1);
     };
 
+    // Calculate total cost
     const getCostSum = () => {
-        let costList = plan?.dayList[currentDay]?.activities.map(activity => Number(activity.cost?activity.cost:0)) || [];
-        let totalCost = costList.reduce((acc, cost) => acc + cost, 0);  // sum up all the cost
-
+        const costList = activityList.flatMap(activity => [
+            Number(activity.cost || 0),
+            ...(activity.subActivities?.map(subActivity => Number(subActivity.cost || 0)) || [])
+        ]);
+        const totalCost = costList.reduce((acc, cost) => acc + cost, 0);
         return String(Number(totalCost).toFixed(2));
-    }
-
-    const toggleAdditionalInfo = (index) => {
-        setShowAdditionalInfo(prevState => ({
-            ...prevState,
-            [index]: !prevState[index]
-        }));
     };
 
     const handleBackButtonClick = () => {
-        setDisplayingComponent("SelectPlan")
-        setActivityList([])
-        setPlaces([])
-    }
+        setDisplayingComponent("SelectPlan");
+        setActivityList([]);
+        setPlaces([]);
+    };
 
-    useEffect(() => {
-        const initialActivityList = plan?.dayList[currentDay]?.activities || [];
-        const sortedActivities = sortActivities(initialActivityList);
-        setActivityList(sortedActivities);
-        console.log('Day changed; sorted activities:', sortedActivities);
-    }, [currentDay])
-
-    // Convert day of week index/number stored by dayjs to day word
+    // Convert day of week index to name
     const toDayName = (dayOfWeekNum) => {
-        const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+        const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         return daysOfWeek[dayOfWeekNum];
-    }
+    };
 
-    const activityTypeName = ["Restaurant", "Hotel", "Attraction", "Flight", "Others"]
+    const activityTypeName = ["Restaurant", "Hotel", "Attraction", "Flight", "Others"];
     let startingDate = dayjs(plan?.startingDate), currentDayJS = dayjs(startingDate?.add(currentDay, 'day'));
+
     const components = {
         "Planner":
         <>
-        <Grid fluid >
-            <Button variant="text" onClick={() => switchToPreviousDay()}>
-                <ChevronLeftIcon style={{position: "fixed", top: "50%", left: 0}}/>
-            </Button>
-            <Button variant="text" onClick={() => switchToNextDay()}>
-                <ChevronRightIcon style={{position: "fixed", top: "50%", left: "30%"}}/>
-            </Button>
-        </Grid>
+            <Grid fluid>
+                <Button variant="text" onClick={() => switchToPreviousDay()}>
+                    <ChevronLeftIcon style={{ position: "fixed", top: "50%", left: 0 }} />
+                </Button>
+                <Button variant="text" onClick={() => switchToNextDay()}>
+                    <ChevronRightIcon style={{ position: "fixed", top: "50%", left: "30%" }} />
+                </Button>
+            </Grid>
 
-        <Grid fluid >
-        <Button variant="text" onClick={() => handleBackButtonClick()}>
-            <ArrowBackIcon/>
-        </Button>
+            <Grid fluid>
+                <Button variant="text" onClick={() => handleBackButtonClick()}>
+                    <ArrowBackIcon />
+                </Button>
 
-        <Row className={classes.title}> <Typography>{currentDayJS.format('DD/MM/YYYY')}</Typography> </Row>
+                <Row className={classes.title}>
+                    <Typography>{currentDayJS.format('DD/MM/YYYY')}</Typography>
+                </Row>
 
-        <Row>
-            <Col xs={4} className={classes.title}> <Typography>{toDayName(currentDayJS.day())}</Typography> </Col>
-            <Col xs={4} className={classes.title}> <Typography>
-                21°
-            </Typography> <WbSunnyIcon/> </Col>
-            <Col xs={4} className={classes.title}> <Typography>Cost: ${getCostSum()}</Typography> </Col>
-        </Row>
+                <Row>
+                    <Col xs={4} className={classes.title}>
+                        <Typography>{toDayName(currentDayJS.day())}</Typography>
+                    </Col>
+                    <Col xs={4} className={classes.title}>
+                        <Typography>21°</Typography>
+                        <WbSunnyIcon />
+                    </Col>
+                    <Col xs={4} className={classes.title}>
+                        <Typography>Cost: ${getCostSum()}</Typography>
+                    </Col>
+                </Row>
 
-        <Row className={classes.subtitle}>
-            <Col xs={4} md={3}>
-                <Typography>Time</Typography>
-            </Col>
-            <Col xs={8} md={9}>
-                <Typography>Activity</Typography>
-            </Col>
-        </Row>
-        {
-            activityList?.map((activity, i) => {
-                return (
-                    <>
-                    <Row key={i}>
+                <Row className={classes.subtitle}>
+                    <Col xs={3} md={3}>
+                        <Typography>Time</Typography>
+                    </Col>
+                    <Col xs={9} md={9}>
+                        <Typography>Activity</Typography>
+                    </Col>
+                </Row>
+
+                {activityList?.map((activity, i) => (
+                    <Row key={`activity-${i}`}>
                         <Col xs={4} md={3}>
                             <CardContent>
                                 <Typography variant="subtitle1">
-                                    {singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.startDateTime)?.hours) + ":"
-                                    + singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.startDateTime)?.minutes)}
-                                    -
-                                    {singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.endDateTime)?.hours) + ":"
-                                    + singleDigitTransformer(stringToDateObj(plan?.dayList[currentDay]?.activities[i]?.endDateTime)?.minutes)}
+                                    {singleDigitTransformer(stringToDateObj(activity?.startDateTime)?.hours)}:
+                                    {singleDigitTransformer(stringToDateObj(activity?.startDateTime)?.minutes)} -
+                                    {singleDigitTransformer(stringToDateObj(activity?.endDateTime)?.hours)}:
+                                    {singleDigitTransformer(stringToDateObj(activity?.endDateTime)?.minutes)}
                                 </Typography>
                             </CardContent>
                         </Col>
 
                         <Col xs={7} md={8}>
-                        <Card elevation={2} className={classes.styledCard}>
-                            <CardContent className={classes.cardContent}>
-                                <Box display="flex" alignItems="center" justifyContent="space-between">
-                                    <Typography gutterBottom variant="h6">{activity.name ? activity.name : '?'}</Typography>
-                                    <Checkbox
-                                        checked={activity.isVisited || false}
-                                        onChange={() => toggleVisited(i)}
-                                        color="primary"
-                                        inputProps={{ 'aria-label': 'Mark activity as visited' }}
-                                    />
-                                </Box>
-                                <Box gutterBottom display="flex">
-                                    <LocationOnIcon />
-                                    <Typography variant="subtitle2">{activity.place ? handlePlaceName(activity.place) : ""}</Typography>
-                                </Box>
-                                <Box gutterBottom display="flex" flexDirection="column">
-                                    <Typography
-                                    className={classes.valueTypography}
-                                    style={{ lineHeight: 1.5 }}
-                                    >
-                                    {activity.description || 'No description available'}
-                                    </Typography>
-                                </Box>
-
-                                {showAdditionalInfo[i] && (
-                                    <Fade in={showAdditionalInfo[i]} timeout={500}>
-                                        <Card className={classes.styledCard}>
-                                        <CardContent>
-                                            <Box display="flex" flexDirection="column" gap={1}>
-                                            <Box display="flex" alignItems="center">
-                                                <Typography className={classes.labelTypography}>Type:</Typography>
-                                                <Typography className={classes.valueTypography}>
-                                                {activityTypeName[Number(activity.type) / 10 - 1] || 'N/A'}
-                                                </Typography>
-                                            </Box>
-                                            <Box display="flex" alignItems="center">
-                                                <Typography className={classes.labelTypography}>Cost:</Typography>
-                                                <Typography className={classes.valueTypography}>
-                                                {activity.cost ? `$${activity.cost.toFixed(2)}` : 'Free'}
-                                                </Typography>
-                                            </Box>
-                                            <Box display="flex" flexDirection="column">
-                                                <Typography className={classes.labelTypography}>Summary:</Typography>
-                                                <Typography
-                                                className={classes.valueTypography}
-                                                style={{ lineHeight: 1.5 }}
-                                                >
-                                                {activity.place?.editorialSummary || 'No summary available'}
-                                                </Typography>
-                                            </Box>
-                                            </Box>
-                                        </CardContent>
-                                        </Card>
-                                    </Fade>
-                                    )
-                                }
-                            </CardContent>
-                        </Card>
-                        {activity.subActivities?.map((subActivity, j) => (
-                            <Card
-                                key={`subactivity-${i}-${j}`}
-                                elevation={1}
-                                className={`${classes.styledCard} ${classes.subActivityCard}`}
-                            >
-                                <CardContent className={classes.subActivityCardContent}>
+                            <Card elevation={2} className={classes.styledCard}>
+                                <CardContent className={classes.cardContent}>
                                     <Box display="flex" alignItems="center" justifyContent="space-between">
-                                        <Typography variant="subtitle1" className={classes.subActivityTitle}>
-                                            {subActivity.name ? subActivity.name : '?'}
-                                        </Typography>
+                                        <Box display="flex" alignItems="center" gap={1}>
+                                            <Typography className={classes.index}>{i + 1}</Typography>
+                                            <Typography gutterBottom variant="h6">
+                                                {activity.name || '?'}
+                                            </Typography>
+                                        </Box>
                                         <Checkbox
-                                            checked={subActivity.isVisited || false}
-                                            onChange={() => toggleVisited(j, true, i)}
+                                            checked={activity.isVisited || false}
+                                            onChange={() => toggleVisited(i)}
                                             color="primary"
-                                            inputProps={{ 'aria-label': 'Mark sub-activity as visited' }}
+                                            inputProps={{ 'aria-label': 'Mark activity as visited' }}
                                         />
                                     </Box>
-                                    <Box display="flex" alignItems="center" mb={1}>
-                                        <Typography variant="caption" className={classes.subActivityTime}>
-                                            {singleDigitTransformer(stringToDateObj(subActivity?.startDateTime)?.hours) + ":" +
-                                            singleDigitTransformer(stringToDateObj(subActivity?.startDateTime)?.minutes)} - 
-                                            {singleDigitTransformer(stringToDateObj(subActivity?.endDateTime)?.hours) + ":" +
-                                            singleDigitTransformer(stringToDateObj(subActivity?.endDateTime)?.minutes)}
+                                    <Box gutterBottom display="flex">
+                                        <LocationOnIcon style={{ marginBottom: "0.5rem" }} />
+                                        <Typography style={{ marginLeft: "0.5rem" }} variant="subtitle2">
+                                            {activity.place ? handlePlaceName(activity.place) : ""}
                                         </Typography>
                                     </Box>
-                                    <Box display="flex" alignItems="center">
-                                        <LocationOnIcon fontSize="small" color="action" />
-                                        <Typography variant="subtitle2" className={classes.subActivityPlace}>
-                                            {subActivity.place ? handlePlaceName(subActivity.place) : ""}
+                                    <Box display="flex" flexDirection="column">
+                                        <Typography
+                                            className={classes.valueTypography}
+                                            style={{ lineHeight: 1.5, fontStyle: 'italic', fontSize: '0.9rem' }}
+                                        >
+                                            {activity.description || 'No description available'}
                                         </Typography>
                                     </Box>
-                                    <Typography
-                                        variant="body2"
-                                        className={classes.subActivityDescription}
-                                        style={{ lineHeight: 1.5 }}
-                                    >
-                                        {subActivity.description || 'No description available'}
-                                    </Typography>
-                                    {showAdditionalInfo[`sub_${i}_${j}`] && (
-                                        <Fade in={showAdditionalInfo[`sub_${i}_${j}`]} timeout={500}>
-                                            <Box mt={2} p={1} bgcolor="grey.100" borderRadius={4}>
-                                                <Box display="flex" alignItems="center">
-                                                    <Typography className={classes.labelTypography}>Type:</Typography>
-                                                    <Typography className={classes.valueTypography}>
-                                                        {activityTypeName[Number(subActivity.type) / 10 - 1] || 'N/A'}
-                                                    </Typography>
-                                                </Box>
-                                                <Box display="flex" alignItems="center">
-                                                    <Typography className={classes.labelTypography}>Cost:</Typography>
-                                                    <Typography className={classes.valueTypography}>
-                                                        {subActivity.cost ? `$${subActivity.cost.toFixed(2)}` : 'Free'}
-                                                    </Typography>
-                                                </Box>
-                                                <Box display="flex" flexDirection="column">
-                                                    <Typography className={classes.labelTypography}>Summary:</Typography>
-                                                    <Typography
-                                                        className={classes.valueTypography}
-                                                        style={{ lineHeight: 1.5 }}
-                                                    >
-                                                        {subActivity.place?.editorialSummary || 'No summary available'}
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
+
+                                    {showAdditionalInfo[i] && (
+                                        <Fade in={showAdditionalInfo[i]} timeout={500}>
+                                            <Card className={classes.styledCard}>
+                                                <CardContent>
+                                                    <Box display="flex" flexDirection="column" gap={1}>
+                                                        <Box display="flex" alignItems="center">
+                                                            <Typography className={classes.labelTypography}>Type:</Typography>
+                                                            <Typography className={classes.valueTypography}>
+                                                                {activityTypeName[Number(activity.type) / 10 - 1] || 'N/A'}
+                                                            </Typography>
+                                                        </Box>
+                                                        <Box display="flex" alignItems="center">
+                                                            <Typography className={classes.labelTypography}>Cost:</Typography>
+                                                            <Typography className={classes.valueTypography}>
+                                                                {activity.cost ? `$${activity.cost.toFixed(2)}` : 'Free'}
+                                                            </Typography>
+                                                        </Box>
+                                                        <Box display="flex" flexDirection="column">
+                                                            <Typography className={classes.labelTypography}>Summary:</Typography>
+                                                            <Typography
+                                                                className={classes.valueTypography}
+                                                                style={{ lineHeight: 1.5 }}
+                                                            >
+                                                                {activity.place?.editorialSummary || 'No summary available'}
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
+                                                </CardContent>
+                                            </Card>
                                         </Fade>
                                     )}
                                 </CardContent>
-                                <CardActions>
-                                    <Button size="small" onClick={(e) => handleMenuOpen(e, j, true, i)}>
-                                        <MoreVertIcon />
-                                    </Button>
-                                </CardActions>
                             </Card>
+
+                            {/* Subactivities */}
+                            {activity.subActivities?.map((subActivity, j) => (
+                                <Card
+                                    key={`subactivity-${i}-${j}`}
+                                    elevation={1}
+                                    className={`${classes.styledCard} ${classes.subActivityCard}`}
+                                >
+                                    <CardContent className={classes.subActivityCardContent}>
+                                        <Box display="flex" alignItems="center" justifyContent="space-between">
+                                            <Box display="flex" alignItems="center" gap={1}>
+                                                <Typography className={classes.index}>{`${i + 1}.${j + 1}`}</Typography>
+                                                <Typography variant="subtitle1" className={classes.subActivityTitle}>
+                                                    {subActivity.name || '?'}
+                                                </Typography>
+                                            </Box>
+                                            <Checkbox
+                                                checked={subActivity.isVisited || false}
+                                                onChange={() => toggleVisited(j, true, i)}
+                                                color="primary"
+                                                inputProps={{ 'aria-label': 'Mark sub-activity as visited' }}
+                                            />
+                                        </Box>
+                                        <Box display="flex" alignItems="center" mb={1}>
+                                            <Typography variant="caption" className={classes.subActivityTime}>
+                                                {singleDigitTransformer(stringToDateObj(subActivity?.startDateTime)?.hours)}:
+                                                {singleDigitTransformer(stringToDateObj(subActivity?.startDateTime)?.minutes)} -
+                                                {singleDigitTransformer(stringToDateObj(subActivity?.endDateTime)?.hours)}:
+                                                {singleDigitTransformer(stringToDateObj(subActivity?.endDateTime)?.minutes)}
+                                            </Typography>
+                                        </Box>
+                                        <Box display="flex" alignItems="center">
+                                            <LocationOnIcon fontSize="small" color="action" />
+                                            <Typography variant="subtitle2" className={classes.subActivityPlace}>
+                                                {subActivity.place ? handlePlaceName(subActivity.place) : ""}
+                                            </Typography>
+                                        </Box>
+                                        <Typography
+                                            variant="body2"
+                                            className={classes.subActivityDescription}
+                                            style={{ lineHeight: 1.5 }}
+                                        >
+                                            {subActivity.description || 'No description available'}
+                                        </Typography>
+                                        {showAdditionalInfo[`sub_${i}_${j}`] && (
+                                            <Fade in={showAdditionalInfo[`sub_${i}_${j}`]} timeout={500}>
+                                                <Box mt={2} p={1} bgcolor="grey.100" borderRadius={4}>
+                                                    <Box display="flex" alignItems="center">
+                                                        <Typography className={classes.labelTypography}>Type:</Typography>
+                                                        <Typography className={classes.valueTypography}>
+                                                            {activityTypeName[Number(subActivity.type) / 10 - 1] || 'N/A'}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Box display="flex" alignItems="center">
+                                                        <Typography className={classes.labelTypography}>Cost:</Typography>
+                                                        <Typography className={classes.valueTypography}>
+                                                            {subActivity.cost ? `$${subActivity.cost.toFixed(2)}` : 'Free'}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Box display="flex" flexDirection="column">
+                                                        <Typography className={classes.labelTypography}>Summary:</Typography>
+                                                        <Typography
+                                                            className={classes.valueTypography}
+                                                            style={{ lineHeight: 1.5 }}
+                                                        >
+                                                            {subActivity.place?.editorialSummary || 'No summary available'}
+                                                        </Typography>
+                                                    </Box>
+                                                </Box>
+                                            </Fade>
+                                        )}
+                                    </CardContent>
+                                    <CardActions>
+                                        <Button size="small" onClick={(e) => handleMenuOpen(e, j, true, i)}>
+                                            <MoreVertIcon />
+                                        </Button>
+                                    </CardActions>
+                                </Card>
                             ))}
                         </Col>
 
@@ -392,7 +431,7 @@ const Planner = () => {
                                 </Button>
                                 <Menu
                                     anchorEl={menuAnchorEl}
-                                    open={Boolean(menuAnchorEl) && menuActivityIndex === i}
+                                    open={Boolean(menuAnchorEl) && menuActivityIndex?.index === i && !menuActivityIndex?.isSubActivity}
                                     onClose={handleMenuClose}
                                 >
                                     <MenuItem onClick={() => handleMenuAction("toggleInfo")}>
@@ -405,50 +444,58 @@ const Planner = () => {
                                         Delete
                                     </MenuItem>
                                 </Menu>
+                                {activity.subActivities?.map((_, j) => (
+                                    <Menu
+                                        key={`subactivity-menu-${i}-${j}`}
+                                        anchorEl={menuAnchorEl}
+                                        open={Boolean(menuAnchorEl) && menuActivityIndex?.index === j && menuActivityIndex?.isSubActivity && menuActivityIndex?.parentIndex === i}
+                                        onClose={handleMenuClose}
+                                    >
+                                        <MenuItem onClick={() => handleMenuAction("toggleInfo")}>
+                                            {showAdditionalInfo[`sub_${i}_${j}`] ? "Hide Info" : "More Info"}
+                                        </MenuItem>
+                                        <MenuItem onClick={() => handleMenuAction("edit")}>
+                                            Edit
+                                        </MenuItem>
+                                        <MenuItem onClick={() => handleMenuAction("delete")}>
+                                            Delete
+                                        </MenuItem>
+                                    </Menu>
+                                ))}
                             </CardActions>
                         </Col>
                     </Row>
-                    </>
-                )
-            })
-        }
+                ))}
 
-        <Row className={classes.plusButton}>
-            <Button variant="outlined" onClick={() => {setDisplayingComponent("AddActivity")}}> <AddCircleIcon/> </Button>
-        </Row>
-        </Grid>
-        </>
-        ,
+                <Row className={classes.plusButton}>
+                    <Button variant="outlined" onClick={() => setDisplayingComponent("AddActivity")}>
+                        <AddCircleIcon />
+                    </Button>
+                </Row>
+            </Grid>
+        </>,
         "AddActivity":
-            <AddActivity
-                setDisplayingComponent={setDisplayingComponent}/>
-        ,
+            <AddActivity setDisplayingComponent={setDisplayingComponent} />,
         "EditActivity":
             <EditActivityDialog
                 open={editDialogOpen}
                 setOpen={setEditDialogOpen}
                 setDisplayingComponent={setDisplayingComponent}
                 activity={selectedActivity}
-            />
-        ,
+            />,
         "SelectPlan":
-            <SelectPlan
-                setDisplayingComponent={setDisplayingComponent}
-            />
-    }
+            <SelectPlan setDisplayingComponent={setDisplayingComponent} />
+    };
 
-    //console.log('Current displayingComponent:', displayingComponent);
     if (selectedActivity) console.log('Edit dialog open:', editDialogOpen, 'Selected activity:', selectedActivity);
 
     return (
         <>
-        <CurrentDayContext.Provider value={{currentDay, setCurrentDay}}>
-        <PlanContext.Provider value={{plan, setPlan}}>
-        <ActivitiesListContext.Provider value={{activityList, setActivityList}}>
-            {components[displayingComponent]}
-        </ActivitiesListContext.Provider>
-        </PlanContext.Provider>
-        </CurrentDayContext.Provider>
+            <CurrentDayContext.Provider value={{ currentDay, setCurrentDay }}>
+                <ActivitiesListContext.Provider value={{ activityList, setActivityList }}>
+                    {components[displayingComponent]}
+                </ActivitiesListContext.Provider>
+            </CurrentDayContext.Provider>
         </>
     );
 }

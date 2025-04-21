@@ -1,6 +1,6 @@
 import React, { useRef, useContext, useEffect, useMemo, useState } from 'react';
 import GoogleMapReact from 'google-map-react';
-import { Paper, Typography, useMediaQuery, Button } from '@material-ui/core';
+import { Paper, Typography, useMediaQuery, Button, Tooltip } from '@material-ui/core';
 import LocationOnOutlinedIcon from '@material-ui/icons/LocationOnOutlined';
 import Rating from '@material-ui/lab/Rating';
 import AddIcon from '@material-ui/icons/Add';
@@ -145,24 +145,36 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
                     if (typeof(place) === undefined || places == '') return;
 
                     if (displayingTable === "Planner") {
-                        //console.log(Number(place.geometry.location.lat()), Number(place.geometry.location.lng()))
                         return (
-                            <div 
-                                className={classes.markerContainer}
-                                lat={Number(place.latitude)}
-                                lng={Number(place.longitude)}
-                                key={i} >   
-                                <Paper elevation={3} className={classes.paper}>
-                                    <Typography className={classes.typography} variant="subtitle2" gutterBottom>
-                                        {i+1}
-                                    </Typography>
-                                    <Typography className={classes.typography} variant="subtitle2" gutterBottom>
-                                        {place.name}
-                                    </Typography>
-                                </Paper>
-                            </div>
-                        )
-                    } 
+                          <div
+                            className={classes.markerContainer}
+                            lat={Number(place.latitude)}
+                            lng={Number(place.longitude)}
+                            key={i}
+                          >
+                            <Tooltip title={place.description || place.name} arrow>
+                            <Paper elevation={4} className={classes.paper}>
+                              <div className={classes.markerContent}>
+                                <Typography
+                                  className={classes.index}
+                                  variant="subtitle1"
+                                  color="primary"
+                                >
+                                  {i + 1}
+                                </Typography>
+                                <Typography
+                                  className={classes.placeName}
+                                  variant="subtitle2"
+                                  color="textPrimary"
+                                >
+                                  {place.name}
+                                </Typography>
+                              </div>
+                            </Paper>
+                            </Tooltip>
+                          </div>
+                        );
+                    }
                     
                     if (displayingTable === "Discover") {
                         return (

@@ -16,8 +16,11 @@ export const DisplayingTableContext = createContext();
 export const toBeAddedActivityContext = createContext();
 export const DisplayingComponentContext = createContext();
 export const GeneratedResponseDataContext = createContext();
+export const PlanContext = createContext();
 
 const App = () => {
+
+    const [plan, setPlan] = useState(null);
     const [places, setPlaces] = useState([]);
     const [filteredPlaces, setFilteredPlaces] = useState([]);
 
@@ -109,6 +112,7 @@ const App = () => {
                 directionColor={directionColor} // Pass directionColor to Header
             />
 
+            <PlanContext.Provider value={{plan, setPlan}}>
             <GeneratedResponseDataContext.Provider value={{generatedResponseData, setGeneratedResponseData}}>
             <DisplayingComponentContext.Provider value={{displayingComponent, setDisplayingComponent}}>
             <toBeAddedActivityContext.Provider value={{toBeAddedActivity, setToBeAddedActivity}}>
@@ -138,6 +142,7 @@ const App = () => {
                 <Grid item xs={0} md={8} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
                     <PlanSuggestion
                         setGeneratedResponseData={setGeneratedResponseData}
+                        displayingComponent={displayingComponent}
                     />
                 </Grid>
             </Grid>
@@ -163,6 +168,7 @@ const App = () => {
             </toBeAddedActivityContext.Provider>
             </DisplayingComponentContext.Provider>
             </GeneratedResponseDataContext.Provider>
+            </PlanContext.Provider>
             
         </>
 

@@ -22,7 +22,7 @@ import dayjs from 'dayjs';
 
 import useStyles from './styles';
 import { deletePlanById, getMaxPlanId, getPlan } from '../../../api';
-import { PlanContext } from '../Planner/Planner';
+import { PlanContext } from '../../Viewer';
 import { GeneratedResponseDataContext } from '../../Viewer';
 
 const SelectPlan = ({ setDisplayingComponent }) => {

@@ -9,12 +9,13 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 
 import MapSearch from '../MapSearch/MapSearch';
-import { CurrentDayContext, PlanContext } from '../Planner/Planner';
-import { toBeAddedActivityContext } from '../../Viewer';
+import { CurrentDayContext } from '../Planner/Planner';
+import { toBeAddedActivityContext, PlanContext } from '../../Viewer';
 
 import useStyle from './style';
 import { dayJSObjtoString } from '../../../utils/DateUtils';
 import { updateActivityInPlan } from '../../../api';
+
 
 const customParseFormat = require('dayjs/plugin/customParseFormat');
 const toObject = require('dayjs/plugin/toObject');
@@ -292,6 +293,7 @@ const EditActivity = ({ setDisplayingComponent, activity, onSave, setUpdatedActi
                     };
 
                     try {
+                        console.log("Passing in parameters: ", plan.planId, currentDay, activity._id, updatedActivity);
                         const updatedPlan = await updateActivityInPlan(plan.planId, currentDay, activity._id, updatedActivity);
                         console.log('Activity updated:', updatedPlan);
                         setUpdatedActivity(updatedActivity);

@@ -1,4 +1,4 @@
-import React, { createContext, useState } from 'react';
+import React, { useState } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -7,10 +7,15 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import { saveJson } from '../../../api';
+import { useContext } from 'react';
 
-const PlanSuggestion = ({setGeneratedResponseData}) => {
+import { PlanContext } from '../../Viewer';
+
+const PlanSuggestion = ({ setGeneratedResponseData, displayingComponent }) => {
+    const { plan } = useContext(PlanContext); // Use the PlanContext to get the current plan
+
     // --- For AI text query 
-    const [query, setQuery] = useState('');
+    const [query, setQuery] = useState('');  // string inputted by the user in the text field
     const [isLoadingAPI, setIsLoadingAPI] = useState(false);
     const [openDialog, setOpenDialog] = useState(false); // New state for dialog
     const [openErrorDialog, setOpenErrorDialog] = useState(false); // New state for error dialog
@@ -23,20 +28,42 @@ const PlanSuggestion = ({setGeneratedResponseData}) => {
         }
         setIsLoadingAPI(true);
         try {
-            const suggestionJson = JSON.stringify({ query: query });
-            const response = await fetch(`${apiBase}/plan-suggestion/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain'
-                },
-                body: suggestionJson
-            });
-            const data = await response.json();
-            //console.log(data)
-            saveJson(data)
-            setQuery('');
-            setGeneratedResponseData(data);
-            setOpenDialog(true); // Open dialog on success
+            if (displayingComponent === 'SelectPlan') {
+                const userPromptJson = JSON.stringify({ query: query });
+                const generateEndpoint = `${apiBase}/plan-suggestion/`;
+                const response = await fetch(generateEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: userPromptJson,
+                });
+                const data = await response.json();
+                saveJson(data);
+                setQuery('');
+                setGeneratedResponseData(data);
+                setOpenDialog(true); // Open dialog on success
+            } else if (displayingComponent === 'Planner') {
+                // Combine plan and query into a single object
+                const requestBody = {
+                    plan: plan || {}, // Use empty object if plan is null/undefined
+                    query: query,
+                };
+                const modifyEndpoint = `${apiBase}/modify-plan-suggestion/`;
+                const response = await fetch(modifyEndpoint, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody), // Stringify the combined object
+                });
+                const data = await response.json();
+                console.log('Response from server:', data);
+                //saveJson(data); // Uncomment if needed
+                setQuery('');
+                setGeneratedResponseData(data);
+                setOpenDialog(true); // Open dialog on success
+            }
         } catch (error) {
             console.error('Error:', error);
             setGeneratedResponseData({ error: error.message });
@@ -53,9 +80,12 @@ const PlanSuggestion = ({setGeneratedResponseData}) => {
         setOpenErrorDialog(false);
     };
 
+    // Determine button text based on displayingComponent
+    const buttonText = displayingComponent === 'SelectPlan' ? 'Generate' : 'Modify';
+
     return (
         <>
-        <div style={{display: 'flex', alignItems: 'center', width: '100%'}}>
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                 <TextField 
                     variant="outlined"
                     placeholder="Enter your travel plan request"
@@ -82,7 +112,7 @@ const PlanSuggestion = ({setGeneratedResponseData}) => {
                         style={{ marginLeft: '10px' }}
                         disabled={isLoadingAPI}
                     >
-                        Generate
+                        {buttonText}
                     </Button>
                 )}
             </div>
@@ -95,7 +125,9 @@ const PlanSuggestion = ({setGeneratedResponseData}) => {
             >
                 <DialogContent>
                     <DialogContentText style={{ color: 'green' }}>
-                        New suggested plan has successfully added into your plan list.
+                        {buttonText === 'Generate' 
+                            ? 'New suggested plan has successfully added into your plan list.' 
+                            : 'Your plan has been successfully modified.'}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
@@ -123,7 +155,7 @@ const PlanSuggestion = ({setGeneratedResponseData}) => {
                 </DialogActions>
             </Dialog>
         </>
-    )
-}
+    );
+};
 
-export default PlanSuggestion
+export default PlanSuggestion;

@@ -9,8 +9,8 @@ route.use('/plan-suggestion', bodyParser.text({type:"*/*"}));
 route.use(express.json())
 
 const mongoose = require('mongoose');
-const { getPlan, getMaxPlanId, loadPlan, createEmptyPlan, addNewActivity, saveJson, deletePlanById, updateActivity } = require('./controllers/planController');
-const { getSuggestion } = require('./controllers/GeminiController');
+const { getPlan, getMaxPlanId, loadPlan, createEmptyPlan, addNewActivity, saveJson, deletePlanById, updateActivity, updatePlan } = require('./controllers/planController');
+const { getSuggestion, getModifyPlanSuggestion } = require('./controllers/GeminiController');
 mongoose.connect('mongodb://127.0.0.1:27017/myDatabase');
 
 const db = mongoose.connection;
@@ -47,6 +47,14 @@ db.once('open', function () {
 
   route.put('/plan/:planId/:day', async (req, res) => addNewActivity(req, res)); // add activtity to specific day
   route.put('/plan/:planId/day/:day/activity/:activityId', updateActivity); // edit activity in specific day
+  route.put('/modify-plan-suggestion', async (req, res) => {
+    console.log(req.body);
+    const response = await getModifyPlanSuggestion(req.body);
+    const updatedPlan = await updatePlan(response);
+    res.send(updatedPlan);
+  })
+
+  
 })
 
 // listen to port 3000

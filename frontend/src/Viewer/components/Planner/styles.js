@@ -1,101 +1,123 @@
 import { makeStyles } from '@material-ui/core/styles';
 
 export default makeStyles((theme) => ({
-  chip: {
-    margin: '5px 5px 5px 0',
-  },
-  title: {
+  paper: {
+    padding: theme.spacing(1.5),
     display: 'flex',
+    flexDirection: 'column',
     justifyContent: 'center',
-    marginTop: '10px',
-  },
-  subtitle: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: '10px',
-  },
-  spacing: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  plusButton: {
-    position: 'sticky',
-    justifyContent: 'center',
-  },
-  styledCard: {
-    maxWidth: 600,
-    margin: theme.spacing(2),
-    borderRadius: theme.shape.borderRadius * 2,
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-    backgroundColor: theme.palette.background.paper,
-    transition: 'transform 0.3s ease-in-out',
+    width: '120px',
+    background: 'linear-gradient(145deg, #ffffff, #f0f4f8)',
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
     '&:hover': {
-      transform: 'translateY(-4px)',
+      transform: 'scale(1.05)',
+      boxShadow: '0 6px 16px rgba(0, 0, 0, 0.2)',
     },
   },
+  markerContainer: {
+    position: 'absolute',
+    transform: 'translate(-50%, -50%)',
+    zIndex: 1,
+    '&:hover': { zIndex: 2 },
+  },
+  markerContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: theme.spacing(0.5),
+  },
+  index: {
+    fontWeight: 'bold',
+    fontSize: '0.9rem',
+    background: theme.palette.primary.light,
+    color: '#fff',
+    borderRadius: '12px',
+    padding: theme.spacing(0.75, 1.5),
+    textAlign: 'center',
+    width: 'fit-content',
+    marginRight: theme.spacing(2),
+  },
+  placeName: {
+    fontSize: '0.9rem',
+    fontWeight: 500,
+    textAlign: 'center',
+    lineHeight: 1.3,
+    color: theme.palette.text.primary,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+  },
+  mapContainer: {
+    position: 'fixed',
+    height: '85vh',
+    width: '67%',
+    borderRadius: '12px',
+    overflow: 'hidden',
+    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+    [theme.breakpoints.down('sm')]: {
+      width: '100%',
+      height: '70vh',
+    },
+  },
+  pointer: {
+    cursor: 'pointer',
+  },
+  styledCard: {
+    marginBottom: theme.spacing(2),
+    borderRadius: '8px',
+    background: 'linear-gradient(145deg, #ffffff, #f9f9f9)',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    },
+  },
+  cardContent: {
+    padding: theme.spacing(2),
+  },
   subActivityCard: {
-    marginLeft: theme.spacing(4), // Indent sub-activities
+    marginLeft: theme.spacing(2),
     marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1),
-    borderLeft: `3px solid ${theme.palette.primary.light}`, // Subtle border for hierarchy
-    backgroundColor: theme.palette.grey[50], // Lighter background
-    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)', // Softer shadow
+    background: '#f5f5f5',
   },
   subActivityCardContent: {
     padding: theme.spacing(1.5),
-    '&:last-child': {
-      paddingBottom: theme.spacing(1.5),
-    },
   },
   subActivityTitle: {
     fontWeight: 500,
-    fontSize: '0.95rem',
-    color: theme.palette.text.primary,
   },
   subActivityTime: {
-    fontWeight: 400,
     color: theme.palette.text.secondary,
-    fontSize: '0.8rem',
   },
   subActivityPlace: {
-    marginLeft: theme.spacing(1),
-    fontSize: '0.85rem',
-    color: theme.palette.text .secondary,
-    fontStyle: 'italic',
-  },
-  subActivityPlace: {
-    fontWeight: 400,
-    fontSize: '0.85rem',
-    color: theme.palette.text.secondary,
+    marginLeft: theme.spacing(0.5),
   },
   subActivityDescription: {
-    fontWeight: 400,
-    fontSize: '0.85rem',
-    color: theme.palette.text.primary,
-    marginTop: theme.spacing(1),
+    color: theme.palette.text.secondary,
   },
   labelTypography: {
-    fontWeight: 600,
-    color: theme.palette.text.secondary,
-    fontSize: '0.9rem',
+    fontWeight: 'bold',
     marginRight: theme.spacing(1),
+    color: theme.palette.text.primary,
   },
   valueTypography: {
-    fontWeight: 400,
-    color: theme.palette.text.primary,
-    fontSize: '0.85rem',
-    fontStyle: 'italic',
+    color: theme.palette.text.secondary,
   },
-  cardContent: {
-    padding: theme.spacing(1),
-    transition: 'transform 0.3s ease-in-out',
-    '&:hover': {
-      transform: 'translateY(-2px)',
-    },
-    '&:last-child': {
-      paddingBottom: theme.spacing(1.5),
-    },
+  title: {
+    margin: theme.spacing(1, 0),
+    textAlign: 'center',
+  },
+  subtitle: {
+    margin: theme.spacing(2, 0, 1, 0),
+    fontWeight: 'bold',
+  },
+  plusButton: {
+    margin: theme.spacing(2, 0),
+    justifyContent: 'center',
   },
 }));

@@ -7,45 +7,83 @@ import Plan from '../models/planModel.js';
 async function parseJSON(jsonString) {
     try {
         const jsonData = JSON.parse(jsonString);
+        console.log('Parsed JSON:', jsonData);
 
-        // Save the places and create a mapping of place names to their ObjectIds
-        const places = await Promise.all(jsonData.dayList.flatMap(day => 
-        day.activities.map(activityData => {
-            const newPlace = new Place(activityData.place);
-            return newPlace.save();
-        })
-        ));
+        // Validate dayList
+        if (!jsonData.dayList || !Array.isArray(jsonData.dayList)) {
+            throw new Error('Invalid JSON: dayList must be an array');
+        }
 
-        // Create a mapping of place names to their ObjectIds
-        const placeMap = {};
-        places.forEach(place => {
-        placeMap[place.name] = place._id;
-        });
-
-        // Now save the activities using the mapped ObjectIds
-        const activities = await Promise.all(jsonData.dayList.flatMap(day => 
-        day.activities.map(activityData => {
-            const { place, ...activityWithoutPlace } = activityData; // destructure to get place details
-            const activityToSave = new Activity({ ...activityWithoutPlace, place: placeMap[place.name] });
-            return activityToSave.save();
-        })
-        ));
-
-        // Now save the days with their activities
-        const days = await Promise.all(jsonData.dayList.map(dayData => {
-        const dayActivities = activities.filter(activity => 
-            dayData.activities.some(a => a.name === activity.name)
+        // Save all places and create a mapping of place names to their ObjectIds
+        const allPlaces = jsonData.dayList.flatMap(day =>
+            day.activities.flatMap(activity => [
+                activity.place,
+                ...activity.subActivities.map(subActivity => subActivity.place)
+            ])
         );
-        return new Day({ ...dayData, activities: dayActivities }).save();
+
+        const savedPlaces = await Promise.all(allPlaces.map(placeData => {
+            const newPlace = new Place(placeData);
+            return newPlace.save();
         }));
 
-        // Finally, save the plan
-        const plan = new Plan({ ...jsonData, dayList: days });
-        await plan.save();
+        const placeMap = {};
+        savedPlaces.forEach(place => {
+            placeMap[place.name] = place._id;
+        });
 
-        console.log("Data successfully saved to MongoDB");
+        // Save all activities (including sub-activities) and create a mapping
+        const activityMap = {};
+        const activities = await Promise.all(jsonData.dayList.flatMap(day =>
+            day.activities.map(async activityData => {
+                const { place, subActivities, ...activityWithoutPlace } = activityData;
+
+                // Save sub-activities first
+                const savedSubActivities = await Promise.all(subActivities.map(async subActivityData => {
+                    const { place: subPlace, ...subActivityWithoutPlace } = subActivityData;
+                    const subActivityToSave = new Activity({
+                        ...subActivityWithoutPlace,
+                        place: placeMap[subPlace.name]
+                    });
+                    const savedSubActivity = await subActivityToSave.save();
+                    activityMap[subActivityData.name] = savedSubActivity._id;
+                    return savedSubActivity._id;
+                }));
+
+                // Save the main activity
+                const activityToSave = new Activity({
+                    ...activityWithoutPlace,
+                    place: placeMap[place.name],
+                    subActivities: savedSubActivities
+                });
+                const savedActivity = await activityToSave.save();
+                activityMap[activityData.name] = savedActivity._id;
+                return savedActivity;
+            })
+        ));
+
+        // Save the days with their activities
+        const days = await Promise.all(jsonData.dayList.map(async dayData => {
+            try {
+                const dayActivities = activities.filter(activity =>
+                    dayData.activities.some(a => a.name === activity.name)
+                );
+                const dayToSave = new Day({ ...dayData, activities: dayActivities });
+                return await dayToSave.save();
+            } catch (error) {
+                console.error(`Error saving day ${dayData.day}:`, error);
+                throw error;
+            }
+        }));
+
+        console.log('Saved days:', days);
+        console.log('Is days an array?', Array.isArray(days));
+
+        // Return the parsed data with saved references instead of saving the plan
+        return { ...jsonData, dayList: days };
     } catch (error) {
-        console.error("Error parsing JSON or saving to MongoDB:", error);
+        console.error('Error parsing JSON or saving to MongoDB:', error);
+        throw error;
     }
 }
 
@@ -234,6 +272,55 @@ export async function saveJson(req, res) {
     } catch (error) {
         console.error('Error saving trip plan:', error.message);
         throw error; // Re-throw the error to be handled by the caller
+    }
+}
+
+export async function updatePlan(req_str) {
+    try {
+        // Parse the JSON string and await the result
+        const tripData = await parseJSON(req_str);
+
+        console.log('Parsed tripData:', tripData);
+
+        // Validate input
+        if (!tripData || typeof tripData !== 'object' || tripData === null) {
+            throw new Error('Invalid trip data: Must be a non-null object');
+        }
+
+        if (!Array.isArray(tripData.dayList)) {
+            throw new Error('Invalid trip data: dayList must be an array');
+        }
+
+        if (!tripData.planId) {
+            throw new Error('Invalid trip data: planId is required for update');
+        }
+
+        // Find existing plan
+        const existingPlan = await Plan.findOne({ planId: tripData.planId });
+        if (!existingPlan) {
+            throw new Error('Plan not found');
+        }
+
+        // Update the Plan
+        const updatedPlan = await Plan.findByIdAndUpdate(
+            existingPlan._id,
+            {
+                name: tripData.name,
+                startingDate: new Date(tripData.startingDate),
+                endingDate: new Date(tripData.endingDate),
+                dayList: tripData.dayList.map(day => day._id), // Use saved Day ObjectIds
+                dayCount: tripData.dayCount,
+                cost: tripData.cost,
+            },
+            { new: true }
+        );
+
+        console.log('Trip plan updated successfully with ID:', updatedPlan._id);
+        return updatedPlan;
+
+    } catch (error) {
+        console.error('Error updating trip plan:', error.message);
+        throw error;
     }
 }
 

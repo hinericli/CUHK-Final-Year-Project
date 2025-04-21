@@ -145,6 +145,7 @@ export async function saveJson(req, res) {
                     place: savedPlace._id,
                     cost: activityData.cost,
                     description: activityData.description,
+                    isVisited: activityData.isVisited,
                 });
                 const savedActivity = await activity.save();
                 activityIds.push(savedActivity._id);
@@ -334,7 +335,7 @@ export async function deletePlanById(planId) {
 export async function updateActivity(req, res) {
     const { planId, day, activityId } = req.params;
     const dayIndex = Number(day) > 0 ? Number(day) - 1 : 0;
-    const { name, type, startDateTime, endDateTime, place, cost, description } = req.body;
+    const { name, type, startDateTime, endDateTime, place, cost, description, isVisited } = req.body;
 
     try {
         // Find the plan by planId
@@ -393,7 +394,8 @@ export async function updateActivity(req, res) {
                 endDateTime,
                 place: placeDoc._id,
                 cost,
-                description
+                description,
+                isVisited
             },
             { new: true }
         );

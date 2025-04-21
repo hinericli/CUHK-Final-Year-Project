@@ -288,6 +288,7 @@ const EditActivity = ({ setDisplayingComponent, activity, onSave, setUpdatedActi
                         },
                         cost: Number(cost),
                         description: description,
+                        isVisited: activity.isVisited,
                     };
 
                     try {

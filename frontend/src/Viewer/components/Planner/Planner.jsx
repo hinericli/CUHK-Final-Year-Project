@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useMemo, createContext } from 'react';
-import { Typography, Button, Container, CardContent, CardActions, Box, MenuItem, Menu, Card, CardMedia, Chip, Select, FormControl, InputLabel, Fade } from '@material-ui/core';
+import { Typography, Button, Container, CardContent, CardActions, Box, MenuItem, Menu, Card, CardMedia, Chip, Select, FormControl, InputLabel, Fade, Checkbox } from '@material-ui/core';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 import WbSunnyIcon from '@material-ui/icons/WbSunny';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
@@ -16,7 +16,7 @@ import dayjs from 'dayjs';
 import useStyles from './styles';
 import { MapPlacesContext } from '../../Viewer';
 import SelectPlan from '../SelectPlan/SelectPlan';
-import { getPlan, getWeatherData } from '../../../api';
+import { getPlan, getWeatherData, updateActivityInPlan } from '../../../api';
 import { singleDigitTransformer, stringToDateObj } from '../../../utils/DateUtils';
 import { handlePlaceName } from '../../../utils/placeUtils';
 
@@ -82,6 +82,24 @@ const Planner = () => {
         plan.dayList[currentDay].activities = newActivityList
     };
 
+    // --- Toggle Visited Status ---
+    const toggleVisited = async (index) => {
+        console.log("activityList before toggleVisited: ", activityList);
+        const updatedActivityList = [...activityList];
+        const targetedActivity = updatedActivityList[index]
+        targetedActivity.isVisited = !updatedActivityList[index].isVisited; // Toggle the isVisited status
+        setActivityList(updatedActivityList);  
+        // Update the activity in the plan database
+        console.log("targetedActivity: ", targetedActivity);
+        const updatedPlan = await updateActivityInPlan(plan.planId, currentDay, targetedActivity._id, targetedActivity);
+        console.log('Activity updated:', updatedPlan);
+
+        console.log("activityList after toggleVisited: ", activityList);
+        if (plan) {
+            plan.dayList[currentDay].activities = updatedActivityList;
+        }
+    };
+
     // ensure that the places updates after the activity list updates (for showing map pins and routes correctly)
     useEffect(() => {
         setPlaces(activityList.map(activity => activity.place))
@@ -107,7 +125,8 @@ const Planner = () => {
                 endDateTime: toBeAddedActivity.endDateTime,
                 place: toBeAddedActivity.place,
                 cost: toBeAddedActivity.cost,
-                description: toBeAddedActivity.description
+                description: toBeAddedActivity.description,
+                isVisited: false // Initialize isVisited as false for new activities
             }
         )
         const sortedActivities = sortActivities(activityList)
@@ -123,7 +142,10 @@ const Planner = () => {
         if (plan?.dayList[currentDay] === null) return;
 
         while (plan?.dayList[currentDay].activities[i] != null) {
-            initialActivityList.push(plan.dayList[currentDay].activities[i]);
+            initialActivityList.push({
+                ...plan.dayList[currentDay].activities[i],
+                isVisited: plan.dayList[currentDay].activities[i].isVisited || false // Ensure isVisited is set
+            });
             i++;
         }
         setPlaces(initialActivityList.map(activity => activity.place));
@@ -227,7 +249,15 @@ const Planner = () => {
                         <Col xs={7} md={8}>
                         <Card elevation={2} className={classes.styledCard}>
                             <CardContent className={classes.cardContent}>
-                                <Typography gutterBottom variant="h6">{activity.name ? activity.name : '?'}</Typography>
+                                <Box display="flex" alignItems="center" justifyContent="space-between">
+                                    <Typography gutterBottom variant="h6">{activity.name ? activity.name : '?'}</Typography>
+                                    <Checkbox
+                                        checked={activity.isVisited || false}
+                                        onChange={() => toggleVisited(i)}
+                                        color="primary"
+                                        inputProps={{ 'aria-label': 'Mark activity as visited' }}
+                                    />
+                                </Box>
                                 <Box gutterBottom display="flex">
                                     <LocationOnIcon />
                                     <Typography variant="subtitle2">{activity.place ? handlePlaceName(activity.place) : ""}</Typography>
@@ -329,7 +359,7 @@ const Planner = () => {
             />
     }
 
-    console.log('Current displayingComponent:', displayingComponent);
+    //console.log('Current displayingComponent:', displayingComponent);
     if (selectedActivity) console.log('Edit dialog open:', editDialogOpen, 'Selected activity:', selectedActivity);
 
     return (

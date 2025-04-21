@@ -101,8 +101,13 @@ const schema = {
                   description: "Description of the activity",
                   nullable: false,
                 },
+                isVisited: {
+                  type: SchemaType.BOOLEAN,
+                  description: "Indicates whether the user has visited the place in the activity",
+                  nullable: false,
+                },
               },
-              required: ["name", "type", "startDateTime", "endDateTime", "place", "cost", "description"],
+              required: ["name", "type", "startDateTime", "endDateTime", "place", "cost", "description", "isVisited"],
             },
           },
           weather: {

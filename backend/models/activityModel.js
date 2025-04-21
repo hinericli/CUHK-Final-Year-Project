@@ -27,10 +27,15 @@ const ActivitySchema = new mongoose.Schema({
                 return value >= 0;
             },
             message: () => "Please enter a valid cost",
-            }
+        }
     },
     description: {
         type: String,
+    },
+    isVisited: {
+        type: Boolean,
+        default: false,
+        description: "Indicates whether the user has visited the place in the activity",
     }
 });
 

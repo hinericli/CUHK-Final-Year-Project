@@ -1,5 +1,5 @@
-import React, { useState, useContext, useEffect, useMemo, act, createContext } from 'react';
-import { Typography, Button, Container, CardContent, CardActions, Box, MenuItem, Menu, Card, CardMedia, Chip } from '@material-ui/core';
+import React, { useState, useContext, useEffect, useMemo, createContext } from 'react';
+import { Typography, Button, Container, CardContent, CardActions, Box, MenuItem, Menu, Card, CardMedia, Chip, Select, FormControl, InputLabel } from '@material-ui/core';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 import WbSunnyIcon from '@material-ui/icons/WbSunny';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
@@ -7,8 +7,10 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { Grid, Row, Col } from 'react-flexbox-grid';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 import AddActivity from '../AddActivity/AddActivity';
+import EditActivityDialog from '../EditActivity/EditActivityDialog';
 import dayjs from 'dayjs';
 
 import useStyles from './styles';
@@ -18,7 +20,7 @@ import { getPlan, getWeatherData } from '../../../api';
 import { singleDigitTransformer, stringToDateObj } from '../../../utils/DateUtils';
 import { handlePlaceName } from '../../../utils/placeUtils';
 
-import { toBeAddedActivityContext } from '../../Viewer'; 
+import { toBeAddedActivityContext } from '../../Viewer';
 import { DisplayingComponentContext } from '../../Viewer';
 import { sortActivities } from '../../../utils/ActivitiesUtils';
 
@@ -31,7 +33,7 @@ var toObject = require("dayjs/plugin/toObject");
 dayjs.extend(customParseFormat);
 dayjs.extend(toObject)
 
-const Planner = (setCoordinates) => {
+const Planner = () => {
     const classes = useStyles();
     const {places, setPlaces} = useContext(MapPlacesContext);   // places to be displayed on map
     const {toBeAddedActivity, setToBeActivity} = useContext(toBeAddedActivityContext);
@@ -40,10 +42,38 @@ const Planner = (setCoordinates) => {
     const [plan, setPlan] = useState(null);
     const [currentDay, setCurrentDay] = useState(0); // Index of the current viewing day
     const [weatherData, setWeatherData] = useState(null);
-    const [activityList, setActivityList] = useState([]);   
+    const [activityList, setActivityList] = useState([]);
     const [showAdditionalInfo, setShowAdditionalInfo] = useState({});
-    //const [displayingComponent, setDisplayingComponent] = useState('SelectPlan'); // This includes SelectPlan, Planner, AddActivity
-    
+    const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+    const [menuActivityIndex, setMenuActivityIndex] = useState(null);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [selectedActivity, setSelectedActivity] = useState(null);
+
+    const handleMenuOpen = (event, index) => {
+        setMenuAnchorEl(event.currentTarget);
+        setMenuActivityIndex(index);
+    };
+
+    const handleMenuClose = () => {
+        setMenuAnchorEl(null);
+        setMenuActivityIndex(null);
+    };
+
+    const handleMenuAction = (action) => {
+        console.log('Menu action triggered:', action, 'for activity index:', menuActivityIndex);
+        if (action === "toggleInfo") {
+            toggleAdditionalInfo(menuActivityIndex);
+        } else if (action === "delete") {
+            deleteActivity(menuActivityIndex);
+        } else if (action === "edit") {
+            console.log('Edit action: setting selected activity and opening dialog');
+            setSelectedActivity(activityList[menuActivityIndex]);
+            setEditDialogOpen(true);
+            setDisplayingComponent("EditActivity");
+        }
+        handleMenuClose();
+    };
+
     // --- Delete Activity ---
     const deleteActivity = (delIndex) => {
         let newActivityList = activityList.filter((_, index) => index !== delIndex)
@@ -51,6 +81,7 @@ const Planner = (setCoordinates) => {
         if (plan === null) return
         plan.dayList[currentDay].activities = newActivityList
     };
+
     // ensure that the places updates after the activity list updates (for showing map pins and routes correctly)
     useEffect(() => {
         setPlaces(activityList.map(activity => activity.place))
@@ -59,19 +90,18 @@ const Planner = (setCoordinates) => {
     // pop out the empty object first when start
     useEffect(() => {
         activityList.pop()
-        //activityList[0]?.place?getWeatherData(22.314162085829565, 113.91225954047268)
-        //let lat = activityList[0]?.place?.place?.geometry?.location.lat(), lng=activityList[0]?.place?.place?.geometry?.location.lng();
-        //if (lat!=undefined && lng!=undefined) {
+        const sortedActivities = sortActivities(activityList)
+        setActivityList(sortedActivities)
         setWeatherData(getWeatherData(22.314162085829565, 113.91225954047268))
-        //}
     }, [])
 
     // Push new Activity when there's a new Activity to be added (clicked the FINISH button)
     useMemo(() => {
-        // add new activity to activityList
+        if (!toBeAddedActivity || !toBeAddedActivity.name) return; // Prevent adding empty activities
+        console.log('Adding new activity:', toBeAddedActivity);
         activityList.push(
             {
-                name: toBeAddedActivity.name,  
+                name: toBeAddedActivity.name,
                 type: toBeAddedActivity.type,
                 startDateTime: toBeAddedActivity.startDateTime,
                 endDateTime: toBeAddedActivity.endDateTime,
@@ -111,9 +141,9 @@ const Planner = (setCoordinates) => {
     };
 
     const getCostSum = () => {
-        let costList = plan?.dayList[currentDay]?.activities.map(activity => Number(activity.cost)) || [];
+        let costList = plan?.dayList[currentDay]?.activities.map(activity => Number(activity.cost?activity.cost:0)) || [];
         let totalCost = costList.reduce((acc, cost) => acc + cost, 0);  // sum up all the cost
-        
+
         return String(Number(totalCost).toFixed(2));
     }
 
@@ -130,7 +160,7 @@ const Planner = (setCoordinates) => {
     }
 
     useEffect(() => {
-        setActivityList(plan?plan.dayList[currentDay].activities:[])
+        setActivityList(plan ? plan.dayList[currentDay].activities : [])
     }, [currentDay])
 
     // Convert day of week index/number stored by dayjs to day word
@@ -139,10 +169,10 @@ const Planner = (setCoordinates) => {
         return daysOfWeek[dayOfWeekNum];
     }
 
-    const activityTypeName = ["Restaurant", "Hotel", "Attraction", "Flight", "Others"] 
-    let startingDate = dayjs(plan?.startingDate), currentDayJS = dayjs(startingDate.add(currentDay, 'day'));
+    const activityTypeName = ["Restaurant", "Hotel", "Attraction", "Flight", "Others"]
+    let startingDate = dayjs(plan?.startingDate), currentDayJS = dayjs(startingDate?.add(currentDay, 'day'));
     const components = {
-        "Planner":   
+        "Planner":
         <>
         <Grid fluid >
             <Button variant="text" onClick={() => switchToPreviousDay()}>
@@ -155,8 +185,9 @@ const Planner = (setCoordinates) => {
 
         <Grid fluid >
         <Button variant="text" onClick={() => handleBackButtonClick()}>
-            <ArrowBackIcon/> 
+            <ArrowBackIcon/>
         </Button>
+
         <Row className={classes.title}> <Typography>{currentDayJS.format('DD/MM/YYYY')}</Typography> </Row>
 
         <Row>
@@ -166,7 +197,7 @@ const Planner = (setCoordinates) => {
             </Typography> <WbSunnyIcon/> </Col>
             <Col xs={4} className={classes.title}> <Typography>Cost: ${getCostSum()}</Typography> </Col>
         </Row>
-        
+
         <Row className={classes.subtitle}>
             <Col xs={4} md={3}>
                 <Typography>Time</Typography>
@@ -195,26 +226,38 @@ const Planner = (setCoordinates) => {
                         <Col xs={8} md={9}>
                         <Card elevation={2}>
                             <CardContent>
-                                <Typography gutterBottom variant="h5">{activity.name ? activity.name : '?'}</Typography>
+                                <Typography gutterBottom variant="h6">{activity.name ? activity.name : '?'}</Typography>
                                 <Box display="flex">
-                                    <LocationOnIcon/> 
+                                    <LocationOnIcon />
                                     <Typography gutterBottom variant="subtitle2">{activity.place ? handlePlaceName(activity.place) : ""}</Typography>
                                 </Box>
                                 <CardActions display="flex" justifyContent="space-between">
-                                    <Button size="small" color="primary" onClick={() => toggleAdditionalInfo(i)}>
-                                        {showAdditionalInfo[i] ? "Hide Info" : "More Info"}
+                                    <Button size="small" onClick={(e) => handleMenuOpen(e, i)}>
+                                        <MoreVertIcon />
                                     </Button>
-                                    <Button size="small" color="primary" onClick={() => deleteActivity(i)}>
-                                        Delete
-                                    </Button>
+                                    <Menu
+                                        anchorEl={menuAnchorEl}
+                                        open={Boolean(menuAnchorEl) && menuActivityIndex === i}
+                                        onClose={handleMenuClose}
+                                    >
+                                        <MenuItem onClick={() => handleMenuAction("toggleInfo")}>
+                                            {showAdditionalInfo[i] ? "Hide Info" : "More Info"}
+                                        </MenuItem>
+                                        <MenuItem onClick={() => handleMenuAction("edit")}>
+                                            Edit
+                                        </MenuItem>
+                                        <MenuItem onClick={() => handleMenuAction("delete")}>
+                                            Delete
+                                        </MenuItem>
+                                    </Menu>
                                 </CardActions>
 
                                 {showAdditionalInfo[i] && (
                                 <>
-                                    <Typography>Type: {activityTypeName[Number(activity.type)/10 - 1]}</Typography>
+                                    <Typography>Type: {activityTypeName[Number(activity.type) / 10 - 1]}</Typography>
                                     <Typography>Cost: ${activity.cost}</Typography>
                                     <Typography>Description: {activity.description}</Typography>
-                                    <Typography>Summary: {activity.place.editorialSummary?activity.place.editorialSummary:'-'}</Typography>
+                                    <Typography>Summary: {activity.place?.editorialSummary || '-'}</Typography>
                                 </>
                                 )}
                             </CardContent>
@@ -232,16 +275,26 @@ const Planner = (setCoordinates) => {
         </Grid>
         </>
         ,
-        "AddActivity": 
+        "AddActivity":
             <AddActivity
                 setDisplayingComponent={setDisplayingComponent}/>
         ,
+        "EditActivity":
+            <EditActivityDialog
+                open={editDialogOpen}
+                setOpen={setEditDialogOpen}
+                setDisplayingComponent={setDisplayingComponent}
+                activity={selectedActivity}
+            />
+        ,
         "SelectPlan":
-            <SelectPlan 
+            <SelectPlan
                 setDisplayingComponent={setDisplayingComponent}
             />
     }
 
+    console.log('Current displayingComponent:', displayingComponent);
+    console.log('Edit dialog open:', editDialogOpen, 'Selected activity:', selectedActivity);
 
     return (
         <>
@@ -252,37 +305,8 @@ const Planner = (setCoordinates) => {
         </ActivitiesListContext.Provider>
         </PlanContext.Provider>
         </CurrentDayContext.Provider>
-       
-
         </>
     );
-
 }
 
 export default Planner;
-
-/*
-<Button
-    size="small"
-    color="primary"
-    onClick={() => {
-        if (i >= 0 && i < activityList.length) {
-            swapActivities(i-1, i);
-        }
-    }}
->
-    <ArrowUpwardIcon/>
-</Button>
-<Button
-    size="small"
-    color="primary"
-    onClick={() => {
-        if (i >= 0 && i < activityList.length) {
-            swapActivities(i, i + 1);
-        }
-    }}
->
-    <ArrowDownwardIcon/>
-</Button>
-
-*/

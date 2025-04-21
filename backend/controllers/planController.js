@@ -330,3 +330,85 @@ export async function deletePlanById(planId) {
         };
     }
 }
+
+export async function updateActivity(req, res) {
+    const { planId, day, activityId } = req.params;
+    const dayIndex = Number(day) > 0 ? Number(day) - 1 : 0;
+    const { name, type, startDateTime, endDateTime, place, cost, description } = req.body;
+
+    try {
+        // Find the plan by planId
+        const plan = await Plan.findOne({ planId: { $eq: planId } }).populate({
+            path: 'dayList',
+            populate: { path: 'activities', model: 'Activity', populate: { path: 'place', model: 'Place' } }
+        });
+
+        if (!plan) {
+            return res.status(404).json({ error: 'Plan not found' });
+        }
+
+        // Check if the day exists
+        if (!plan.dayList[dayIndex]) {
+            return res.status(404).json({ error: 'Day not found' });
+        }
+
+        // Find the activity by activityId
+        const activity = await Activity.findById(activityId);
+        if (!activity) {
+            return res.status(404).json({ error: 'Activity not found' });
+        }
+
+        // Update or create the place
+        let placeDoc;
+        if (place._id) {
+            // Update existing place
+            placeDoc = await Place.findByIdAndUpdate(
+                place._id,
+                {
+                    name: place.name,
+                    latitude: place.latitude,
+                    longitude: place.longitude,
+                    description: place.description
+                },
+                { new: true }
+            );
+        } else {
+            // Create new place
+            placeDoc = new Place({
+                name: place.name,
+                latitude: place.latitude,
+                longitude: place.longitude,
+                description: place.description
+            });
+            await placeDoc.save();
+        }
+
+        // Update the activity
+        const updatedActivity = await Activity.findByIdAndUpdate(
+            activityId,
+            {
+                name,
+                type,
+                startDateTime,
+                endDateTime,
+                place: placeDoc._id,
+                cost,
+                description
+            },
+            { new: true }
+        );
+
+        // Ensure the activity is still in the day's activities list
+        const dayDoc = await Day.findById(plan.dayList[dayIndex]._id);
+        if (!dayDoc.activities.includes(activityId)) {
+            dayDoc.activities.push(activityId);
+            await dayDoc.save();
+        }
+
+        console.log('Successfully updated activity');
+        return res.status(200).json({ message: 'Activity updated', activity: updatedActivity });
+    } catch (error) {
+        console.error('Error updating activity:', error);
+        return res.status(500).json({ error: 'Server error' });
+    }
+}

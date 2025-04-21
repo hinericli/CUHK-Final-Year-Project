@@ -133,3 +133,42 @@ export const deletePlanById = async (planId) => {
   }
 
 }
+
+export const updateActivityInPlan = async (planId, day, activityId, activity) => {
+  try {
+    const response = await fetch(`http://localhost:3000/plan/${planId}/day/${day}/activity/${activityId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(activity)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update activity');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error editing activity:', error);
+    throw error;
+  }
+}
+
+export const deleteActivityInPlan = async (planId, day, activityId) => {
+  try {
+    const response = await fetch(`http://localhost:3000/plan/${planId}/${day}/${activityId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete activity');
+    }
+
+    return await response.json();
+  }
+  catch (error) {
+    console.error('Error deleting activity:', error);
+    throw error;
+  }
+}

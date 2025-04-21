@@ -50,14 +50,6 @@ const MapSearch = ({setActivityPlace}) => {
 
 
             </Autocomplete>
-                {/*
-                <div className={classes.search}>
-                    <div className={classes.searchIcon}>
-                        <SearchIcon />
-                    </div>
-                    <InputBase placeholder="Location" classes={{ root: classes.inputRoot, input: classes.inputInput}}/>
-                </div>*/}
-            
         </>
     )
 

@@ -13,7 +13,7 @@ import { DisplayingComponentContext } from '../../Viewer';
 import { LensOutlined } from '@material-ui/icons';
 import AddActivity from '../AddActivity/AddActivity';
 
-const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
+const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directionColor }) => {
     const classes = useStyles();
     const isDesktop = useMediaQuery('(min-width:600px)');
 
@@ -44,6 +44,17 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
         }
     }, [displayingTable])
 
+    useEffect(() => {
+        if (directionsRenderer) {
+            directionsRenderer.setOptions({
+                polylineOptions: {
+                    strokeColor: directionColor, // Set the color of the direction line
+                    strokeWeight: 5,
+                },
+            });
+        }
+    }, [directionColor, directionsRenderer]);
+
     // beginning, midpoints and end of the path
     let origin = { lat: 22.3134736, lng: 113.9137283 }, waypts = [], destination = { lat: 22.3474872, lng: 114.1023164 };
     useEffect(() => {
@@ -72,7 +83,11 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
         
         }
         console.log({origin, destination, waypts});
-    }, [places]) 
+    }, [places, directionColor]) 
+
+    useEffect(() => {
+        drawPath(mapCopy)
+    }, [directionColor])
 
     const drawPath = (map) => {
         //const origin = { lat: 22.3134736, lng: 113.9137283 }
@@ -92,7 +107,13 @@ const Map = ({setCoordinates, setBounds, coordinates, setChildClicked}) => {
             if (status === window.google.maps.DirectionsStatus.OK) {
                 console.log(result)
                 directionsRenderer.setDirections(result);
-                directionsRenderer.setOptions({directions:result})
+                directionsRenderer.setOptions({
+                    directions: result,
+                    polylineOptions: {
+                        strokeColor: directionColor, // Apply the selected color
+                        strokeWeight: 5,
+                    },
+                });
                 directionsRenderer.setMap(map);
             } else {
                 console.error(`error fetching directions ${result}`);

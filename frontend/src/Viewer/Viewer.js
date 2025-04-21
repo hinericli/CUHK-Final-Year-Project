@@ -45,6 +45,8 @@ const App = () => {
 
     const [generatedResponseData, setGeneratedResponseData] = useState(null);
 
+    const [directionColor, setDirectionColor] = useState('#0000FF'); // Default color is blue
+
     // only happens at the start
     useEffect(() => {
         navigator.geolocation.getCurrentPosition(({coords: {latitude, longitude}}) => {
@@ -83,7 +85,10 @@ const App = () => {
 
     const components = {
         "Planner": 
-        <Planner />,
+        <Planner 
+            setDirectionColor={setDirectionColor} // Pass setDirectionColor to Planner
+            directionColor={directionColor} // Pass directionColor to Planner
+        />,
         "Discover": 
             <DiscoverList 
                 places={filteredPlaces.length ? filteredPlaces : places}
@@ -99,7 +104,10 @@ const App = () => {
     return (
         <>
             <CssBaseline />
-            <Header />
+            <Header 
+                setDirectionColor={setDirectionColor} // Pass setDirectionColor to Header
+                directionColor={directionColor} // Pass directionColor to Header
+            />
 
             <GeneratedResponseDataContext.Provider value={{generatedResponseData, setGeneratedResponseData}}>
             <DisplayingComponentContext.Provider value={{displayingComponent, setDisplayingComponent}}>
@@ -107,14 +115,18 @@ const App = () => {
             <DisplayingTableContext.Provider value={{displayingTable, setDisplayingTable}}>
             <MapPlacesContext.Provider value={{places, setPlaces}}>
             <CoordinatesContext.Provider value={{coordinates, setCoordinates}}>
-            <Grid container style={{
-                  display: "flex",
-                  justifyContent: "spaceAround",
-                  alignItems: "center",
-                  position: "fixed",
-                  bottom: 0,
-                  width: "100%"
-                  }}>
+            <Grid
+                container
+                style={{
+                    display: 'flex',
+                    justifyContent: 'space-around',
+                    alignItems: 'center',
+                    position: 'fixed',
+                    bottom: 0,
+                    left: 0,
+                    width: '100%',
+                }}
+                >
                 <Grid item xs={6} md={2} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
                     <EventNoteIcon/>
                     <Button variant="text" onClick={() => setDisplayingTable('Planner')}>Planner</Button>
@@ -140,6 +152,7 @@ const App = () => {
                         setBounds={setBounds}
                         coordinates={coordinates}
                         setChildClicked={setChildClicked}
+                        directionColor={directionColor} // Pass directionColor to Map
                     />
                 </Grid>
             </Grid>

@@ -294,7 +294,7 @@ const Planner = () => {
     }
 
     console.log('Current displayingComponent:', displayingComponent);
-    console.log('Edit dialog open:', editDialogOpen, 'Selected activity:', selectedActivity);
+    if (selectedActivity) console.log('Edit dialog open:', editDialogOpen, 'Selected activity:', selectedActivity);
 
     return (
         <>

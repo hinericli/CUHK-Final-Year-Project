@@ -3,6 +3,7 @@ import { FormControl, Typography, InputLabel, Select, MenuItem, Input, InputAdor
 import TextField from '@material-ui/core/TextField';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
@@ -19,6 +20,7 @@ const customParseFormat = require('dayjs/plugin/customParseFormat');
 const toObject = require('dayjs/plugin/toObject');
 dayjs.extend(customParseFormat);
 dayjs.extend(toObject);
+dayjs.extend(utc)
 
 function changeStartDateTime(newStartDateTimeDayJS, setStartDateTimeDayJS, setStartDateTime) {
     if (newStartDateTimeDayJS && newStartDateTimeDayJS.isValid()) {
@@ -61,8 +63,8 @@ const EditActivity = ({ setDisplayingComponent, activity, onSave, setUpdatedActi
     useEffect(() => {
         console.log('Activity:', activity);
         if (activity) {
-            // Parse startDateTime
-            const parsedStartDate = activity.startDateTime ? dayjs(activity.startDateTime) : null;
+            // Parse startDateTime as UTC
+            const parsedStartDate = activity.startDateTime ? dayjs.utc(activity.startDateTime) : null;
             if (parsedStartDate && parsedStartDate.isValid()) {
                 setStartDateTimeDayJS(parsedStartDate);
                 setStartDateTime(parsedStartDate.toObject());
@@ -71,9 +73,9 @@ const EditActivity = ({ setDisplayingComponent, activity, onSave, setUpdatedActi
                 setStartDateTime({});
                 console.warn('Invalid startDateTime:', activity.startDateTime);
             }
-
-            // Parse endDateTime
-            const parsedEndDate = activity.endDateTime ? dayjs(activity.endDateTime) : null;
+    
+            // Parse endDateTime as UTC
+            const parsedEndDate = activity.endDateTime ? dayjs.utc(activity.endDateTime) : null;
             if (parsedEndDate && parsedEndDate.isValid()) {
                 setEndDateTimeDayJS(parsedEndDate);
                 setEndDateTime(parsedEndDate.toObject());

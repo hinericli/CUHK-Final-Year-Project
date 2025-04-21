@@ -40,4 +40,10 @@ Consider the opening hours of the places and the time needed to travel between t
 For meals, make sure it is a local restaurant with good reviews.
 For lodging, make sure it is a hotel with good reviews and reasonable price.
 For each day, provide a weather forecast and temperature for the day.
-For places, make sure the place is a real place with a name, latitude, and longitude.`
+For places, make sure the place is a real place with a name, latitude, and longitude.
+
+Do not change the itinerary of the plan that is not requested by the user, only modify the activities according to the user's request.
+You can add new activities, subactivities, remove existing activities, or modify the details of existing activities.
+
+Things that are related to that activity but in smaller scale should be added as subActivities.
+For example, if the user wants to know what to do during visiting of that place or know what to eat during restaurant dining, you can add it as a subActivity of the day activity one by one.`

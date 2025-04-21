@@ -275,6 +275,7 @@ export async function saveJson(req, res) {
     }
 }
 
+// for updating the plan in backend, not for router
 export async function updatePlan(req_str) {
     try {
         // Parse the JSON string and await the result

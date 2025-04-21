@@ -171,7 +171,7 @@ const EditActivity = ({ setDisplayingComponent, activity, onSave, setUpdatedActi
                     <MenuItem value={10}>Restaurant</MenuItem>
                     <MenuItem value={20}>Hotel</MenuItem>
                     <MenuItem value={30}>Attraction</MenuItem>
-                    <MenuItem value={40}>Filter</MenuItem>
+                    <MenuItem value={40}>Flight</MenuItem>
                     <MenuItem value={50}>Others</MenuItem>
                 </Select>
                 {typeError && (

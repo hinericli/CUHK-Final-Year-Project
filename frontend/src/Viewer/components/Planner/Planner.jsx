@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useMemo, createContext } from 'react';
-import { Typography, Button, Container, CardContent, CardActions, Box, MenuItem, Menu, Card, CardMedia, Chip, Select, FormControl, InputLabel } from '@material-ui/core';
+import { Typography, Button, Container, CardContent, CardActions, Box, MenuItem, Menu, Card, CardMedia, Chip, Select, FormControl, InputLabel, Fade } from '@material-ui/core';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 import WbSunnyIcon from '@material-ui/icons/WbSunny';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
@@ -118,6 +118,7 @@ const Planner = () => {
     }, [toBeAddedActivity])
 
     useEffect(() => {
+        console.log('Current Plan: ', plan);
         let initialActivityList = [], i = 0;
         if (plan?.dayList[currentDay] === null) return;
 
@@ -223,45 +224,80 @@ const Planner = () => {
                             </CardContent>
                         </Col>
 
-                        <Col xs={8} md={9}>
-                        <Card elevation={2}>
-                            <CardContent>
+                        <Col xs={7} md={8}>
+                        <Card elevation={2} className={classes.styledCard}>
+                            <CardContent className={classes.cardContent}>
                                 <Typography gutterBottom variant="h6">{activity.name ? activity.name : '?'}</Typography>
-                                <Box display="flex">
+                                <Box gutterBottom display="flex">
                                     <LocationOnIcon />
-                                    <Typography gutterBottom variant="subtitle2">{activity.place ? handlePlaceName(activity.place) : ""}</Typography>
+                                    <Typography variant="subtitle2">{activity.place ? handlePlaceName(activity.place) : ""}</Typography>
                                 </Box>
-                                <CardActions display="flex" justifyContent="space-between">
-                                    <Button size="small" onClick={(e) => handleMenuOpen(e, i)}>
-                                        <MoreVertIcon />
-                                    </Button>
-                                    <Menu
-                                        anchorEl={menuAnchorEl}
-                                        open={Boolean(menuAnchorEl) && menuActivityIndex === i}
-                                        onClose={handleMenuClose}
+                                <Box display="flex" flexDirection="column">
+                                    <Typography
+                                    className={classes.valueTypography}
+                                    style={{ lineHeight: 1.5 }}
                                     >
-                                        <MenuItem onClick={() => handleMenuAction("toggleInfo")}>
-                                            {showAdditionalInfo[i] ? "Hide Info" : "More Info"}
-                                        </MenuItem>
-                                        <MenuItem onClick={() => handleMenuAction("edit")}>
-                                            Edit
-                                        </MenuItem>
-                                        <MenuItem onClick={() => handleMenuAction("delete")}>
-                                            Delete
-                                        </MenuItem>
-                                    </Menu>
-                                </CardActions>
+                                    {activity.description || 'No description available'}
+                                    </Typography>
+                                </Box>
 
                                 {showAdditionalInfo[i] && (
-                                <>
-                                    <Typography>Type: {activityTypeName[Number(activity.type) / 10 - 1]}</Typography>
-                                    <Typography>Cost: ${activity.cost}</Typography>
-                                    <Typography>Description: {activity.description}</Typography>
-                                    <Typography>Summary: {activity.place?.editorialSummary || '-'}</Typography>
-                                </>
-                                )}
+                                    <Fade in={showAdditionalInfo[i]} timeout={500}>
+                                        <Card className={classes.styledCard}>
+                                        <CardContent>
+                                            <Box display="flex" flexDirection="column" gap={1}>
+                                            <Box display="flex" alignItems="center">
+                                                <Typography className={classes.labelTypography}>Type:</Typography>
+                                                <Typography className={classes.valueTypography}>
+                                                {activityTypeName[Number(activity.type) / 10 - 1] || 'N/A'}
+                                                </Typography>
+                                            </Box>
+                                            <Box display="flex" alignItems="center">
+                                                <Typography className={classes.labelTypography}>Cost:</Typography>
+                                                <Typography className={classes.valueTypography}>
+                                                {activity.cost ? `$${activity.cost.toFixed(2)}` : 'Free'}
+                                                </Typography>
+                                            </Box>
+                                            <Box display="flex" flexDirection="column">
+                                                <Typography className={classes.labelTypography}>Summary:</Typography>
+                                                <Typography
+                                                className={classes.valueTypography}
+                                                style={{ lineHeight: 1.5 }}
+                                                >
+                                                {activity.place?.editorialSummary || 'No summary available'}
+                                                </Typography>
+                                            </Box>
+                                            </Box>
+                                        </CardContent>
+                                        </Card>
+                                    </Fade>
+                                    )
+                                }
                             </CardContent>
                         </Card>
+                        </Col>
+
+                        <Col xs={1} md={1}>
+                            <CardActions display="flex" justifyContent="space-between">
+                                <Button size="small" onClick={(e) => handleMenuOpen(e, i)}>
+                                    <MoreVertIcon />
+                                </Button>
+                                <Menu
+                                    anchorEl={menuAnchorEl}
+                                    open={Boolean(menuAnchorEl) && menuActivityIndex === i}
+                                    onClose={handleMenuClose}
+                                >
+                                    <MenuItem onClick={() => handleMenuAction("toggleInfo")}>
+                                        {showAdditionalInfo[i] ? "Hide Info" : "More Info"}
+                                    </MenuItem>
+                                    <MenuItem onClick={() => handleMenuAction("edit")}>
+                                        Edit
+                                    </MenuItem>
+                                    <MenuItem onClick={() => handleMenuAction("delete")}>
+                                        Delete
+                                    </MenuItem>
+                                </Menu>
+                            </CardActions>
                         </Col>
                     </Row>
                     </>

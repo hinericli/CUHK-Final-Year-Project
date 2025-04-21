@@ -400,13 +400,6 @@ export async function updateActivity(req, res) {
             { new: true }
         );
 
-        // Ensure the activity is still in the day's activities list
-        const dayDoc = await Day.findById(plan.dayList[dayIndex]._id);
-        if (!dayDoc.activities.includes(activityId)) {
-            dayDoc.activities.push(activityId);
-            await dayDoc.save();
-        }
-
         console.log('Successfully updated activity');
         return res.status(200).json({ message: 'Activity updated', activity: updatedActivity });
     } catch (error) {

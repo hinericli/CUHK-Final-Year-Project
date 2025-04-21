@@ -165,7 +165,9 @@ async function runGemini(query, successCallback, errorCallback) {
         If the user specified the number of days of the trip (e.g. 2-days), the response JSON should have corresponding number of "Day" object in dayList.
         Also, the total number of days from startingDate to endingDate must be exactly the number of days specified by the user. For example, 2024-03-01 to 2024-03-03 is vaild for a 3-days trip.
         Furthermore, the date of each Day object must be consecutive and within startingDate and endingDate of the plan.
-        
+
+        planId should be an integer 1.
+
         All attributes related to date or time (e.g. startDateTime, endDateTime, startingDate, endingDate) must follow ISO-8601 format. For example, 1:30PM on 1/12/2023 should be represented as 2023-12-01T13:30:00.000Z
         All activity date on that day should be the same as the date of that day object. For example, if the date of the day object is 2023-12-01, then all activites dates on that day should be 2023-12-01.
 

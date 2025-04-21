@@ -179,11 +179,15 @@ const Planner = () => {
 
     const handleBackButtonClick = () => {
         setDisplayingComponent("SelectPlan")
+        setActivityList([])
         setPlaces([])
     }
 
     useEffect(() => {
-        setActivityList(plan ? plan.dayList[currentDay].activities : [])
+        const initialActivityList = plan?.dayList[currentDay]?.activities || [];
+        const sortedActivities = sortActivities(initialActivityList);
+        setActivityList(sortedActivities);
+        console.log('Day changed; sorted activities:', sortedActivities);
     }, [currentDay])
 
     // Convert day of week index/number stored by dayjs to day word

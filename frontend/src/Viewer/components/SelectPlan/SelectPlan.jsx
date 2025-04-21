@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import {
   Typography,
   Button,
@@ -38,28 +38,54 @@ const SelectPlan = ({ setDisplayingComponent }) => {
   const [createdPlans, setCreatedPlans] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchPlans = async () => {
+  // Memoize fetchPlans to prevent unnecessary re-creations
+  const fetchPlans = useCallback(async (retryCount = 3, delay = 1000) => {
     setIsLoading(true);
     try {
-      const maxId = await getMaxPlanId();
-      const dbPlans = [];
-      for (let i = 1; i <= maxId; i++) {
-        try {
-          const plan = await getPlan(i);
-          if (plan && JSON.stringify(plan, null, 2) !== '[]') {
-            dbPlans.push(plan[0]);
+      for (let attempt = 1; attempt <= retryCount; attempt++) {
+        const maxId = await getMaxPlanId();
+        const dbPlans = [];
+        for (let i = 1; i <= maxId; i++) {
+          try {
+            const plan = await getPlan(i);
+            if (plan && JSON.stringify(plan, null, 2) !== '[]') {
+              dbPlans.push(plan[0]);
+            }
+          } catch (err) {
+            console.error(`Error fetching plan ${i}:`, err);
           }
-        } catch (err) {
-          console.error(`Error fetching plan ${i}:`, err);
+        }
+        console.log(`Fetched plans (attempt ${attempt}):`, dbPlans); // Debug log
+        // Check if the new plan from generatedResponseData is included
+        if (
+          !generatedResponseData ||
+          !generatedResponseData.planId ||
+          dbPlans.some((plan) => plan.planId === generatedResponseData.planId)
+        ) {
+          // Merge with existing createdPlans to preserve new plans not yet in API
+          setCreatedPlans((prevPlans) => {
+            const mergedPlans = [...dbPlans];
+            prevPlans.forEach((prevPlan) => {
+              if (!mergedPlans.some((p) => p.planId === prevPlan.planId)) {
+                mergedPlans.push(prevPlan);
+              }
+            });
+            console.log('Merged createdPlans:', mergedPlans); // Debug log
+            return mergedPlans;
+          });
+          break;
+        }
+        if (attempt < retryCount) {
+          console.log(`Retrying fetchPlans after ${delay}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
-      setCreatedPlans(dbPlans);
     } catch (err) {
       console.error('Error fetching plans:', err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []); // Empty dependency array since fetchPlans doesn't depend on props/state
 
   const handleAddPlan = () => {
     setOpenAddDialog(true);
@@ -90,7 +116,7 @@ const SelectPlan = ({ setDisplayingComponent }) => {
       });
 
       if (response.ok) {
-        await fetchPlans();
+        await fetchPlans(); // Fetch plans immediately after saving
       }
     } catch (error) {
       console.error('Error creating empty Plan object:', error);
@@ -114,9 +140,32 @@ const SelectPlan = ({ setDisplayingComponent }) => {
     setDisplayingComponent('Planner');
   };
 
+  // Update createdPlans when generatedResponseData changes
   useEffect(() => {
+    console.log('generatedResponseData changed:', generatedResponseData);
+    if (generatedResponseData && generatedResponseData.planId) {
+      // Check if the plan is already in createdPlans
+      const planExists = createdPlans.some(
+        (plan) => plan.planId === generatedResponseData.planId
+      );
+      if (!planExists) {
+        console.log('Adding new plan from generatedResponseData:', generatedResponseData);
+        // Add the new plan to createdPlans
+        setCreatedPlans((prevPlans) => {
+          const updatedPlans = [...prevPlans, generatedResponseData];
+          console.log('Updated createdPlans:', updatedPlans); // Debug log
+          return updatedPlans;
+        });
+      }
+    }
+    // Fetch plans to sync with backend, with retries
     fetchPlans();
-  }, [generatedResponseData, openAddDialog]);
+  }, [fetchPlans, generatedResponseData]);
+
+  // Debug rendering
+  useEffect(() => {
+    console.log('Rendering with createdPlans:', createdPlans);
+  }, [createdPlans]);
 
   return (
     <div className={classes.root}>

@@ -80,9 +80,8 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
                     })
                 }
             }
-        
         }
-        console.log({origin, destination, waypts});
+        if (places) console.log("Path Waypoints: ", {origin, destination, waypts});
     }, [places, directionColor]) 
 
     useEffect(() => {

@@ -8,7 +8,7 @@ import AddIcon from '@material-ui/icons/Add';
 import useStyles from './styles';
 import { AppContext } from '../../Viewer';
 
-const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directionColor }) => {
+const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
     const classes = useStyles();
     const isDesktop = useMediaQuery('(min-width:600px)');
 
@@ -19,12 +19,21 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
         setDisplayingTable,
         setDisplayingComponent,
         selectedActivityCardCoord,
+        directionInformation,
+        setDirectionInformation,
+        directionColor,
     } = useContext(AppContext);
 
     const [directionsService, setDirectionsService] = useState(null);
     const [directionsRenderer, setDirectionsRenderer] = useState(null);
     const [mapCopy, setMapCopy] = useState(null);
     const [zoomLevel, setZoomLevel] = useState(14);
+    const [segmentRenderers, setSegmentRenderers] = useState([]);
+    const [routePoints, setRoutePoints] = useState({ origin: null, waypts: [], destination: null });
+
+    useEffect(() => {
+        console.log('Direction Information:', directionInformation);
+    }, [directionInformation]);
 
     // Initialize DirectionsService and DirectionsRenderer
     useMemo(() => {
@@ -40,13 +49,14 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
     useEffect(() => {
         console.log("Current Screen: " + displayingTable);
         if (displayingTable === 'Planner') {
-            directionsRenderer?.setMap(null);
+            clearAllRenderers();
             drawPath(mapCopy);
         } else if (displayingTable === 'Discover') {
             setPlaces([]);
-            directionsRenderer?.setMap(null);
+            clearAllRenderers();
+            setDirectionInformation([]);
         }
-    }, [displayingTable, directionsRenderer, mapCopy]);
+    }, [displayingTable, mapCopy]);
 
     // Update polyline options when directionColor changes
     useEffect(() => {
@@ -60,84 +70,212 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
         }
     }, [directionColor, directionsRenderer]);
 
-    let origin = { lat: 22.3134736, lng: 113.9137283 },
-        waypts = [],
-        destination = { lat: 22.3474872, lng: 114.1023164 };
-
+    // Update origin, waypoints, destination, and redraw map when places changes
     useEffect(() => {
         if (displayingTable === 'Planner') {
+            clearAllRenderers();
             if (places.length <= 1) {
-                directionsRenderer?.setMap(null);
+                console.log('Not enough places to draw a route.');
+                setRoutePoints({ origin: null, waypts: [], destination: null });
+                setDirectionInformation([]);
+                return;
             }
 
+            let newOrigin, newDestination, newWaypts = [];
             if (places.length >= 2) {
                 const firstPlace = Array.isArray(places[0]) ? places[0][0] : places[0];
                 const lastPlace = Array.isArray(places[places.length - 1])
                     ? places[places.length - 1][0]
                     : places[places.length - 1];
 
-                origin = { lat: Number(firstPlace.latitude), lng: Number(firstPlace.longitude) };
-                destination = { lat: Number(lastPlace.latitude), lng: Number(lastPlace.longitude) };
-                directionsRenderer?.setMap(null);
-                drawPath(mapCopy);
-            }
+                if (!firstPlace.latitude || !firstPlace.longitude || !lastPlace.latitude || !lastPlace.longitude) {
+                    console.error('Invalid place data:', firstPlace, lastPlace);
+                    return;
+                }
 
-            if (places.length >= 3) {
-                let tmp = places.slice(1, -1);
-                waypts = [];
+                newOrigin = { lat: Number(firstPlace.latitude), lng: Number(firstPlace.longitude) };
+                newDestination = { lat: Number(lastPlace.latitude), lng: Number(lastPlace.longitude) };
 
-                tmp.forEach((item) => {
-                    const place = Array.isArray(item) ? item[0] : item;
-                    waypts.push({
-                        location: new window.google.maps.LatLng(place.latitude, place.longitude),
-                    });
-                });
+                if (places.length >= 3) {
+                    const middlePlaces = places.slice(1, -1);
+                    newWaypts = middlePlaces
+                        .map((item) => {
+                            const place = Array.isArray(item) ? item[0] : item;
+                            if (place.latitude && place.longitude) {
+                                return {
+                                    location: new window.google.maps.LatLng(Number(place.latitude), Number(place.longitude)),
+                                };
+                            }
+                            console.warn('Skipping invalid waypoint:', place);
+                            return null;
+                        })
+                        .filter((waypoint) => waypoint !== null);
+                }
+
+                setRoutePoints({ origin: newOrigin, waypts: newWaypts, destination: newDestination });
+                console.log('Updated Route Points:', { origin: newOrigin, waypts: newWaypts, destination: newDestination });
             }
         }
-        if (places) console.log('Path Waypoints: ', { origin, destination, waypts });
-    }, [places, directionColor, directionsRenderer, mapCopy]);
+    }, [places, mapCopy]);
 
+    // Draw path when routePoints or directionColor changes
     useEffect(() => {
+        clearAllRenderers();
         drawPath(mapCopy);
-    }, [directionColor, mapCopy]);
+    }, [routePoints, directionColor, mapCopy]);
 
-    const drawPath = (map, travelMode = window.google.maps.TravelMode.DRIVING) => {
-        if (!map || !directionsService || !directionsRenderer) return;
+    // Function to clear all DirectionsRenderer instances
+    const clearAllRenderers = () => {
+        if (directionsRenderer) {
+            directionsRenderer.setMap(null);
+            directionsRenderer.setDirections({ routes: [] });
+        }
+        segmentRenderers.forEach((renderer) => {
+            renderer.setMap(null);
+            renderer.setDirections({ routes: [] });
+        });
+        setSegmentRenderers([]);
+    };
 
-        console.log(`Drawing path with mode: ${travelMode}`, { map, origin, destination });
+    const drawPath = (map) => {
+        if (!map || !directionsService || !directionsRenderer || !routePoints.origin || !routePoints.destination) return;
 
-        directionsService.route(
-            {
-                origin: origin,
-                destination: destination,
-                waypoints: waypts,
-                optimizeWaypoints: true,
-                travelMode: travelMode,
-            },
-            (result, status) => {
-                if (status === window.google.maps.DirectionsStatus.OK) {
-                    console.log(`Route successful with ${travelMode} mode`, result);
-                    directionsRenderer.setDirections(result);
-                    directionsRenderer.setOptions({
-                        directions: result,
-                        polylineOptions: {
-                            strokeColor: directionColor,
-                            strokeWeight: 5,
-                        },
-                    });
-                    directionsRenderer.setMap(map);
-                } else if (
-                    travelMode === window.google.maps.TravelMode.DRIVING &&
-                    ['ZERO_RESULTS', 'NOT_FOUND', 'UNKNOWN_ERROR'].includes(status)
-                ) {
-                    // Fallback to WALKING mode if DRIVING fails
-                    console.warn(`DRIVING mode failed with status: ${status}. Retrying with WALKING mode.`);
-                    drawPath(map, window.google.maps.TravelMode.WALKING);
-                } else {
-                    console.error(`Error fetching directions with ${travelMode} mode: ${status}`, result);
+        // Combine origin, waypoints, and destination into a single array of points
+        const allPoints = [
+            routePoints.origin,
+            ...routePoints.waypts.map((waypoint) => waypoint.location),
+            routePoints.destination,
+        ];
+
+        console.log('All Points for Routing:', allPoints);
+
+        if (allPoints.length < 2) {
+            console.log('Not enough points to draw a path.');
+            return;
+        }
+
+        // Function to draw a single segment with fallback logic
+        const drawSegment = (start, end, travelMode = window.google.maps.TravelMode.TRANSIT, callback, index) => {
+            console.log(`Attempting segment from ${JSON.stringify(start)} to ${JSON.stringify(end)} at index: ${index}`);
+
+            // Determine travel mode based on distance
+            let selectedMode = travelMode;
+            if (window.google.maps.geometry) {
+                const distance = window.google.maps.geometry.spherical.computeDistanceBetween(
+                    new window.google.maps.LatLng(start.lat, start.lng),
+                    new window.google.maps.LatLng(end.lat, end.lng)
+                );
+                console.log(`Distance for segment ${index}: ${distance} meters`);
+                if (distance < 1000 && travelMode === window.google.maps.TravelMode.TRANSIT) {
+                    console.log('Distance < 1km, using WALKING mode');
+                    selectedMode = window.google.maps.TravelMode.WALKING;
                 }
+            } else {
+                console.warn('Google Maps Geometry library not loaded, cannot compute distance. Using default mode:', travelMode);
             }
-        );
+
+            directionsService.route(
+                {
+                    origin: start,
+                    destination: end,
+                    travelMode: selectedMode,
+                },
+                (result, status) => {
+                    if (status === window.google.maps.DirectionsStatus.OK) {
+                        console.log(`Segment successful with ${selectedMode} mode at index: ${index}`, result);
+                        const segmentRenderer = new window.google.maps.DirectionsRenderer({
+                            suppressMarkers: true,
+                            preserveViewport: true,
+                            polylineOptions: {
+                                strokeColor: directionColor,
+                                strokeWeight: 5,
+                            },
+                        });
+                        segmentRenderer.setDirections(result);
+                        segmentRenderer.setMap(map);
+                        setSegmentRenderers((prev) => [...prev, segmentRenderer]);
+
+                        // Extract direction information
+                        const leg = result.routes[0].legs[0];
+                        console.log('Selected Mode:', selectedMode, 'Leg:', leg);
+                        const directionInfo = {
+                            transportMethod: selectedMode,
+                            distance: leg.distance.text,
+                            duration: leg.duration.text,
+                            startLocation: leg.start_address,
+                            endLocation: leg.end_address,
+                        };
+
+                        // Add transit line information if TRANSIT mode
+                        if (selectedMode === window.google.maps.TravelMode.TRANSIT) {
+                            const transitSteps = leg.steps.filter((step) => step.travel_mode === 'TRANSIT');
+                            const transitLines = transitSteps
+                                .map((step) => {
+                                    const line = step.transit?.line;
+                                    if (line) {
+                                        return line.short_name || line.name || 'Unknown Line';
+                                    }
+                                    return null;
+                                })
+                                .filter((line) => line !== null);
+                            directionInfo.transitLines = transitLines.length > 0 ? transitLines : ['N/A'];
+                        } else {
+                            directionInfo.transitLines = ['N/A'];
+                        }
+
+                        callback(true, directionInfo, index);
+                    } else if (
+                        selectedMode === window.google.maps.TravelMode.TRANSIT &&
+                        ['ZERO_RESULTS', 'NOT_FOUND', 'UNKNOWN_ERROR'].includes(status)
+                    ) {
+                        console.warn(`TRANSIT mode failed for segment with status: ${status}. Retrying with WALKING mode.`);
+                        drawSegment(start, end, window.google.maps.TravelMode.WALKING, callback, index);
+                    } else if (
+                        selectedMode === window.google.maps.TravelMode.WALKING &&
+                        ['ZERO_RESULTS', 'NOT_FOUND', 'UNKNOWN_ERROR'].includes(status)
+                    ) {
+                        console.warn(`WALKING mode failed for segment with status: ${status}. Retrying with DRIVING mode.`);
+                        drawSegment(start, end, window.google.maps.TravelMode.DRIVING, callback, index);
+                    } else {
+                        console.error(`Error fetching segment with ${selectedMode} mode: ${status}`, result);
+                        callback(false, null, index);
+                    }
+                }
+            );
+        };
+
+        // Clear previous direction info
+        setDirectionInformation([]);
+
+        // Initialize an array to store direction info in order
+        const tempDirectionInfo = new Array(allPoints.length - 1).fill(null);
+
+        // Iterate through consecutive pairs of points
+        let completedSegments = 0;
+        for (let i = 0; i < allPoints.length - 1; i++) {
+            const start = allPoints[i];
+            const end = allPoints[i + 1];
+
+            drawSegment(start, end, window.google.maps.TravelMode.TRANSIT, (success, directionInfo, index) => {
+                if (success && directionInfo) {
+                    tempDirectionInfo[index] = directionInfo;
+                    completedSegments++;
+                    console.log(`Segment ${index + 1}/${allPoints.length - 1} completed.`);
+                } else {
+                    console.error(`Failed to draw segment ${index + 1}/${allPoints.length - 1}.`);
+                    tempDirectionInfo[index] = null; // Ensure a placeholder for failed segments
+                    completedSegments++;
+                }
+
+                if (completedSegments === allPoints.length - 1) {
+                    console.log('All segments processed. Updating directionInformation:', tempDirectionInfo);
+                    setDirectionInformation(tempDirectionInfo.filter(info => info !== null));
+                    const bounds = new window.google.maps.LatLngBounds();
+                    allPoints.forEach((point) => bounds.extend(point));
+                    map.fitBounds(bounds);
+                }
+            }, i); // Pass the segment index
+        }
     };
 
     const is2DArray = places?.length > 0 && Array.isArray(places[0]);
@@ -152,7 +290,6 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
                 const markers = [];
 
                 if (zoomLevel < 16) {
-                    // Show main activity place for all groups when zoom < 16
                     markers.push(
                         <div
                             className={classes.markerContainer}
@@ -164,9 +301,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
                         </div>
                     );
                 } else {
-                    // When zoom >= 16:
                     if (placeGroup.length > 1) {
-                        //console.log(`Rendering subactivities for group ${i}, zoom: ${zoomLevel}`);
                         placeGroup.slice(1).forEach((place, j) => {
                             if (place && place.latitude && place.longitude) {
                                 markers.push(
@@ -184,7 +319,6 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
                             }
                         });
                     } else {
-                        //console.log(`Rendering main activity for group ${i} (no subactivities), zoom: ${zoomLevel}`);
                         markers.push(
                             <div
                                 className={classes.markerContainer}
@@ -197,11 +331,9 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
                         );
                     }
                 }
-
                 return markers;
             });
         } else {
-            // For 1D array: render all places normally
             return places.map((place, i) => {
                 if (!place) return null;
                 return (
@@ -282,13 +414,12 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
         <div className={classes.mapContainer}>
             <GoogleMapReact
                 key="map"
-                bootstrapURLKeys={{ key: process.env.REACT_API_GOOGLE_MAPS_API_KEY }}
+                bootstrapURLKeys={{ key: process.env.REACT_API_GOOGLE_MAPS_API_KEY, libraries: ['geometry'] }}
                 center={coordinates}
                 defaultZoom={14}
                 margin={[100, 50, 50, 50]}
-                options={''}
+                options={{ gestureHandling: 'greedy' }}
                 onChange={(event) => {
-                    //console.log('Map changed, new zoom:', event.zoom);
                     setCoordinates({ lat: event.center.lat, lng: event.center.lng });
                     setBounds({ ne: event.marginBounds.ne, sw: event.marginBounds.sw });
                     setZoomLevel(event.zoom);
@@ -301,6 +432,11 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
                     displayingTable === 'Planner'
                         ? ({ map, maps }) => {
                               setMapCopy(map);
+                              if (!window.google.maps.geometry) {
+                                  console.error('Google Maps geometry library not loaded');
+                              } else {
+                                  console.log('Geometry library loaded successfully');
+                              }
                           }
                         : ''
                 }

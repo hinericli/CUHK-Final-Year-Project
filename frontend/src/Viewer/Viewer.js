@@ -29,6 +29,7 @@ const App = () => {
     const [coordinates, setCoordinates] = useState();
     const [bounds, setBounds] = useState({});
     const [directionColor, setDirectionColor] = useState('#0000FF');
+    const [directionInformation, setDirectionInformation] = useState([]);   // for storing directions information
 
     // --- State for planner page ---
     const [selectedActivityCardCoord, setSelectedActivityCardCoord] = useState(null);
@@ -133,6 +134,8 @@ const App = () => {
         setDisplayingComponent,
         generatedResponseData,
         setGeneratedResponseData,
+        directionInformation,
+        setDirectionInformation,
     };
 
     return (

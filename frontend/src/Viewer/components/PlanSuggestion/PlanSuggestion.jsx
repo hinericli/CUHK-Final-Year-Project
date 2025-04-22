@@ -12,7 +12,7 @@ import { useContext } from 'react';
 import { AppContext } from '../../Viewer';
 
 const PlanSuggestion = ({ setGeneratedResponseData, displayingComponent }) => {
-    const { plan } = useContext(AppContext); // Use the PlanContext to get the current plan
+    const { plan, directionInformation } = useContext(AppContext); // Use the PlanContext to get the current plan
 
     // --- For AI text query 
     const [query, setQuery] = useState('');  // string inputted by the user in the text field
@@ -48,6 +48,7 @@ const PlanSuggestion = ({ setGeneratedResponseData, displayingComponent }) => {
                 const requestBody = {
                     plan: plan || {}, // Use empty object if plan is null/undefined
                     query: query,
+                    directionInformation: directionInformation
                 };
                 const modifyEndpoint = `${apiBase}/modify-plan-suggestion/`;
                 const response = await fetch(modifyEndpoint, {
@@ -126,8 +127,8 @@ const PlanSuggestion = ({ setGeneratedResponseData, displayingComponent }) => {
                 <DialogContent>
                     <DialogContentText style={{ color: 'green' }}>
                         {buttonText === 'Generate' 
-                            ? 'New suggested plan has successfully added into your plan list.' 
-                            : 'Your plan has been successfully modified.'}
+                            ? 'New suggested plan has successfully added into your plan list. Please reload the page to see the changes.' 
+                            : 'Your plan has been successfully modified. Please reload the page to see the changes.'}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>

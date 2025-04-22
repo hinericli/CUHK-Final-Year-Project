@@ -544,3 +544,100 @@ export async function updateActivity(req, res) {
         return res.status(500).json({ error: 'Server error' });
     }
 }
+
+export async function deleteActivityById(req, res) {
+    const { activityId } = req.params;
+
+    // Validate ObjectId
+    if (!mongoose.isValidObjectId(activityId)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid activityId: Must be a valid ObjectId'
+        });
+    }
+
+    try {
+        // Find the activity with lean to avoid Mongoose documents
+        const activity = await Activity.findById(activityId)
+            .populate('place')
+            .populate({
+                path: 'subActivities',
+                populate: { path: 'place' }
+            })
+            .lean();
+
+        if (!activity) {
+            return res.status(404).json({
+                success: false,
+                message: `Activity with ID ${activityId} not found`
+            });
+        }
+
+        // Collect place IDs to potentially delete
+        const placeIdsToDelete = [];
+        if (activity.place?._id) {
+            // Check if the main activity's place is referenced elsewhere
+            const otherActivitiesWithPlace = await Activity.find({
+                _id: { $ne: activityId },
+                place: activity.place._id
+            }).lean();
+            if (otherActivitiesWithPlace.length === 0) {
+                placeIdsToDelete.push(activity.place._id);
+            }
+        }
+
+        // Handle sub-activities
+        const subActivityIds = activity.subActivities?.map(sub => sub._id) || [];
+        if (subActivityIds.length > 0) {
+            // Collect sub-activity place IDs
+            const subPlaceIds = activity.subActivities
+                .map(sub => sub.place?._id)
+                .filter(id => id && !placeIdsToDelete.includes(id));
+
+            // Check if sub-activity places are referenced elsewhere
+            for (const subPlaceId of subPlaceIds) {
+                const activitiesWithSubPlace = await Activity.find({
+                    _id: { $nin: [...subActivityIds, activityId] },
+                    place: subPlaceId
+                }).lean();
+                if (activitiesWithSubPlace.length === 0) {
+                    placeIdsToDelete.push(subPlaceId);
+                }
+            }
+
+            // Delete sub-activities
+            await Activity.deleteMany({ _id: { $in: subActivityIds } });
+        }
+
+        // Delete the main activity
+        await Activity.deleteOne({ _id: activityId });
+
+        // Delete unreferenced places
+        if (placeIdsToDelete.length > 0) {
+            await Place.deleteMany({ _id: { $in: placeIdsToDelete } });
+        }
+
+        // Update any Day documents that reference this activity
+        await Day.updateMany(
+            { activities: activityId },
+            { $pull: { activities: activityId } }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: `Activity with ID ${activityId} deleted successfully`,
+            deletedData: {
+                activityId,
+                deletedSubActivities: subActivityIds.length,
+                deletedPlaces: placeIdsToDelete.length
+            }
+        });
+    } catch (error) {
+        console.error('Error deleting activity:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+}

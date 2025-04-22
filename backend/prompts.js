@@ -19,6 +19,8 @@ planId should be an integer 1.
 All attributes related to date or time (e.g. startDateTime, endDateTime, startingDate, endingDate) must follow ISO-8601 format. For example, 1:30PM on 1/12/2023 should be represented as 2023-12-01T13:30:00.000Z
 All activity date on that day should be the same as the date of that day object. For example, if the date of the day object is 2023-12-01, then all activities dates on that day should be 2023-12-01.
 
+If the main activity is short and quick such as Arrival and Hotel Check-in, you can set the startDateTime and endDateTime to be 30 minutes in difference.
+
 For the type of activity, you must use the following values to represent the type of activity:
 10: Restaurant
 20: Hotel
@@ -46,4 +48,10 @@ Do not change the itinerary of the plan that is not requested by the user, only 
 You can add new activities, subactivities, remove existing activities, or modify the details of existing activities.
 
 Things that are related to that activity but in smaller scale should be added as subActivities.
-For example, if the user wants to know what to do during visiting of that place or know what to eat during restaurant dining, you can add it as a subActivity of the day activity one by one.`
+For example, if the user wants to know what to do during visiting of that place or know what to eat during restaurant dining, you can add it as a subActivity of the day activity one by one.
+
+directionInformation is a list of objects that contains the information about the direction between two activities. 
+The first object int directionInformation represents the direction from the first activity to the second activity, and so on.
+The last object in the list represents the direction from last-1 activity to the last of the day.
+You need to consider attribute "duration" in directionInformation object. Duration is the time needed to travel between two activities.
+If directionInformation is provided, you should leave the amount of time stated in duration between the two activities.`

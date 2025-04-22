@@ -8,6 +8,7 @@ import { Grid, Row, Col } from 'react-flexbox-grid';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import isEqual from 'lodash/isEqual';
 
 import AddActivity from '../AddActivity/AddActivity';
 import EditActivityDialog from '../EditActivity/EditActivityDialog';
@@ -16,7 +17,7 @@ import dayjs from 'dayjs';
 import useStyles from './styles';
 import { AppContext } from '../../Viewer';
 import SelectPlan from '../SelectPlan/SelectPlan';
-import { getPlan, getWeatherData, updateActivityInPlan } from '../../../api';
+import { getPlan, getWeatherData, updateActivityInPlan, deleteActivityById } from '../../../api';
 import { singleDigitTransformer, stringToDateObj } from '../../../utils/DateUtils';
 import { handlePlaceName } from '../../../utils/placeUtils';
 import { sortActivities } from '../../../utils/ActivitiesUtils';
@@ -37,7 +38,8 @@ const Planner = () => {
         toBeAddedActivity,
         displayingComponent,
         setDisplayingComponent,
-        setSelectedActivityCardCoord
+        setSelectedActivityCardCoord,
+        directionInformation
     } = useContext(AppContext);
 
     const [currentDay, setCurrentDay] = useState(0);
@@ -78,8 +80,19 @@ const Planner = () => {
     };
 
     // --- Delete Activity ---
-    const deleteActivity = (delIndex, isSubActivity = false, parentIndex = null) => {
-        let newActivityList = [...activityList];
+    const deleteActivity = async (delIndex, isSubActivity = false, parentIndex = null) => {
+        let newActivityList = activityList;
+        console.log("Deleting activity at index:", delIndex, "isSubActivity:", isSubActivity, "parentIndex:", parentIndex);
+        console.log("activityList before deletion: ", activityList);
+
+        // backend first
+        const activityId = isSubActivity ? newActivityList[parentIndex].subActivities[delIndex]._id : newActivityList[delIndex]._id;
+        if (activityId) {
+            const deleteResponse = await deleteActivityById(activityId);
+            console.log('Activity deleted:', deleteResponse);
+        }
+
+        // then frontend
         if (isSubActivity && parentIndex !== null) {
             newActivityList[parentIndex].subActivities = newActivityList[parentIndex].subActivities.filter((_, i) => i !== delIndex);
         } else {
@@ -89,6 +102,8 @@ const Planner = () => {
         if (plan) {
             plan.dayList[currentDay].activities = newActivityList;
         }
+        
+        // backend 
     };
 
     // --- Toggle Visited Status ---
@@ -141,12 +156,11 @@ const Planner = () => {
         }
     };
 
-    // --- Handle Places ---
-    useEffect(() => {
-        const places = activityList.map(activity => {
-            const activityPlaceGroup = [activity.place];    // Add main activity place
+    // --- Compute Places ---
+    const computedPlaces = useMemo(() => {
+        const newPlaces = activityList.map(activity => {
+            const activityPlaceGroup = [activity.place]; // Add main activity place
             if (activity.subActivities && activity.subActivities.length > 0) {
-                //console.log("Subactivities found:", activity.subActivities);
                 activity.subActivities.forEach(subactivity => {
                     if (subactivity.place) {
                         activityPlaceGroup.push(subactivity.place);
@@ -155,9 +169,22 @@ const Planner = () => {
             }
             return activityPlaceGroup;
         });
-        //console.log("Received place group:", JSON.stringify(places, null, 2));
-        setPlaces(places);
+        console.log('Computed places:', JSON.stringify(newPlaces, null, 2));
+        return newPlaces;
     }, [activityList]);
+
+    // --- Update Places ---
+    useEffect(() => {
+        console.log("Updating places in useEffect:", JSON.stringify(computedPlaces, null, 2));
+        setPlaces(prevPlaces => {
+            if (isEqual(prevPlaces, computedPlaces)) {
+                console.log("Places unchanged, skipping setPlaces");
+                return prevPlaces;
+            }
+            console.log("Places changed, updating setPlaces");
+            return computedPlaces;
+        });
+    }, [computedPlaces, setPlaces]);
 
     // Initialize on mount
     useEffect(() => {
@@ -306,7 +333,7 @@ const Planner = () => {
                             <Card
                                 elevation={2}
                                 className={classes.styledCard}
-                                onClick={() => handleCardClick(activity.place)} // Add onClick handler
+                                onClick={() => handleCardClick(activity.place)}
                                 style={{ cursor: 'pointer' }}
                             >
                                 <CardContent className={classes.cardContent}>
@@ -342,33 +369,33 @@ const Planner = () => {
                                     {/* Additional Info */}
                                     {showAdditionalInfo[i] && (
                                         <Fade in={showAdditionalInfo[i]} timeout={500}>
-                                            <Card className={classes.styledCard}>
-                                                <CardContent>
-                                                    <Box display="flex" flexDirection="column" gap={1}>
-                                                        <Box display="flex" alignItems="center">
-                                                            <Typography className={classes.labelTypography}>Type:</Typography>
-                                                            <Typography className={classes.valueTypography}>
-                                                                {activityTypeName[Number(activity.type) / 10 - 1] || 'N/A'}
-                                                            </Typography>
-                                                        </Box>
-                                                        <Box display="flex" alignItems="center">
-                                                            <Typography className={classes.labelTypography}>Cost:</Typography>
-                                                            <Typography className={classes.valueTypography}>
-                                                                {activity.cost ? `$${activity.cost.toFixed(2)}` : 'Free'}
-                                                            </Typography>
-                                                        </Box>
-                                                        <Box display="flex" flexDirection="column">
-                                                            <Typography className={classes.labelTypography}>Summary:</Typography>
-                                                            <Typography
-                                                                className={classes.valueTypography}
-                                                                style={{ lineHeight: 1.5 }}
-                                                            >
-                                                                {activity.place?.editorialSummary || 'No summary available'}
-                                                            </Typography>
-                                                        </Box>
-                                                    </Box>
-                                                </CardContent>
-                                            </Card>
+                                        <Card className={classes.styledCard}>
+                                        <CardContent>
+                                            <Box display="flex" flexDirection="column" gap={1}>
+                                                <Box display="flex" alignItems="center">
+                                                    <Typography className={classes.labelTypography}>Type:</Typography>
+                                                    <Typography className={classes.valueTypography}>
+                                                        {activityTypeName[Number(activity.type) / 10 - 1] || 'N/A'}
+                                                    </Typography>
+                                                </Box>
+                                                <Box display="flex" alignItems="center">
+                                                    <Typography className={classes.labelTypography}>Cost:</Typography>
+                                                    <Typography className={classes.valueTypography}>
+                                                        {activity.cost ? `$${activity.cost.toFixed(2)}` : 'Free'}
+                                                    </Typography>
+                                                </Box>
+                                                <Box display="flex" flexDirection="column">
+                                                    <Typography className={classes.labelTypography}>Summary:</Typography>
+                                                    <Typography
+                                                        className={classes.valueTypography}
+                                                        style={{ lineHeight: 1.5 }}
+                                                    >
+                                                        {activity.place?.editorialSummary || 'No summary available'}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </CardContent>
+                                        </Card>
                                         </Fade>
                                     )}
                                 </CardContent>
@@ -380,7 +407,7 @@ const Planner = () => {
                                     key={`subactivity-${i}-${j}`}
                                     elevation={1}
                                     className={`${classes.styledCard} ${classes.subActivityCard}`}
-                                    onClick={() => handleCardClick(subActivity.place)} // Add onClick handler
+                                    onClick={() => handleCardClick(subActivity.place)}
                                     style={{ cursor: 'pointer' }}
                                 >
                                     <CardContent className={classes.subActivityCardContent}>
@@ -456,6 +483,7 @@ const Planner = () => {
                             ))}
                         </Col>
 
+                        {/* Menu for main activity */}
                         <Col xs={1} md={1}>
                             <CardActions display="flex" justifyContent="space-between">
                                 <Button size="small" onClick={(e) => handleMenuOpen(e, i)}>
@@ -496,6 +524,37 @@ const Planner = () => {
                                 ))}
                             </CardActions>
                         </Col>
+
+                        {/* Directions Information */}
+                        {directionInformation[i] && (
+                            <Row className={classes.directionInfo}>
+                                <Col xs={12}>
+                                <Card elevation={1} className={classes.directionCard}>
+                                    <CardContent>
+                                        <Box display="flex" alignItems="center" gap={1} mb={1}>
+                                            <Typography variant="subtitle1">From {activityList[i]?.place.name} to {activityList[i+1]?.place.name}</Typography>
+                                        </Box>
+                                        <Box display="flex" flexDirection="column" gap={1}>
+                                            <Typography variant="body2">
+                                                <strong>Mode:</strong> {directionInformation[i].transportMethod}
+                                            </Typography>
+                                            <Typography variant="body2">
+                                                <strong>Distance:</strong> {directionInformation[i].distance}
+                                            </Typography>
+                                            <Typography variant="body2">
+                                                <strong>Duration:</strong> {directionInformation[i].duration}
+                                            </Typography>
+                                            {directionInformation[i].transitLines && directionInformation[i].transitLines[0] !== 'N/A' && (
+                                                <Typography variant="body2">
+                                                    <strong>Transit Lines:</strong> {directionInformation[i].transitLines.join(', ')}
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    </CardContent>
+                                </Card>
+                                </Col>
+                            </Row>
+                        )}
                     </Row>
                 ))}
 

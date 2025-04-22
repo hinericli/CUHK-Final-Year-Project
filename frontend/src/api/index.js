@@ -155,9 +155,9 @@ export const updateActivityInPlan = async (planId, day, activityId, activity) =>
   }
 }
 
-export const deleteActivityInPlan = async (planId, day, activityId) => {
+export const deleteActivityById = async (activityId) => {
   try {
-    const response = await fetch(`http://localhost:3000/plan/${planId}/${day}/${activityId}`, {
+    const response = await fetch(`http://localhost:3000/activityId/${activityId}`, {
       method: 'DELETE',
     });
 

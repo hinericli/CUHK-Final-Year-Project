@@ -120,4 +120,46 @@ export default makeStyles((theme) => ({
     margin: theme.spacing(2, 0),
     justifyContent: 'center',
   },
+  directionInfo: {
+    margin: theme.spacing(2, 0),
+    display: 'flex',
+    justifyContent: 'center',
+    [theme.breakpoints.down('sm')]: {
+      margin: theme.spacing(1, 0),
+    },
+  },
+  directionCard: {
+    width: '480px', // Fixed width for consistency
+    maxWidth: '90%', // Ensure it doesn't overflow on small screens
+    borderRadius: '8px',
+    background: 'linear-gradient(145deg, #e6f0fa, #f0f8ff)',
+    boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+    borderLeft: `4px solid ${theme.palette.primary.main}`,
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: '0 5px 14px rgba(0, 0, 0, 0.15)',
+    },
+    padding: theme.spacing(1.5),
+    [theme.breakpoints.down('sm')]: {
+      padding: theme.spacing(1),
+      width: '100%', // Full width on small screens for better readability
+      maxWidth: '100%',
+    },
+  },
+  directionTitle: {
+    fontWeight: 600,
+    fontSize: '1rem',
+    color: theme.palette.primary.dark,
+    marginBottom: theme.spacing(1),
+  },
+  directionText: {
+    fontSize: '0.85rem',
+    color: theme.palette.text.primary,
+    lineHeight: 1.6,
+    '& strong': {
+      color: theme.palette.text.primary,
+      fontWeight: 500,
+    },
+  },
 }));

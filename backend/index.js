@@ -9,7 +9,7 @@ route.use('/plan-suggestion', bodyParser.text({type:"*/*"}));
 route.use(express.json())
 
 const mongoose = require('mongoose');
-const { getPlan, getMaxPlanId, loadPlan, createEmptyPlan, addNewActivity, saveJson, deletePlanById, updateActivity, updatePlan } = require('./controllers/planController');
+const { getPlan, getMaxPlanId, loadPlan, createEmptyPlan, addNewActivity, saveJson, deletePlanById, updateActivity, updatePlan, deleteActivityById } = require('./controllers/planController');
 const { getSuggestion, getModifyPlanSuggestion } = require('./controllers/GeminiController');
 mongoose.connect('mongodb://127.0.0.1:27017/myDatabase');
 
@@ -53,6 +53,8 @@ db.once('open', function () {
     const updatedPlan = await updatePlan(response);
     res.send(updatedPlan);
   })
+
+  route.delete('/activityId/:activityId', deleteActivityById)
 
   
 })

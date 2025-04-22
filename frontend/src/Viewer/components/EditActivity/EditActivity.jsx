@@ -63,7 +63,7 @@ const EditActivity = ({ setDisplayingComponent, activity, onSave, setUpdatedActi
     useEffect(() => {
         console.log('Activity:', activity);
         if (activity) {
-            // Parse startDateTime as UTC
+            // Parse startDateTime
             const parsedStartDate = activity.startDateTime ? dayjs.utc(activity.startDateTime) : null;
             if (parsedStartDate && parsedStartDate.isValid()) {
                 setStartDateTimeDayJS(parsedStartDate);
@@ -74,7 +74,7 @@ const EditActivity = ({ setDisplayingComponent, activity, onSave, setUpdatedActi
                 console.warn('Invalid startDateTime:', activity.startDateTime);
             }
     
-            // Parse endDateTime as UTC
+            // Parse endDateTime 
             const parsedEndDate = activity.endDateTime ? dayjs.utc(activity.endDateTime) : null;
             if (parsedEndDate && parsedEndDate.isValid()) {
                 setEndDateTimeDayJS(parsedEndDate);

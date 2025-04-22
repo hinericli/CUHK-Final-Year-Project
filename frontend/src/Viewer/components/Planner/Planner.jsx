@@ -17,7 +17,7 @@ import dayjs from 'dayjs';
 import useStyles from './styles';
 import { AppContext } from '../../Viewer';
 import SelectPlan from '../SelectPlan/SelectPlan';
-import { getPlan, getWeatherData, updateActivityInPlan, deleteActivityById } from '../../../api';
+import { getPlan, getWeatherData, updateActivityInPlan, deleteActivityById, addActivityToPlan } from '../../../api';
 import { singleDigitTransformer, stringToDateObj } from '../../../utils/DateUtils';
 import { handlePlaceName } from '../../../utils/placeUtils';
 import { sortActivities } from '../../../utils/ActivitiesUtils';
@@ -82,8 +82,6 @@ const Planner = () => {
     // --- Delete Activity ---
     const deleteActivity = async (delIndex, isSubActivity = false, parentIndex = null) => {
         let newActivityList = activityList;
-        console.log("Deleting activity at index:", delIndex, "isSubActivity:", isSubActivity, "parentIndex:", parentIndex);
-        console.log("activityList before deletion: ", activityList);
 
         // backend first
         const activityId = isSubActivity ? newActivityList[parentIndex].subActivities[delIndex]._id : newActivityList[delIndex]._id;
@@ -195,26 +193,50 @@ const Planner = () => {
     }, []);
 
     // Handle new activity addition
-    useMemo(() => {
-        if (!toBeAddedActivity || !toBeAddedActivity.name) return;
-        console.log('Adding new activity:', toBeAddedActivity);
-        const newActivity = {
-            name: toBeAddedActivity.name,
-            type: toBeAddedActivity.type,
-            startDateTime: toBeAddedActivity.startDateTime,
-            endDateTime: toBeAddedActivity.endDateTime,
-            place: toBeAddedActivity.place,
-            cost: toBeAddedActivity.cost,
-            description: toBeAddedActivity.description,
-            isVisited: false,
-            subActivities: toBeAddedActivity.subActivities || []
-        };
-        const updatedActivityList = [...activityList, newActivity];
-        const sortedActivities = sortActivities(updatedActivityList);
-        setActivityList(sortedActivities);
-        if (plan) {
-            plan.dayList[currentDay].activities = sortedActivities;
+    useMemo(async () => {
+        if (!toBeAddedActivity) return;
+        try {
+            const newActivity = {
+                name: toBeAddedActivity.name,
+                type: toBeAddedActivity.type,
+                startDateTime: toBeAddedActivity.startDateTime,
+                endDateTime: toBeAddedActivity.endDateTime,
+                place: toBeAddedActivity.place,
+                cost: toBeAddedActivity.cost,
+                description: toBeAddedActivity.description,
+                isVisited: false,
+                subActivities: toBeAddedActivity.subActivities || []
+            };
+            // adding activity to backend
+            const addActivityResponse = await addActivityToPlan(plan.planId, currentDay, newActivity);
+            console.log('Activity added with the following returned JSON:', addActivityResponse);
+
+            // frontend
+            if (!toBeAddedActivity || !toBeAddedActivity.name) return;
+            console.log('Adding new activity:', toBeAddedActivity);
+            const newActivityWithId = {
+                _id: addActivityResponse.activityId,    // backend id
+                name: toBeAddedActivity.name,
+                type: toBeAddedActivity.type,
+                startDateTime: toBeAddedActivity.startDateTime,
+                endDateTime: toBeAddedActivity.endDateTime,
+                place: toBeAddedActivity.place,
+                cost: toBeAddedActivity.cost,
+                description: toBeAddedActivity.description,
+                isVisited: false,
+                subActivities: toBeAddedActivity.subActivities || []
+            };
+            const updatedActivityList = [...activityList, newActivityWithId];
+            const sortedActivities = sortActivities(updatedActivityList);
+            setActivityList(sortedActivities);
+            if (plan) {
+                plan.dayList[currentDay].activities = sortedActivities;
+            }
+
+        } catch (error) {
+            console.error('Error adding activity:', error);
         }
+
     }, [toBeAddedActivity]);
 
     // Initialize activity list from plan

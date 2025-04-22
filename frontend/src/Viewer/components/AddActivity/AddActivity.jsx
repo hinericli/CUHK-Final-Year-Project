@@ -67,12 +67,13 @@ const AddActivity = ({ setDisplayingComponent }) => {
         // Parse the day's date as UTC
         const dayDate = plan.dayList[currentDay].date;
         console.log('dayDate:', dayDate);
-        const parsedDate = dayDate ? dayjs.utc(dayDate, 'DD/MM/YYYY HH:mm') : null;
+        const parsedDate = dayDate ? dayjs.utc(dayDate) : null;
         console.log('Parsed date:', parsedDate.format('DD/MM/YYYY HH:mm'));
 
         if (parsedDate.isValid()) {
-            // Set default start time to 9:00 AM and end time to 10:00 AM on the day's date
-
+            // Set default start time and end time
+            const startDateTime = parsedDate.set('hour', 9).set('minute', 0);
+            const endDateTime = parsedDate.set('hour', 10).set('minute', 0);
             setStartDateTimeDayJS(startDateTime);
             setEndDateTimeDayJS(endDateTime);
         } else {
@@ -284,6 +285,11 @@ const AddActivity = ({ setDisplayingComponent }) => {
                         return;
                     }
 
+                    const startDateTime = startDateTimeDayJS.toObject() 
+                    const endDateTime = endDateTimeDayJS.toObject() 
+                    console.log('Start DateTime DayJS:', startDateTime);
+                    console.log('End DateTime DayJS:', endDateTime);
+                    
                     const newActivity = {
                         name,
                         type,
@@ -298,15 +304,8 @@ const AddActivity = ({ setDisplayingComponent }) => {
                         cost: Number(cost),
                         description,
                     };
-
-                    try {
-                        const updatedPlan = await addActivityToPlan(plan.planId, currentDay, newActivity);
-                        console.log('Activity added:', updatedPlan);
-                        setToBeAddedActivity(newActivity);
-                        setDisplayingComponent('Planner');
-                    } catch (error) {
-                        console.error('Error adding activity:', error);
-                    }
+                    setToBeAddedActivity(newActivity);
+                    setDisplayingComponent('Planner');
                 }}
             >
                 <Typography>Finish</Typography>

@@ -403,19 +403,24 @@ export async function addNewActivity (req, res) {
       newActivity.save().then(() => {
           console.log("Successfully added new activity to the database");
       }).then(() => {
-          res.status(201).json("/plan/" + planId)
+        const newActivityId = response.dayList[day].activities[response.dayList[day].activities.length-1]._id
+        res.status(201).json({
+            success: true,
+            message: 'Activity added successfully',
+            activityId: newActivityId
+        });
       })
 
       return response
   }).then((response) => {
     const newActivityId = response.dayList[day].activities[response.dayList[day].activities.length-1]._id
-    console.log(response.dayList[day])
 
     Plan.findOne({planId: {$eq: planId}}).populate({ path: 'dayList', populate: { path: 'activities', model: 'Activity', populate: { path: 'place', model: 'Place' } } })
     .then((response) => {
       Day.findById(response.dayList[day]._id).updateOne({}, { $push: { activities: newActivityId } })
       .then(() => {console.log("Successfully updated Day")})
     }).then(() => {
+        
     })
   })
 }

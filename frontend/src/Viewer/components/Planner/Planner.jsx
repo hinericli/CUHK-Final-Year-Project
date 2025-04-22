@@ -129,10 +129,22 @@ const Planner = () => {
         }));
     };
 
-    // Update places for map display (only main activities)
+    // --- Handle Places ---
     useEffect(() => {
-        const mainActivityPlaces = activityList.map(activity => activity.place);
-        setPlaces(mainActivityPlaces);
+        const places = activityList.map(activity => {
+            const activityPlaceGroup = [activity.place];    // Add main activity place
+            if (activity.subActivities && activity.subActivities.length > 0) {
+                //console.log("Subactivities found:", activity.subActivities);
+                activity.subActivities.forEach(subactivity => {
+                    if (subactivity.place) {
+                        activityPlaceGroup.push(subactivity.place);
+                    }
+                });
+            }
+            return activityPlaceGroup;
+        });
+        //console.log("Received place group:", JSON.stringify(places, null, 2));
+        setPlaces(places);
     }, [activityList]);
 
     // Initialize on mount
@@ -369,7 +381,7 @@ const Planner = () => {
                                         <Box display="flex" alignItems="center" mb={1}>
                                             <Typography variant="caption" className={classes.subActivityTime}>
                                                 {singleDigitTransformer(stringToDateObj(subActivity?.startDateTime)?.hours)}:
-                                                {singleDigitTransformer(stringToDateObj(subActivity?.startDateTime)?.minutes)} -
+                                                {singleDigitTransformer(stringToDateObj(subActivity?.startDateTime)?.minutes)}-
                                                 {singleDigitTransformer(stringToDateObj(subActivity?.endDateTime)?.hours)}:
                                                 {singleDigitTransformer(stringToDateObj(subActivity?.endDateTime)?.minutes)}
                                             </Typography>

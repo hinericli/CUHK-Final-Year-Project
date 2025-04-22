@@ -223,8 +223,8 @@ const model = genAI.getGenerativeModel({
     } 
 });
 
-async function runGemini(prompt, query, successCallback, errorCallback) {
-    const craftedPrompt = prompt + `\n\nUser: ${query}`;
+async function runGemini(prompt, userPrompt, successCallback, errorCallback) {
+    const craftedPrompt = prompt + `\n\nUser: ${userPrompt}`;
     const result = await model.generateContent(craftedPrompt);
 
     if (result.response.text()) {
@@ -234,10 +234,10 @@ async function runGemini(prompt, query, successCallback, errorCallback) {
     }
 }
 
-async function runGeminiWrapper(prompt, query) {
+async function runGeminiWrapper(prompt, userPrompt) {
   // System prompt & user prompt as parameters
     return new Promise((resolve, reject) => {
-        runGemini(prompt, query, (successResponse) => {
+        runGemini(prompt, userPrompt, (successResponse) => {
             resolve(successResponse);
         }, (errorResponse) => {
             reject(errorResponse);
@@ -245,9 +245,9 @@ async function runGeminiWrapper(prompt, query) {
     })
 }
 
-export async function getSuggestion(query) {
+export async function getSuggestion (userPrompt) {
     try {
-        const result = await runGeminiWrapper(generatePlanSystemPrompt, query);
+        const result = await runGeminiWrapper(generatePlanSystemPrompt, userPrompt);
         console.log(result);
         return result
     } catch(error) {
@@ -256,6 +256,7 @@ export async function getSuggestion(query) {
 }
 
 export async function getModifyPlanSuggestion(json) {
+  // json includes both the json plan and the user request
   console.log("Recevied json: " + json);
   try {
       const result = await runGeminiWrapper(modifyPlanSystemPrompt, JSON.stringify(json));

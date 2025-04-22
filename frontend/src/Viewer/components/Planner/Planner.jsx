@@ -14,13 +14,11 @@ import EditActivityDialog from '../EditActivity/EditActivityDialog';
 import dayjs from 'dayjs';
 
 import useStyles from './styles';
-import { MapPlacesContext } from '../../Viewer';
+import { AppContext } from '../../Viewer';
 import SelectPlan from '../SelectPlan/SelectPlan';
 import { getPlan, getWeatherData, updateActivityInPlan } from '../../../api';
 import { singleDigitTransformer, stringToDateObj } from '../../../utils/DateUtils';
 import { handlePlaceName } from '../../../utils/placeUtils';
-
-import { toBeAddedActivityContext, DisplayingComponentContext, PlanContext } from '../../Viewer';
 import { sortActivities } from '../../../utils/ActivitiesUtils';
 
 export const ActivitiesListContext = createContext();
@@ -33,10 +31,14 @@ dayjs.extend(toObject)
 
 const Planner = () => {
     const classes = useStyles();
-    const { plan, setPlan } = useContext(PlanContext);
-    const { places, setPlaces } = useContext(MapPlacesContext);
-    const { toBeAddedActivity, setToBeActivity } = useContext(toBeAddedActivityContext);
-    const { displayingComponent, setDisplayingComponent } = useContext(DisplayingComponentContext);
+    const {
+        plan,
+        setPlaces,
+        toBeAddedActivity,
+        displayingComponent,
+        setDisplayingComponent,
+        setSelectedActivityCardCoord
+    } = useContext(AppContext);
 
     const [currentDay, setCurrentDay] = useState(0);
     const [weatherData, setWeatherData] = useState(null);
@@ -127,6 +129,16 @@ const Planner = () => {
             ...prevState,
             [key]: !prevState[key]
         }));
+    };
+
+    // --- Handle Card Click ---
+    const handleCardClick = (place) => {
+        if (place && place.latitude && place.longitude) {
+            setSelectedActivityCardCoord({
+                lat: Number(place.latitude),
+                lng: Number(place.longitude)
+            });
+        }
     };
 
     // --- Handle Places ---
@@ -291,7 +303,12 @@ const Planner = () => {
                         </Col>
 
                         <Col xs={7} md={8}>
-                            <Card elevation={2} className={classes.styledCard}>
+                            <Card
+                                elevation={2}
+                                className={classes.styledCard}
+                                onClick={() => handleCardClick(activity.place)} // Add onClick handler
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <CardContent className={classes.cardContent}>
                                     <Box display="flex" alignItems="center" justifyContent="space-between">
                                         <Box display="flex" alignItems="center" gap={1}>
@@ -322,6 +339,7 @@ const Planner = () => {
                                         </Typography>
                                     </Box>
 
+                                    {/* Additional Info */}
                                     {showAdditionalInfo[i] && (
                                         <Fade in={showAdditionalInfo[i]} timeout={500}>
                                             <Card className={classes.styledCard}>
@@ -362,6 +380,8 @@ const Planner = () => {
                                     key={`subactivity-${i}-${j}`}
                                     elevation={1}
                                     className={`${classes.styledCard} ${classes.subActivityCard}`}
+                                    onClick={() => handleCardClick(subActivity.place)} // Add onClick handler
+                                    style={{ cursor: 'pointer' }}
                                 >
                                     <CardContent className={classes.subActivityCardContent}>
                                         <Box display="flex" alignItems="center" justifyContent="space-between">

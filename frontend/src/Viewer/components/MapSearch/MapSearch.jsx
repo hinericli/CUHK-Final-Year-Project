@@ -5,12 +5,12 @@ import SearchIcon from '@material-ui/icons/Search';
 
 import useStyles from './styles';
 
-import { CoordinatesContext } from '../../Viewer';
+import { AppContext } from '../../Viewer';
 
 const MapSearch = ({setActivityPlace}) => {
     const classes = useStyles();
 
-    const {coordinates, setCoordinates} = useContext(CoordinatesContext);
+    const {coordinates, setCoordinates} = useContext(AppContext);
 
     // --- Autocomplete
     const [autocomplete, setAutocomplete] = useState(null);

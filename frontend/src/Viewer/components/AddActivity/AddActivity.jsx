@@ -3,51 +3,54 @@ import { FormControl, Typography, InputLabel, Select, MenuItem, Input, InputAdor
 import TextField from '@material-ui/core/TextField';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
-import { DateTimePicker } from '@mui/x-date-pickers';
+import utc from 'dayjs/plugin/utc';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 
 import MapSearch from '../MapSearch/MapSearch';
-import { CurrentDayContext, PlanContext } from '../Planner/Planner';
-import { toBeAddedActivityContext } from '../../Viewer';
+import { CurrentDayContext } from '../Planner/Planner';
+import { AppContext } from '../../Viewer';
 
-import useStyle from "./style";
+import useStyle from './style';
 import { dayJSObjtoString } from '../../../utils/DateUtils';
 import { addActivityToPlan } from '../../../api';
 
-const customParseFormat = require("dayjs/plugin/customParseFormat");
-const toObject = require("dayjs/plugin/toObject");
+const customParseFormat = require('dayjs/plugin/customParseFormat');
+const toObject = require('dayjs/plugin/toObject');
 dayjs.extend(customParseFormat);
 dayjs.extend(toObject);
+dayjs.extend(utc);
 
 function changeStartDateTime(newStartDateTimeDayJS, setStartDateTimeDayJS, setStartDateTime) {
-    setStartDateTimeDayJS(newStartDateTimeDayJS);
-    setStartDateTime(newStartDateTimeDayJS.toObject());
+    if (newStartDateTimeDayJS && newStartDateTimeDayJS.isValid()) {
+        setStartDateTimeDayJS(newStartDateTimeDayJS);
+        setStartDateTime(newStartDateTimeDayJS.toObject());
+    }
 }
 
 function changeEndDateTime(newEndDateTimeDayJS, setEndDateTimeDayJS, setEndDateTime) {
-    setEndDateTimeDayJS(newEndDateTimeDayJS);
-    setEndDateTime(newEndDateTimeDayJS.toObject());
+    if (newEndDateTimeDayJS && newEndDateTimeDayJS.isValid()) {
+        setEndDateTimeDayJS(newEndDateTimeDayJS);
+        setEndDateTime(newEndDateTimeDayJS.toObject());
+    }
 }
 
 const AddActivity = ({ setDisplayingComponent }) => {
-    const { plan, setPlan } = useContext(PlanContext);
-    const { currentDay, setCurrentDay } = useContext(CurrentDayContext);
-    const { toBeAddedActivity, setToBeAddedActivity } = useContext(toBeAddedActivityContext);
+    const { plan, setToBeAddedActivity } = useContext(AppContext);
+    const { currentDay } = useContext(CurrentDayContext);
 
     const classes = useStyle();
 
     const [name, setName] = useState('');
     const [type, setType] = useState('');
 
-    // For showing time on the screen
-    const [startDateTimeDayJS, setStartDateTimeDayJS] = useState(dayjs(plan.dayList[currentDay].date, 'DD/MM/YYYY HH:mm'));
-    const [endDateTimeDayJS, setEndDateTimeDayJS] = useState(dayjs(plan.dayList[currentDay].date, 'DD/MM/YYYY HH:mm'));
-    // For representation of date in itinerary
-    let todayDateTime = dayjs();
-    const [startDateTime, setStartDateTime] = useState(dayjs(todayDateTime, 'DD/MM/YYYY HH:mm').toObject());
-    const [endDateTime, setEndDateTime] = useState(dayjs(todayDateTime, 'DD/MM/YYYY HH:mm').toObject());
-    //console.log(dayjs(todayDateTime, 'DD/MM/YYYY HH:mm').toObject())
+    // For showing the date/time picker
+    const [startDateTimeDayJS, setStartDateTimeDayJS] = useState(null);
+    const [endDateTimeDayJS, setEndDateTimeDayJS] = useState(null);
+    // For storing the date/time values in object/JSON format
+    const [startDateTime, setStartDateTime] = useState({});
+    const [endDateTime, setEndDateTime] = useState({});
 
     const [place, setPlace] = useState('');
     const [cost, setCost] = useState(0);
@@ -60,11 +63,37 @@ const AddActivity = ({ setDisplayingComponent }) => {
     const [endDateTimeError, setEndDateTimeError] = useState(false);
     const [placeError, setPlaceError] = useState(false);
 
+    useEffect(() => {
+        // Parse the day's date as UTC
+        const dayDate = plan.dayList[currentDay].date;
+        console.log('dayDate:', dayDate);
+        const parsedDate = dayDate ? dayjs.utc(dayDate, 'DD/MM/YYYY HH:mm') : null;
+        console.log('Parsed date:', parsedDate.format('DD/MM/YYYY HH:mm'));
+
+        if (parsedDate.isValid()) {
+            // Set default start time to 9:00 AM and end time to 10:00 AM on the day's date
+
+            setStartDateTimeDayJS(startDateTime);
+            setEndDateTimeDayJS(endDateTime);
+        } else {
+            console.warn('Invalid day date:', dayDate);
+            // Fallback to current date with default times
+            const fallbackDate = dayjs.utc().startOf('day');
+            setStartDateTimeDayJS(fallbackDate.set('hour', 9).set('minute', 0));
+            setEndDateTimeDayJS(fallbackDate.set('hour', 10).set('minute', 0));
+        }
+    }, []);
+
+    // Log state changes for debugging
+    useEffect(() => {
+        console.log('startDateTimeDayJS:', startDateTimeDayJS?.format('DD/MM/YYYY HH:mm'));
+        console.log('endDateTimeDayJS:', endDateTimeDayJS?.format('DD/MM/YYYY HH:mm'));
+    }, [startDateTimeDayJS, endDateTimeDayJS]);
+
     // Validation function
     const validateForm = () => {
         let isValid = true;
 
-        // Validate name
         if (!name.trim()) {
             setNameError(true);
             isValid = false;
@@ -72,7 +101,6 @@ const AddActivity = ({ setDisplayingComponent }) => {
             setNameError(false);
         }
 
-        // Validate type
         if (!type) {
             setTypeError(true);
             isValid = false;
@@ -80,26 +108,20 @@ const AddActivity = ({ setDisplayingComponent }) => {
             setTypeError(false);
         }
 
-        // Validate startDateTime
-        if (!startDateTimeDayJS.isValid()) {
+        if (!startDateTimeDayJS || !startDateTimeDayJS.isValid()) {
             setStartDateTimeError(true);
             isValid = false;
         } else {
             setStartDateTimeError(false);
         }
 
-        // Validate endDateTime and ensure it's after startDateTime
-        if (!endDateTimeDayJS.isValid()) {
-            setEndDateTimeError(true);
-            isValid = false;
-        } else if (endDateTimeDayJS.isBefore(startDateTimeDayJS) || endDateTimeDayJS.isSame(startDateTimeDayJS)) {
+        if (!endDateTimeDayJS || !endDateTimeDayJS.isValid() || endDateTimeDayJS.isBefore(startDateTimeDayJS) || endDateTimeDayJS.isSame(startDateTimeDayJS)) {
             setEndDateTimeError(true);
             isValid = false;
         } else {
             setEndDateTimeError(false);
         }
 
-        // Validate place
         if (!place || !place.place || !place.place.name) {
             setPlaceError(true);
             isValid = false;
@@ -126,10 +148,10 @@ const AddActivity = ({ setDisplayingComponent }) => {
                     value={name}
                     onChange={(event) => {
                         setName(event.target.value);
-                        if (event.target.value.trim()) setNameError(false); // Clear error on valid input
+                        if (event.target.value.trim()) setNameError(false);
                     }}
                     error={nameError}
-                    helperText={nameError ? "Name is required" : ""}
+                    helperText={nameError ? 'Name is required' : ''}
                 />
             </FormControl>
 
@@ -142,7 +164,7 @@ const AddActivity = ({ setDisplayingComponent }) => {
                     label="Type"
                     onChange={(event) => {
                         setType(event.target.value);
-                        if (event.target.value) setTypeError(false); // Clear error on valid selection
+                        if (event.target.value) setTypeError(false);
                     }}
                     error={typeError}
                 >
@@ -169,19 +191,17 @@ const AddActivity = ({ setDisplayingComponent }) => {
                         value={startDateTimeDayJS}
                         onChange={(newValue) => {
                             changeStartDateTime(newValue, setStartDateTimeDayJS, setStartDateTime);
-                            if (newValue && newValue.isValid() && (!endDateTimeDayJS.isValid() || newValue.isBefore(endDateTimeDayJS))) {
+                            if (newValue && newValue.isValid() && (!endDateTimeDayJS || newValue.isBefore(endDateTimeDayJS))) {
                                 setStartDateTimeError(false);
                                 setEndDateTimeError(false);
                             }
                         }}
-                        onError={''}
                         slotProps={{
                             textField: {
                                 onBlur: (event) => {
-                                    //console.log(event.target.value)
-                                    let dayObj = dayjs(event.target.value, 'DD/MM/YYYY HH:mm');
+                                    const dayObj = dayjs(event.target.value, 'DD/MM/YYYY HH:mm');
                                     changeStartDateTime(dayObj, setStartDateTimeDayJS, setStartDateTime);
-                                    if (dayObj.isValid() && (!endDateTimeDayJS.isValid() || dayObj.isBefore(endDateTimeDayJS))) {
+                                    if (dayObj.isValid() && (!endDateTimeDayJS || dayObj.isBefore(endDateTimeDayJS))) {
                                         setStartDateTimeError(false);
                                         setEndDateTimeError(false);
                                     } else {
@@ -189,12 +209,12 @@ const AddActivity = ({ setDisplayingComponent }) => {
                                     }
                                 },
                                 error: startDateTimeError,
-                                helperText: startDateTimeError ? "Invalid start date/time" : ""
-                            }
+                                helperText: startDateTimeError ? 'Invalid start date/time' : '',
+                            },
                         }}
                     />
                 </FormControl>
-                <FormControl fullWidth className={classes.formControl}>
+                <FormControl fullWidth className={classes.formWeight}>
                     <DateTimePicker
                         label="End Date Time"
                         format="DD/MM/YYYY HH:mm"
@@ -208,12 +228,10 @@ const AddActivity = ({ setDisplayingComponent }) => {
                                 setStartDateTimeError(false);
                             }
                         }}
-                        onError={''}
                         slotProps={{
                             textField: {
                                 onBlur: (event) => {
-                                    console.log(event.target.value);
-                                    let dayObj = dayjs(event.target.value, 'DD/MM/YYYY HH:mm');
+                                    const dayObj = dayjs(event.target.value, 'DD/MM/YYYY HH:mm');
                                     changeEndDateTime(dayObj, setEndDateTimeDayJS, setEndDateTime);
                                     if (dayObj.isValid() && dayObj.isAfter(startDateTimeDayJS)) {
                                         setEndDateTimeError(false);
@@ -222,8 +240,8 @@ const AddActivity = ({ setDisplayingComponent }) => {
                                     }
                                 },
                                 error: endDateTimeError,
-                                helperText: endDateTimeError ? "End must be after start and valid" : ""
-                            }
+                                helperText: endDateTimeError ? 'End must be after start and valid' : '',
+                            },
                         }}
                     />
                 </FormControl>
@@ -243,6 +261,7 @@ const AddActivity = ({ setDisplayingComponent }) => {
                 <Input
                     id="input-cost"
                     startAdornment={<InputAdornment position="start">$</InputAdornment>}
+                    value={cost}
                     onChange={(event) => setCost(event.target.value)}
                 />
             </FormControl>
@@ -252,6 +271,7 @@ const AddActivity = ({ setDisplayingComponent }) => {
                     placeholder="Description"
                     multiline
                     variant="outlined"
+                    value={description}
                     onChange={(event) => setDescription(event.target.value)}
                 />
             </FormControl>
@@ -261,28 +281,32 @@ const AddActivity = ({ setDisplayingComponent }) => {
                 variant="outlined"
                 onClick={async () => {
                     if (!validateForm()) {
-                        return; // Stop submission if validation fails
+                        return;
                     }
 
-                    console.log(startDateTime);
                     const newActivity = {
-                        name: name,
-                        type: type,
+                        name,
+                        type,
                         startDateTime: dayJSObjtoString(startDateTime),
                         endDateTime: dayJSObjtoString(endDateTime),
                         place: {
                             name: place.place.name,
                             latitude: Number(place.place.geometry.location.lat()),
                             longitude: Number(place.place.geometry.location.lng()),
-                            description: place.place.description
+                            description: place.place.description,
                         },
-                        cost: cost,
-                        description: description
+                        cost: Number(cost),
+                        description,
                     };
-                    const updatedPlan = await addActivityToPlan(plan.planId, currentDay, newActivity);
-                    console.log('Activity added:', updatedPlan);
-                    setToBeAddedActivity(newActivity);
-                    setDisplayingComponent('Planner');
+
+                    try {
+                        const updatedPlan = await addActivityToPlan(plan.planId, currentDay, newActivity);
+                        console.log('Activity added:', updatedPlan);
+                        setToBeAddedActivity(newActivity);
+                        setDisplayingComponent('Planner');
+                    } catch (error) {
+                        console.error('Error adding activity:', error);
+                    }
                 }}
             >
                 <Typography>Finish</Typography>

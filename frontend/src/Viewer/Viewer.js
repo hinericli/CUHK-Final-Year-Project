@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { CssBaseline, Grid, Typography, Button } from '@material-ui/core';
 import EventNoteIcon from '@material-ui/icons/EventNote';
 import LanguageIcon from '@material-ui/icons/Language';
@@ -10,29 +10,28 @@ import Planner from './components/Planner/Planner';
 import Map from './components/Map/Map';
 import PlanSuggestion from './components/PlanSuggestion/PlanSuggestion';
 
-export const CoordinatesContext = createContext();
-export const MapPlacesContext = createContext();
-export const DisplayingTableContext = createContext();
-export const toBeAddedActivityContext = createContext();
-export const DisplayingComponentContext = createContext();
-export const GeneratedResponseDataContext = createContext();
-export const PlanContext = createContext();
+// Unified context for all state and setters
+export const AppContext = createContext();
 
 const App = () => {
-
+    // --- State for planner ---
     const [plan, setPlan] = useState(null);
+
+    // --- State for discover page ---
     const [places, setPlaces] = useState([]);
     const [filteredPlaces, setFilteredPlaces] = useState([]);
-
     const [childClicked, setChildClicked] = useState(null);
-
-    const [coordinates, setCoordinates] = useState();
-    const [bounds, setBounds] = useState({}); // defining bound for Google Map (needed for API)
-
-    const [isLoading, setIsLoading] = useState(false);  // loading state
+    const [isLoading, setIsLoading] = useState(false);
     const [type, setType] = useState('restaurants');
     const [rating, setRating] = useState('');
 
+    // --- State for map ---
+    const [coordinates, setCoordinates] = useState();
+    const [bounds, setBounds] = useState({});
+    const [directionColor, setDirectionColor] = useState('#0000FF');
+
+    // --- State for planner page ---
+    const [selectedActivityCardCoord, setSelectedActivityCardCoord] = useState(null);
     const [toBeAddedActivity, setToBeAddedActivity] = useState({
         name: '',
         type: '',
@@ -43,57 +42,53 @@ const App = () => {
         description: ''
     });
 
+    // --- State for displaying table ---
     const [displayingTable, setDisplayingTable] = useState('Planner');
-    const [displayingComponent, setDisplayingComponent] = useState('SelectPlan'); // This includes SelectPlan, Planner, AddActivity
+    const [displayingComponent, setDisplayingComponent] = useState('SelectPlan');
 
+    // --- State for LLM integration ---
     const [generatedResponseData, setGeneratedResponseData] = useState(null);
 
-    const [directionColor, setDirectionColor] = useState('#0000FF'); // Default color is blue
-
-    // only happens at the start
+    // Initialize coordinates with geolocation
     useEffect(() => {
-        navigator.geolocation.getCurrentPosition(({coords: {latitude, longitude}}) => {
-            console.log("Starting coordinates: " + latitude, longitude);
-            if (latitude === undefined || longitude === undefined) {
-                setCoordinates({lat: 0, lng: 0})
-            } else {
-                setCoordinates({lat: latitude, lng: longitude})
-            }
-        })
-    }, [])
+        navigator.geolocation.getCurrentPosition(({ coords: { latitude, longitude } }) => {
+            console.log("Starting coordinates:", latitude, longitude);
+            setCoordinates(
+                latitude === undefined || longitude === undefined
+                    ? { lat: 0, lng: 0 }
+                    : { lat: latitude, lng: longitude }
+            );
+        });
+    }, []);
 
-    // this occurs when the selected rating filter is changed
+    // Filter places based on rating
     useEffect(() => {
-        const filteredPlaces = places.filter((place) => place.rating > rating);
-        setFilteredPlaces(filteredPlaces);
-    }, [rating]);
+        const filtered = places.filter((place) => place.rating > rating);
+        setFilteredPlaces(filtered);
+    }, [rating, places]);
 
-    // useEffect happens when type and bounds changes
+    // Fetch places data when type, bounds, or displayingTable changes
     useEffect(() => {
-        if (bounds.sw && bounds.ne) {
+        if (bounds.sw && bounds.ne && displayingTable === 'Discover') {
             setIsLoading(true);
-            //console.log(coordinates, bounds);
-            
-            if (displayingTable === "Discover") {
-                getPlacesData(type, bounds.sw, bounds.ne)
-                    .then((data) => {
-                        setPlaces(data?.filter((place) => place.name && place.num_reviews > 0));
-                        setFilteredPlaces([]);
-                    })
-            }
-            setIsLoading(false);
+            getPlacesData(type, bounds.sw, bounds.ne).then((data) => {
+                setPlaces(data?.filter((place) => place.name && place.num_reviews > 0));
+                setFilteredPlaces([]);
+                setIsLoading(false);
+            });
         }
-        
     }, [type, bounds, displayingTable]);
 
+    // Component mapping for Planner and Discover
     const components = {
-        "Planner": 
-        <Planner 
-            setDirectionColor={setDirectionColor} // Pass setDirectionColor to Planner
-            directionColor={directionColor} // Pass directionColor to Planner
-        />,
-        "Discover": 
-            <DiscoverList 
+        Planner: (
+            <Planner
+                setDirectionColor={setDirectionColor}
+                directionColor={directionColor}
+            />
+        ),
+        Discover: (
+            <DiscoverList
                 places={filteredPlaces.length ? filteredPlaces : places}
                 childClicked={childClicked}
                 isLoading={isLoading}
@@ -101,24 +96,52 @@ const App = () => {
                 setType={setType}
                 rating={rating}
                 setRating={setRating}
-                setCoordinates={setCoordinates}/>
-    }
+                setCoordinates={setCoordinates}
+            />
+        ),
+    };
+
+    // Context value containing all state and setters
+    const contextValue = {
+        plan,
+        setPlan,
+        places,
+        setPlaces,
+        filteredPlaces,
+        setFilteredPlaces,
+        childClicked,
+        setChildClicked,
+        isLoading,
+        setIsLoading,
+        type,
+        setType,
+        rating,
+        setRating,
+        coordinates,
+        setCoordinates,
+        bounds,
+        setBounds,
+        directionColor,
+        setDirectionColor,
+        selectedActivityCardCoord,
+        setSelectedActivityCardCoord,
+        toBeAddedActivity,
+        setToBeAddedActivity,
+        displayingTable,
+        setDisplayingTable,
+        displayingComponent,
+        setDisplayingComponent,
+        generatedResponseData,
+        setGeneratedResponseData,
+    };
 
     return (
-        <>
+        <AppContext.Provider value={contextValue}>
             <CssBaseline />
-            <Header 
-                setDirectionColor={setDirectionColor} // Pass setDirectionColor to Header
-                directionColor={directionColor} // Pass directionColor to Header
+            <Header
+                setDirectionColor={setDirectionColor}
+                directionColor={directionColor}
             />
-
-            <PlanContext.Provider value={{plan, setPlan}}>
-            <GeneratedResponseDataContext.Provider value={{generatedResponseData, setGeneratedResponseData}}>
-            <DisplayingComponentContext.Provider value={{displayingComponent, setDisplayingComponent}}>
-            <toBeAddedActivityContext.Provider value={{toBeAddedActivity, setToBeAddedActivity}}>
-            <DisplayingTableContext.Provider value={{displayingTable, setDisplayingTable}}>
-            <MapPlacesContext.Provider value={{places, setPlaces}}>
-            <CoordinatesContext.Provider value={{coordinates, setCoordinates}}>
             <Grid
                 container
                 style={{
@@ -130,50 +153,43 @@ const App = () => {
                     left: 0,
                     width: '100%',
                 }}
-                >
-                <Grid item xs={6} md={2} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
-                    <EventNoteIcon/>
-                    <Button variant="text" onClick={() => setDisplayingTable('Planner')}>Planner</Button>
+            >
+                <Grid item xs={6} md={2} style={{ display: 'flex', justifyContent: 'center', gap: '5px 10px' }}>
+                    <EventNoteIcon />
+                    <Button variant="text" onClick={() => setDisplayingTable('Planner')}>
+                        Planner
+                    </Button>
                 </Grid>
-                <Grid item xs={6} md={2} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
-                    <LanguageIcon/>
-                    <Button variant="text" onClick={() => setDisplayingTable('Discover')}>Discover</Button>
+                <Grid item xs={6} md={2} style={{ display: 'flex', justifyContent: 'center', gap: '5px 10px' }}>
+                    <LanguageIcon />
+                    <Button variant="text" onClick={() => setDisplayingTable('Discover')}>
+                        Discover
+                    </Button>
                 </Grid>
-                <Grid item xs={0} md={8} style={{display: 'flex', justifyContent: "center", gap: "5px 10px"}}>
+                <Grid item xs={0} md={8} style={{ display: 'flex', justifyContent: 'center', gap: '5px 10px' }}>
                     <PlanSuggestion
                         setGeneratedResponseData={setGeneratedResponseData}
                         displayingComponent={displayingComponent}
                     />
                 </Grid>
             </Grid>
-            
-            <Grid container spacing={3} style={{width: '100%'}}>
+
+            <Grid container spacing={3} style={{ width: '100%' }}>
                 <Grid item xs={12} md={4}>
                     {components[displayingTable]}
                 </Grid>
                 <Grid item xs={12} md={8}>
-                    <Map 
+                    <Map
                         setCoordinates={setCoordinates}
                         setBounds={setBounds}
                         coordinates={coordinates}
                         setChildClicked={setChildClicked}
-                        directionColor={directionColor} // Pass directionColor to Map
+                        directionColor={directionColor}
                     />
                 </Grid>
             </Grid>
-            
-            </CoordinatesContext.Provider>
-            </MapPlacesContext.Provider>
-            </DisplayingTableContext.Provider>
-            </toBeAddedActivityContext.Provider>
-            </DisplayingComponentContext.Provider>
-            </GeneratedResponseDataContext.Provider>
-            </PlanContext.Provider>
-            
-        </>
-
-
+        </AppContext.Provider>
     );
-}
+};
 
 export default App;

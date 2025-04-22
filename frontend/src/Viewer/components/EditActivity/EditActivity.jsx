@@ -10,7 +10,7 @@ import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 
 import MapSearch from '../MapSearch/MapSearch';
 import { CurrentDayContext } from '../Planner/Planner';
-import { toBeAddedActivityContext, PlanContext } from '../../Viewer';
+import { AppContext } from '../../Viewer';
 
 import useStyle from './style';
 import { dayJSObjtoString } from '../../../utils/DateUtils';
@@ -38,9 +38,8 @@ function changeEndDateTime(newEndDateTimeDayJS, setEndDateTimeDayJS, setEndDateT
 }
 
 const EditActivity = ({ setDisplayingComponent, activity, onSave, setUpdatedActivity }) => {
-    const { plan, setPlan } = useContext(PlanContext);
+    const { plan } = useContext(AppContext);
     const { currentDay, setCurrentDay } = useContext(CurrentDayContext);
-    const { toBeAddedActivity, setToBeAddedActivity } = useContext(toBeAddedActivityContext);
 
     const classes = useStyle();
 

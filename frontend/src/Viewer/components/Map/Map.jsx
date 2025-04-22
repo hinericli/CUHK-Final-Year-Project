@@ -6,41 +6,49 @@ import Rating from '@material-ui/lab/Rating';
 import AddIcon from '@material-ui/icons/Add';
 
 import useStyles from './styles';
-import { MapPlacesContext } from '../../Viewer';
-import { DisplayingTableContext } from '../../Viewer';
-import { DisplayingComponentContext } from '../../Viewer';
+import { AppContext } from '../../Viewer';
 
 const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directionColor }) => {
     const classes = useStyles();
     const isDesktop = useMediaQuery('(min-width:600px)');
 
-    const { places, setPlaces } = useContext(MapPlacesContext);
-    const { displayingTable, setDisplayingTable } = useContext(DisplayingTableContext);
-    const { displayingComponent, setDisplayingComponent } = useContext(DisplayingComponentContext);
+    const {
+        places,
+        setPlaces,
+        displayingTable,
+        setDisplayingTable,
+        setDisplayingComponent,
+        selectedActivityCardCoord,
+    } = useContext(AppContext);
 
     const [directionsService, setDirectionsService] = useState(null);
     const [directionsRenderer, setDirectionsRenderer] = useState(null);
     const [mapCopy, setMapCopy] = useState(null);
     const [zoomLevel, setZoomLevel] = useState(14);
 
+    // Initialize DirectionsService and DirectionsRenderer
     useMemo(() => {
         setDirectionsService(new window.google.maps.DirectionsService());
-        setDirectionsRenderer(new window.google.maps.DirectionsRenderer({
-            preserveViewport: true
-        }));
+        setDirectionsRenderer(
+            new window.google.maps.DirectionsRenderer({
+                preserveViewport: true,
+            })
+        );
     }, []);
 
+    // Set the map to null when the component unmounts or displayingTable changes
     useEffect(() => {
         console.log("Current Screen: " + displayingTable);
         if (displayingTable === 'Planner') {
-            directionsRenderer.setMap(null);
+            directionsRenderer?.setMap(null);
             drawPath(mapCopy);
         } else if (displayingTable === 'Discover') {
             setPlaces([]);
-            directionsRenderer.setMap(null);
+            directionsRenderer?.setMap(null);
         }
-    }, [displayingTable]);
+    }, [displayingTable, directionsRenderer, mapCopy]);
 
+    // Update polyline options when directionColor changes
     useEffect(() => {
         if (directionsRenderer) {
             directionsRenderer.setOptions({
@@ -52,57 +60,63 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
         }
     }, [directionColor, directionsRenderer]);
 
-    let origin = { lat: 22.3134736, lng: 113.9137283 }, waypts = [], destination = { lat: 22.3474872, lng: 114.1023164 };
+    let origin = { lat: 22.3134736, lng: 113.9137283 },
+        waypts = [],
+        destination = { lat: 22.3474872, lng: 114.1023164 };
+
     useEffect(() => {
-        if (displayingTable === "Planner") {
+        if (displayingTable === 'Planner') {
             if (places.length <= 1) {
-                directionsRenderer.setMap(null);
+                directionsRenderer?.setMap(null);
             }
 
             if (places.length >= 2) {
                 const firstPlace = Array.isArray(places[0]) ? places[0][0] : places[0];
-                const lastPlace = Array.isArray(places[places.length - 1]) 
-                    ? places[places.length - 1][0] 
+                const lastPlace = Array.isArray(places[places.length - 1])
+                    ? places[places.length - 1][0]
                     : places[places.length - 1];
-                
+
                 origin = { lat: Number(firstPlace.latitude), lng: Number(firstPlace.longitude) };
                 destination = { lat: Number(lastPlace.latitude), lng: Number(lastPlace.longitude) };
-                directionsRenderer.setMap(null);
+                directionsRenderer?.setMap(null);
                 drawPath(mapCopy);
             }
 
             if (places.length >= 3) {
                 let tmp = places.slice(1, -1);
                 waypts = [];
-                
-                tmp.forEach(item => {
+
+                tmp.forEach((item) => {
                     const place = Array.isArray(item) ? item[0] : item;
                     waypts.push({
-                        location: new window.google.maps.LatLng(place.latitude, place.longitude)
+                        location: new window.google.maps.LatLng(place.latitude, place.longitude),
                     });
                 });
             }
         }
-        if (places) console.log("Path Waypoints: ", { origin, destination, waypts });
-    }, [places, directionColor]);
+        if (places) console.log('Path Waypoints: ', { origin, destination, waypts });
+    }, [places, directionColor, directionsRenderer, mapCopy]);
 
     useEffect(() => {
         drawPath(mapCopy);
-    }, [directionColor]);
+    }, [directionColor, mapCopy]);
 
-    const drawPath = (map) => {
-        console.log("Path Drawn.", { map, origin, destination });
+    const drawPath = (map, travelMode = window.google.maps.TravelMode.DRIVING) => {
+        if (!map || !directionsService || !directionsRenderer) return;
+
+        console.log(`Drawing path with mode: ${travelMode}`, { map, origin, destination });
+
         directionsService.route(
             {
                 origin: origin,
                 destination: destination,
                 waypoints: waypts,
                 optimizeWaypoints: true,
-                travelMode: window.google.maps.TravelMode.DRIVING
+                travelMode: travelMode,
             },
             (result, status) => {
                 if (status === window.google.maps.DirectionsStatus.OK) {
-                    console.log(result);
+                    console.log(`Route successful with ${travelMode} mode`, result);
                     directionsRenderer.setDirections(result);
                     directionsRenderer.setOptions({
                         directions: result,
@@ -112,8 +126,15 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
                         },
                     });
                     directionsRenderer.setMap(map);
+                } else if (
+                    travelMode === window.google.maps.TravelMode.DRIVING &&
+                    ['ZERO_RESULTS', 'NOT_FOUND', 'UNKNOWN_ERROR'].includes(status)
+                ) {
+                    // Fallback to WALKING mode if DRIVING fails
+                    console.warn(`DRIVING mode failed with status: ${status}. Retrying with WALKING mode.`);
+                    drawPath(map, window.google.maps.TravelMode.WALKING);
                 } else {
-                    console.error(`error fetching directions ${result}`);
+                    console.error(`Error fetching directions with ${travelMode} mode: ${status}`, result);
                 }
             }
         );
@@ -124,9 +145,6 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
     const renderMarkers = () => {
         if (!places || places.length === 0) return null;
 
-        console.log("Rendering markers, zoomLevel:", zoomLevel);
-        console.log("Places:", JSON.stringify(places, null, 2));
-
         if (is2DArray) {
             return places.map((placeGroup, i) => {
                 if (!placeGroup || placeGroup.length === 0) return null;
@@ -134,7 +152,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
                 const markers = [];
 
                 if (zoomLevel < 16) {
-                    // Show main activity for all groups when zoom < 16
+                    // Show main activity place for all groups when zoom < 16
                     markers.push(
                         <div
                             className={classes.markerContainer}
@@ -147,10 +165,8 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
                     );
                 } else {
                     // When zoom >= 16:
-                    // - Show subactivities for groups with subactivities
-                    // - Show main activity for groups with no subactivities
                     if (placeGroup.length > 1) {
-                        console.log(`Rendering subactivities for group ${i}, zoom: ${zoomLevel}`);
+                        //console.log(`Rendering subactivities for group ${i}, zoom: ${zoomLevel}`);
                         placeGroup.slice(1).forEach((place, j) => {
                             if (place && place.latitude && place.longitude) {
                                 markers.push(
@@ -168,7 +184,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
                             }
                         });
                     } else {
-                        console.log(`Rendering main activity for group ${i} (no subactivities), zoom: ${zoomLevel}`);
+                        //console.log(`Rendering main activity for group ${i} (no subactivities), zoom: ${zoomLevel}`);
                         markers.push(
                             <div
                                 className={classes.markerContainer}
@@ -203,23 +219,15 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
     };
 
     const renderMarkerContent = (place, tableType, groupIndex, isDesktop, subIndex) => {
-        if (tableType === "Planner") {
+        if (tableType === 'Planner') {
             return (
                 <Tooltip title={place.description || place.name} arrow>
                     <Paper elevation={4} className={classes.paper}>
                         <div className={classes.markerContent}>
-                            <Typography
-                                className={classes.index}
-                                variant="subtitle1"
-                                color="primary"
-                            >
+                            <Typography className={classes.index} variant="subtitle1" color="primary">
                                 {subIndex === 0 ? `${groupIndex + 1}` : `${groupIndex + 1}.${subIndex}`}
                             </Typography>
-                            <Typography
-                                className={classes.placeName}
-                                variant="subtitle2"
-                                color="textPrimary"
-                            >
+                            <Typography className={classes.placeName} variant="subtitle2" color="textPrimary">
                                 {place.name}
                             </Typography>
                         </div>
@@ -228,9 +236,9 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
             );
         }
 
-        if (tableType === "Discover") {
+        if (tableType === 'Discover') {
             return !isDesktop ? (
-                <LocationOnOutlinedIcon color='primary' fontSize="large" />
+                <LocationOnOutlinedIcon color="primary" fontSize="large" />
             ) : (
                 <Paper elevation={3} className={classes.paper}>
                     <Typography className={classes.typography} variant="subtitle2" gutterBottom>
@@ -238,7 +246,11 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
                     </Typography>
                     <img
                         className={classes.pointer}
-                        src={place.photo ? place.photo.images.large.url : 'https://cdn-icons-png.flaticon.com/512/1147/1147856.png'}
+                        src={
+                            place.photo
+                                ? place.photo.images.large.url
+                                : 'https://cdn-icons-png.flaticon.com/512/1147/1147856.png'
+                        }
                         alt={place.name}
                     />
                     <Rating size="small" value={Number(place.rating)} readOnly />
@@ -248,8 +260,8 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
                         size="small"
                         sx={{ mt: 1 }}
                         onClick={() => {
-                            setDisplayingTable("Planner");
-                            setDisplayingComponent("AddActivity");
+                            setDisplayingTable('Planner');
+                            setDisplayingComponent('AddActivity');
                         }}
                     >
                         Add
@@ -258,6 +270,13 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
             );
         }
     };
+
+    // Update map center when selectedCoordinates changes
+    useEffect(() => {
+        if (selectedActivityCardCoord) {
+            setCoordinates(selectedActivityCardCoord);
+        }
+    }, [selectedActivityCardCoord, setCoordinates]);
 
     return (
         <div className={classes.mapContainer}>
@@ -269,16 +288,22 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked, directio
                 margin={[100, 50, 50, 50]}
                 options={''}
                 onChange={(event) => {
-                    console.log("Map changed, new zoom:", event.zoom);
+                    //console.log('Map changed, new zoom:', event.zoom);
                     setCoordinates({ lat: event.center.lat, lng: event.center.lng });
                     setBounds({ ne: event.marginBounds.ne, sw: event.marginBounds.sw });
                     setZoomLevel(event.zoom);
                 }}
-                onChildClick={(child) => { setChildClicked(child) }}
+                onChildClick={(child) => {
+                    setChildClicked(child);
+                }}
                 yesIWantToUseGoogleMapApiInternals
-                onGoogleApiLoaded={displayingTable === "Planner" ? ({ map, maps }) => {
-                    setMapCopy(map);
-                } : ''}
+                onGoogleApiLoaded={
+                    displayingTable === 'Planner'
+                        ? ({ map, maps }) => {
+                              setMapCopy(map);
+                          }
+                        : ''
+                }
             >
                 {renderMarkers()}
             </GoogleMapReact>

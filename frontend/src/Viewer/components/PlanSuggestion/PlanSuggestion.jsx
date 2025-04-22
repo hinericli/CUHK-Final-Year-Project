@@ -9,10 +9,10 @@ import DialogActions from '@mui/material/DialogActions';
 import { saveJson } from '../../../api';
 import { useContext } from 'react';
 
-import { PlanContext } from '../../Viewer';
+import { AppContext } from '../../Viewer';
 
 const PlanSuggestion = ({ setGeneratedResponseData, displayingComponent }) => {
-    const { plan } = useContext(PlanContext); // Use the PlanContext to get the current plan
+    const { plan } = useContext(AppContext); // Use the PlanContext to get the current plan
 
     // --- For AI text query 
     const [query, setQuery] = useState('');  // string inputted by the user in the text field

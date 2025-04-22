@@ -38,25 +38,30 @@ export default makeStyles((theme) => ({
       boxShadow: theme.shadows[6],
     },
     backgroundColor: '#ffffff',
-    minWidth: '350px', // Increased from default to make cards wider
-    minHeight: '200px', // Added to ensure taller cards
+    width: '350px', 
+    height: '200px',
+    display: 'flex', // Ensure content fits within fixed dimensions
+    flexDirection: 'column', // Stack content vertically
   },
   cardContent: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: theme.spacing(1),
-    minHeight: '140px', // Ensure content area is taller
+    flex: 1, 
+    overflow: 'hidden', // Prevent content from overflowing
   },
   planDetails: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.spacing(1), // Added spacing between text elements
+    gap: theme.spacing(1),
+    overflow: 'hidden', // Prevent text from overflowing
+    textOverflow: 'ellipsis', // Truncate long text
   },
   planActions: {
     display: 'flex',
-    flexDirection: 'column', // Stack buttons vertically for better fit
+    flexDirection: 'column',
     gap: theme.spacing(1),
     alignItems: 'flex-end',
   },

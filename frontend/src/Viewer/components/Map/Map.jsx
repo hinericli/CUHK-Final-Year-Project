@@ -22,6 +22,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
         directionInformation,
         setDirectionInformation,
         directionColor,
+        setSelectedPlaceFromDiscover,
     } = useContext(AppContext);
 
     const [directionsService, setDirectionsService] = useState(null);
@@ -394,6 +395,8 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
                         onClick={() => {
                             setDisplayingTable('Planner');
                             setDisplayingComponent('AddActivity');
+                            console.log('Adding place:', place);
+                            setSelectedPlaceFromDiscover(place);
                         }}
                     >
                         Add

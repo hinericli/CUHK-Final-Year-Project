@@ -22,9 +22,6 @@ import { singleDigitTransformer, stringToDateObj } from '../../../utils/DateUtil
 import { handlePlaceName } from '../../../utils/placeUtils';
 import { sortActivities } from '../../../utils/ActivitiesUtils';
 
-export const ActivitiesListContext = createContext();
-export const CurrentDayContext = createContext();
-
 const customParseFormat = require("dayjs/plugin/customParseFormat");
 var toObject = require("dayjs/plugin/toObject");
 dayjs.extend(customParseFormat);
@@ -39,12 +36,14 @@ const Planner = () => {
         displayingComponent,
         setDisplayingComponent,
         setSelectedActivityCardCoord,
-        directionInformation
+        directionInformation,
+        activityList,
+        setActivityList,
+        currentDay,
+        setCurrentDay,
     } = useContext(AppContext);
 
-    const [currentDay, setCurrentDay] = useState(0);
     const [weatherData, setWeatherData] = useState(null);
-    const [activityList, setActivityList] = useState([]);
     const [showAdditionalInfo, setShowAdditionalInfo] = useState({});
     const [menuAnchorEl, setMenuAnchorEl] = useState(null);
     const [menuActivityIndex, setMenuActivityIndex] = useState(null);
@@ -156,6 +155,7 @@ const Planner = () => {
 
     // --- Compute Places ---
     const computedPlaces = useMemo(() => {
+        if (!activityList || activityList.length === 0) return [];
         const newPlaces = activityList.map(activity => {
             const activityPlaceGroup = [activity.place]; // Add main activity place
             if (activity.subActivities && activity.subActivities.length > 0) {
@@ -173,7 +173,7 @@ const Planner = () => {
 
     // --- Update Places ---
     useEffect(() => {
-        console.log("Updating places in useEffect:", JSON.stringify(computedPlaces, null, 2));
+        //console.log("Updating places in useEffect:", JSON.stringify(computedPlaces, null, 2));
         setPlaces(prevPlaces => {
             if (isEqual(prevPlaces, computedPlaces)) {
                 console.log("Places unchanged, skipping setPlaces");
@@ -186,7 +186,8 @@ const Planner = () => {
 
     // Initialize on mount
     useEffect(() => {
-        activityList.pop();
+
+        if (!activityList[0]) activityList.pop();
         const sortedActivities = sortActivities(activityList);
         setActivityList(sortedActivities);
         setWeatherData(getWeatherData(22.314162085829565, 113.91225954047268));
@@ -604,11 +605,7 @@ const Planner = () => {
 
     return (
         <>
-            <CurrentDayContext.Provider value={{ currentDay, setCurrentDay }}>
-                <ActivitiesListContext.Provider value={{ activityList, setActivityList }}>
-                    {components[displayingComponent]}
-                </ActivitiesListContext.Provider>
-            </CurrentDayContext.Provider>
+            {components[displayingComponent]}
         </>
     );
 }

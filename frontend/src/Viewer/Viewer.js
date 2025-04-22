@@ -24,6 +24,7 @@ const App = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [type, setType] = useState('restaurants');
     const [rating, setRating] = useState('');
+    const [selectedPlaceFromDiscover, setSelectedPlaceFromDiscover] = useState(null);   // for adding activity
 
     // --- State for map ---
     const [coordinates, setCoordinates] = useState();
@@ -32,6 +33,8 @@ const App = () => {
     const [directionInformation, setDirectionInformation] = useState([]);   // for storing directions information
 
     // --- State for planner page ---
+    const [activityList, setActivityList] = useState([]);
+    const [currentDay, setCurrentDay] = useState(0);
     const [selectedActivityCardCoord, setSelectedActivityCardCoord] = useState(null);
     const [toBeAddedActivity, setToBeAddedActivity] = useState({
         name: '',
@@ -44,11 +47,18 @@ const App = () => {
     });
 
     // --- State for displaying table ---
-    const [displayingTable, setDisplayingTable] = useState('Planner');
-    const [displayingComponent, setDisplayingComponent] = useState('SelectPlan');
+    const [displayingTable, setDisplayingTable] = useState('Planner'); // Planner or Discover
+    const [displayingComponent, setDisplayingComponent] = useState('SelectPlan');  
 
     // --- State for LLM integration ---
     const [generatedResponseData, setGeneratedResponseData] = useState(null);
+
+    useEffect(() => {
+        if (displayingTable === "Planner" && displayingComponent === "Planner") {
+            const previousActivityList = plan.dayList[currentDay].activities
+            setActivityList(previousActivityList)
+        }
+    }, [displayingTable])
 
     // Initialize coordinates with geolocation
     useEffect(() => {
@@ -83,10 +93,7 @@ const App = () => {
     // Component mapping for Planner and Discover
     const components = {
         Planner: (
-            <Planner
-                setDirectionColor={setDirectionColor}
-                directionColor={directionColor}
-            />
+            <Planner/>
         ),
         Discover: (
             <DiscoverList
@@ -136,6 +143,12 @@ const App = () => {
         setGeneratedResponseData,
         directionInformation,
         setDirectionInformation,
+        selectedPlaceFromDiscover,
+        setSelectedPlaceFromDiscover,
+        activityList,
+        setActivityList,
+        currentDay,
+        setCurrentDay,
     };
 
     return (

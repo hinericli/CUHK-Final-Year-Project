@@ -5,12 +5,12 @@ import DialogContent from '@material-ui/core/DialogContent';
 import IconButton from '@material-ui/core/IconButton';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import EditActivity from '../EditActivity/EditActivity';
-import { ActivitiesListContext, CurrentDayContext } from '../Planner/Planner'; 
+import { AppContext } from '../../Viewer';
 import { getPlan } from '../../../api';
 import { sortActivities } from '../../../utils/ActivitiesUtils';
 
 const EditActivityDialog = ({ open, setOpen, setDisplayingComponent, activity }) => {
-    const { activityList, setActivityList } = useContext(ActivitiesListContext);
+    const { activityList, setActivityList } = useContext(AppContext);
 
     const [updatedActivity, setUpdatedActivity] = useState(null);
 

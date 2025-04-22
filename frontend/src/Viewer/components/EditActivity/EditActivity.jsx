@@ -9,7 +9,6 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 
 import MapSearch from '../MapSearch/MapSearch';
-import { CurrentDayContext } from '../Planner/Planner';
 import { AppContext } from '../../Viewer';
 
 import useStyle from './style';
@@ -37,9 +36,8 @@ function changeEndDateTime(newEndDateTimeDayJS, setEndDateTimeDayJS, setEndDateT
     }
 }
 
-const EditActivity = ({ setDisplayingComponent, activity, onSave, setUpdatedActivity }) => {
-    const { plan } = useContext(AppContext);
-    const { currentDay, setCurrentDay } = useContext(CurrentDayContext);
+const EditActivity = ({ activity, onSave, setUpdatedActivity }) => {
+    const { plan, currentDay } = useContext(AppContext);
 
     const classes = useStyle();
 

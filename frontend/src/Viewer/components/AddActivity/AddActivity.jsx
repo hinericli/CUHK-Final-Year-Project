@@ -37,9 +37,7 @@ function changeEndDateTime(newEndDateTimeDayJS, setEndDateTimeDayJS, setEndDateT
 }
 
 const AddActivity = ({ setDisplayingComponent }) => {
-    const { plan, setToBeAddedActivity } = useContext(AppContext);
-    const { currentDay } = useContext(CurrentDayContext);
-
+    const { plan, setToBeAddedActivity, currentDay } = useContext(AppContext);
     const classes = useStyle();
 
     const [name, setName] = useState('');

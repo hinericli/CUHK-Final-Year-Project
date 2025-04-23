@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState, useRef } from 'react';
 import GoogleMapReact from 'google-map-react';
 import { Paper, Typography, useMediaQuery, Button, Tooltip } from '@material-ui/core';
 import LocationOnOutlinedIcon from '@material-ui/icons/LocationOnOutlined';
@@ -28,8 +28,10 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
     const [directionsService, setDirectionsService] = useState(null);
     const [directionsRenderer, setDirectionsRenderer] = useState(null);
     const [mapCopy, setMapCopy] = useState(null);
-    const [zoomLevel, setZoomLevel] = useState(14);
-    const [segmentRenderers, setSegmentRenderers] = useState([]);
+    const [zoomLevel, setZoomLevel] = useState(14); 
+    const [isZoomAboveBoundary, setIsZoomAboveBoundary] = useState(false);  // boolean to check if the zoom is below or above a boundary (16)
+    const [segmentRenderers, setSegmentRenderers] = useState([]);   // for render segment on map
+    const shouldFitBounds = useRef(true); // Ref to control when to call fitBounds
 
     useEffect(() => {
         console.log('Direction Information:', directionInformation);
@@ -48,6 +50,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
     // Handle displayingTable changes
     useEffect(() => {
         if (displayingTable === 'Planner') {
+            shouldFitBounds.current = true; // Fit bounds when switching to Planner
             clearAllRenderers();
             drawPath(mapCopy);
         } else if (displayingTable === 'Discover') {
@@ -69,13 +72,20 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
         }
     }, [directionColor, directionsRenderer]);
 
-    // Draw path when places or directionColor changes in Planner mode
+    // Update shouldFitBounds when places change
+    useEffect(() => {
+        if (displayingTable === 'Planner' && places !== null && places.length > 0) {
+            shouldFitBounds.current = true; // Fit bounds when places change
+        }
+    }, [places, displayingTable]);
+
+    // Draw path when places, directionColor, mapCopy, or isZoomAboveBoundary changes in Planner mode
     useEffect(() => {
         if (displayingTable === 'Planner') {
             clearAllRenderers();
             drawPath(mapCopy);
         }
-    }, [places, directionColor, mapCopy]);
+    }, [places, directionColor, mapCopy, isZoomAboveBoundary]);
 
     // Function to clear all DirectionsRenderer instances
     const clearAllRenderers = () => {
@@ -97,24 +107,40 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
             return;
         }
 
-        // Compute origin, waypoints, and destination from places
-        const firstPlace = Array.isArray(places[0]) ? places[0][0] : places[0];
-        const lastPlace = Array.isArray(places[places.length - 1]) ? places[places.length - 1][0] : places[places.length - 1];
-
-        if (!firstPlace.latitude || !firstPlace.longitude || !lastPlace.latitude || !lastPlace.longitude) {
-            console.error('Invalid place data:', firstPlace, lastPlace);
-            setDirectionInformation([]);
-            return;
-        }
-
-        // Combine origin, waypoints, and destination into a single array of points
+        // Compute all points for the route
         const allPoints = [];
-        places?.map(placeGroup => {
-            const place = Array.isArray(placeGroup) ? placeGroup[0] : placeGroup
-            if (place.latitude && place.longitude) {
-                allPoints.push(new window.google.maps.LatLng({ lat: Number(place.latitude), lng: Number(place.longitude)}));
-            }
-        })
+        const is2DArray = places?.length > 0 && Array.isArray(places[0]);
+
+        if (is2DArray && isZoomAboveBoundary) {
+            // Include all sub-activities when isZoomAboveBoundary is true (>= 16)
+            places.forEach((placeGroup) => {
+                if (Array.isArray(placeGroup)) {
+                    placeGroup.forEach((place) => {
+                        if (place.latitude && place.longitude) {
+                            allPoints.push(
+                                new window.google.maps.LatLng({
+                                    lat: Number(place.latitude),
+                                    lng: Number(place.longitude),
+                                })
+                            );
+                        }
+                    });
+                }
+            });
+        } else {
+            // Use only the first place in each group
+            places.forEach((placeGroup) => {
+                const place = Array.isArray(placeGroup) ? placeGroup[0] : placeGroup;
+                if (place.latitude && place.longitude) {
+                    allPoints.push(
+                        new window.google.maps.LatLng({
+                            lat: Number(place.latitude),
+                            lng: Number(place.longitude),
+                        })
+                    );
+                }
+            });
+        }
 
         console.log('All Points for Routing:', allPoints);
 
@@ -124,8 +150,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
             return;
         }
 
-        // Draw a single segment
-        const drawSegment = (start, end, travelMode = window.google.maps.TravelMode.TRANSIT, callback, index) => {
+        const drawSegment = (map, start, end, travelMode = window.google.maps.TravelMode.TRANSIT, callback, index) => {
             console.log(`Attempting segment from ${JSON.stringify(start)} to ${JSON.stringify(end)} at index: ${index}`);
 
             // Determine travel mode based on distance
@@ -199,13 +224,13 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
                         ['ZERO_RESULTS', 'NOT_FOUND', 'UNKNOWN_ERROR'].includes(status)
                     ) {
                         console.warn(`TRANSIT mode failed for segment with status: ${status}. Retrying with WALKING mode.`);
-                        drawSegment(start, end, window.google.maps.TravelMode.WALKING, callback, index);
+                        drawSegment(map, start, end, window.google.maps.TravelMode.WALKING, callback, index);
                     } else if (
                         selectedMode === window.google.maps.TravelMode.WALKING &&
                         ['ZERO_RESULTS', 'NOT_FOUND', 'UNKNOWN_ERROR'].includes(status)
                     ) {
                         console.warn(`WALKING mode failed for segment with status: ${status}. Retrying with DRIVING mode.`);
-                        drawSegment(start, end, window.google.maps.TravelMode.DRIVING, callback, index);
+                        drawSegment(map, start, end, window.google.maps.TravelMode.DRIVING, callback, index);
                     } else {
                         console.error(`Error fetching segment with ${selectedMode} mode: ${status}`, result);
                         callback(false, null, index);
@@ -226,7 +251,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
             const start = allPoints[i];
             const end = allPoints[i + 1];
 
-            drawSegment(start, end, window.google.maps.TravelMode.TRANSIT, (success, directionInfo, index) => {
+            drawSegment(map, start, end, window.google.maps.TravelMode.TRANSIT, (success, directionInfo, index) => {
                 if (success && directionInfo) {
                     tempDirectionInfo[index] = directionInfo;
                     completedSegments++;
@@ -240,9 +265,12 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
                 if (completedSegments === allPoints.length - 1) {
                     console.log('All segments processed. Updating directionInformation:', tempDirectionInfo);
                     setDirectionInformation(tempDirectionInfo.filter((info) => info !== null));
-                    const bounds = new window.google.maps.LatLngBounds();
-                    allPoints.forEach((point) => bounds.extend(point));
-                    map.fitBounds(bounds);
+                    if (shouldFitBounds.current) {
+                        const bounds = new window.google.maps.LatLngBounds();
+                        allPoints.forEach((point) => bounds.extend(point));
+                        map.fitBounds(bounds);
+                        shouldFitBounds.current = false; // Reset after fitting bounds
+                    }
                 }
             }, i);
         }
@@ -395,7 +423,16 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
                 onChange={(event) => {
                     setCoordinates({ lat: event.center.lat, lng: event.center.lng });
                     setBounds({ ne: event.marginBounds.ne, sw: event.marginBounds.sw });
-                    setZoomLevel(event.zoom);
+                    const newZoomLevel = event.zoom;
+                    setZoomLevel(newZoomLevel);
+                    // Update isZoomAboveBoundary only when crossing the boundary
+                    setIsZoomAboveBoundary((prev) => {
+                        const newState = newZoomLevel >= 16;
+                        if (newState !== prev) {
+                            console.log(`Zoom boundary crossed: isZoomAboveBoundary = ${newState}`);
+                        }
+                        return newState;
+                    });
                 }}
                 onChildClick={(child) => {
                     setChildClicked(child);

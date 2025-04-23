@@ -29,7 +29,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
     const [directionsRenderer, setDirectionsRenderer] = useState(null);
     const [mapCopy, setMapCopy] = useState(null);
     const [zoomLevel, setZoomLevel] = useState(14); 
-    const [isZoomAboveBoundary, setIsZoomAboveBoundary] = useState(false);  // boolean to check if the zoom is below or above a boundary (16)
+    const [isZoomAboveBoundary, setIsZoomAboveBoundary] = useState(false);  // boolean to check if the zoom is below or above a boundary (17)
     const [segmentRenderers, setSegmentRenderers] = useState([]);   // for render segment on map
     const shouldFitBounds = useRef(true); // Ref to control when to call fitBounds
 
@@ -37,7 +37,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
         console.log('Direction Information:', directionInformation);
     }, [directionInformation]);
 
-    // Initialize DirectionsService and DirectionsRenderer
+    // Initialize the system for obtaining and displaying routes and direction
     useMemo(() => {
         setDirectionsService(new window.google.maps.DirectionsService());
         setDirectionsRenderer(
@@ -50,7 +50,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
     // Handle displayingTable changes
     useEffect(() => {
         if (displayingTable === 'Planner') {
-            shouldFitBounds.current = true; // Fit bounds when switching to Planner
+            shouldFitBounds.current = true; // fit bounds when switching to Planner
             clearAllRenderers();
             drawPath(mapCopy);
         } else if (displayingTable === 'Discover') {
@@ -60,7 +60,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
         }
     }, [displayingTable, mapCopy]);
 
-    // Update polyline options when directionColor changes
+    // update route color
     useEffect(() => {
         if (directionsRenderer) {
             directionsRenderer.setOptions({
@@ -72,8 +72,9 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
         }
     }, [directionColor, directionsRenderer]);
 
-    // Update shouldFitBounds when places change
+
     useEffect(() => {
+        // only allow change bound when places and displayingTable changes
         if (displayingTable === 'Planner' && places !== null && places.length > 0) {
             shouldFitBounds.current = true; // Fit bounds when places change
         }
@@ -87,7 +88,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
         }
     }, [places, directionColor, mapCopy, isZoomAboveBoundary]);
 
-    // Function to clear all DirectionsRenderer instances
+    // clear and reset the map
     const clearAllRenderers = () => {
         if (directionsRenderer) {
             directionsRenderer.setMap(null);
@@ -112,7 +113,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
         const is2DArray = places?.length > 0 && Array.isArray(places[0]);
 
         if (is2DArray && isZoomAboveBoundary) {
-            // Include all sub-activities when isZoomAboveBoundary is true (>= 16)
+            // include all sub-activities when isZoomAboveBoundary is true (>= 16)
             places.forEach((placeGroup) => {
                 if (Array.isArray(placeGroup)) {
                     placeGroup.forEach((place) => {
@@ -128,7 +129,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
                 }
             });
         } else {
-            // Use only the first place in each group
+            // use only the first place in each group
             places.forEach((placeGroup) => {
                 const place = Array.isArray(placeGroup) ? placeGroup[0] : placeGroup;
                 if (place.latitude && place.longitude) {
@@ -242,10 +243,10 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
         // Clear previous direction info
         setDirectionInformation([]);
 
-        // Initialize an array to store direction info in order
+        // for store direction info in order
         const tempDirectionInfo = new Array(allPoints.length - 1).fill(null);
 
-        // Iterate through consecutive pairs of points
+        // Compute segment for every pair of points consecutively
         let completedSegments = 0;
         for (let i = 0; i < allPoints.length - 1; i++) {
             const start = allPoints[i];
@@ -287,7 +288,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
 
                 const markers = [];
 
-                if (zoomLevel < 16) {
+                if (zoomLevel < 17) {
                     markers.push(
                         <div
                             className={classes.markerContainer}
@@ -299,7 +300,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
                         </div>
                     );
                 } else {
-                    // zoomLevel >= 16
+                    // zoomLevel >= 17
                     if (placeGroup.length > 1) {
                         placeGroup.slice(1).forEach((place, j) => {
                             if (place && place.latitude && place.longitude) {
@@ -427,7 +428,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
                     setZoomLevel(newZoomLevel);
                     // Update isZoomAboveBoundary only when crossing the boundary
                     setIsZoomAboveBoundary((prev) => {
-                        const newState = newZoomLevel >= 16;
+                        const newState = newZoomLevel >= 17;
                         if (newState !== prev) {
                             console.log(`Zoom boundary crossed: isZoomAboveBoundary = ${newState}`);
                         }

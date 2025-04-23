@@ -213,7 +213,7 @@ const Planner = () => {
             console.log('Activity added with the following returned JSON:', addActivityResponse);
 
             // frontend
-            if (!toBeAddedActivity || !toBeAddedActivity.name) return;
+            if (!toBeAddedActivity.name) return;
             console.log('Adding new activity:', toBeAddedActivity);
             const newActivityWithId = {
                 _id: addActivityResponse.activityId,    // backend id
@@ -314,7 +314,7 @@ const Planner = () => {
                 </Button>
 
                 <Row className={classes.title}>
-                    <Typography>{currentDayJS.format('DD/MM/YYYY')}</Typography>
+                    <Typography>{currentDayJS.format('DD/MM/YYYY')}: DAY {currentDay+1}</Typography>
                 </Row>
 
                 <Row>

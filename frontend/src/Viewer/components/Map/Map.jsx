@@ -30,7 +30,6 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
     const [mapCopy, setMapCopy] = useState(null);
     const [zoomLevel, setZoomLevel] = useState(14);
     const [segmentRenderers, setSegmentRenderers] = useState([]);
-    const [routePoints, setRoutePoints] = useState({ origin: null, waypts: [], destination: null });
 
     useEffect(() => {
         console.log('Direction Information:', directionInformation);
@@ -46,9 +45,8 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
         );
     }, []);
 
-    // Set the map to null when the component unmounts or displayingTable changes
+    // Handle displayingTable changes
     useEffect(() => {
-        console.log("Current Screen: " + displayingTable);
         if (displayingTable === 'Planner') {
             clearAllRenderers();
             drawPath(mapCopy);
@@ -71,59 +69,13 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
         }
     }, [directionColor, directionsRenderer]);
 
-    // Update origin, waypoints, destination, and redraw map when places changes
+    // Draw path when places or directionColor changes in Planner mode
     useEffect(() => {
         if (displayingTable === 'Planner') {
             clearAllRenderers();
-            if (places.length <= 1) {
-                console.log('Not enough places to draw a route.');
-                setRoutePoints({ origin: null, waypts: [], destination: null });
-                setDirectionInformation([]);
-                return;
-            }
-
-            let newOrigin, newDestination, newWaypts = [];
-            if (places.length >= 2) {
-                const firstPlace = Array.isArray(places[0]) ? places[0][0] : places[0];
-                const lastPlace = Array.isArray(places[places.length - 1])
-                    ? places[places.length - 1][0]
-                    : places[places.length - 1];
-
-                if (!firstPlace.latitude || !firstPlace.longitude || !lastPlace.latitude || !lastPlace.longitude) {
-                    console.error('Invalid place data:', firstPlace, lastPlace);
-                    return;
-                }
-
-                newOrigin = { lat: Number(firstPlace.latitude), lng: Number(firstPlace.longitude) };
-                newDestination = { lat: Number(lastPlace.latitude), lng: Number(lastPlace.longitude) };
-
-                if (places.length >= 3) {
-                    const middlePlaces = places.slice(1, -1);
-                    newWaypts = middlePlaces
-                        .map((item) => {
-                            const place = Array.isArray(item) ? item[0] : item;
-                            if (place.latitude && place.longitude) {
-                                return {
-                                    location: new window.google.maps.LatLng(Number(place.latitude), Number(place.longitude)),
-                                };
-                            }
-                            console.warn('Skipping invalid waypoint:', place);
-                            return null;
-                        })
-                        .filter((waypoint) => waypoint !== null);
-                }
-
-                setRoutePoints({ origin: newOrigin, waypts: newWaypts, destination: newDestination });
-                console.log('Updated Route Points:', { origin: newOrigin, waypts: newWaypts, destination: newDestination });
-            }
+            drawPath(mapCopy);
         }
-    }, [places, mapCopy]);
-
-    // Draw path when routePoints or directionColor changes
-    useEffect(() => {
-        clearAllRenderers();
-        drawPath(mapCopy);
-    }, [routePoints, directionColor, mapCopy]);
+    }, [places, directionColor, mapCopy]);
 
     // Function to clear all DirectionsRenderer instances
     const clearAllRenderers = () => {
@@ -139,23 +91,40 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
     };
 
     const drawPath = (map) => {
-        if (!map || !directionsService || !directionsRenderer || !routePoints.origin || !routePoints.destination) return;
+        if (!map || !directionsService || !directionsRenderer || !places || places.length < 2) {
+            console.log('Not enough places or resources to draw a path.');
+            setDirectionInformation([]);
+            return;
+        }
+
+        // Compute origin, waypoints, and destination from places
+        const firstPlace = Array.isArray(places[0]) ? places[0][0] : places[0];
+        const lastPlace = Array.isArray(places[places.length - 1]) ? places[places.length - 1][0] : places[places.length - 1];
+
+        if (!firstPlace.latitude || !firstPlace.longitude || !lastPlace.latitude || !lastPlace.longitude) {
+            console.error('Invalid place data:', firstPlace, lastPlace);
+            setDirectionInformation([]);
+            return;
+        }
 
         // Combine origin, waypoints, and destination into a single array of points
-        const allPoints = [
-            routePoints.origin,
-            ...routePoints.waypts.map((waypoint) => waypoint.location),
-            routePoints.destination,
-        ];
+        const allPoints = [];
+        places?.map(placeGroup => {
+            const place = Array.isArray(placeGroup) ? placeGroup[0] : placeGroup
+            if (place.latitude && place.longitude) {
+                allPoints.push(new window.google.maps.LatLng({ lat: Number(place.latitude), lng: Number(place.longitude)}));
+            }
+        })
 
         console.log('All Points for Routing:', allPoints);
 
         if (allPoints.length < 2) {
             console.log('Not enough points to draw a path.');
+            setDirectionInformation([]);
             return;
         }
 
-        // Function to draw a single segment with fallback logic
+        // Draw a single segment
         const drawSegment = (start, end, travelMode = window.google.maps.TravelMode.TRANSIT, callback, index) => {
             console.log(`Attempting segment from ${JSON.stringify(start)} to ${JSON.stringify(end)} at index: ${index}`);
 
@@ -264,18 +233,18 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
                     console.log(`Segment ${index + 1}/${allPoints.length - 1} completed.`);
                 } else {
                     console.error(`Failed to draw segment ${index + 1}/${allPoints.length - 1}.`);
-                    tempDirectionInfo[index] = null; // Ensure a placeholder for failed segments
+                    tempDirectionInfo[index] = null;
                     completedSegments++;
                 }
 
                 if (completedSegments === allPoints.length - 1) {
                     console.log('All segments processed. Updating directionInformation:', tempDirectionInfo);
-                    setDirectionInformation(tempDirectionInfo.filter(info => info !== null));
+                    setDirectionInformation(tempDirectionInfo.filter((info) => info !== null));
                     const bounds = new window.google.maps.LatLngBounds();
                     allPoints.forEach((point) => bounds.extend(point));
                     map.fitBounds(bounds);
                 }
-            }, i); // Pass the segment index
+            }, i);
         }
     };
 
@@ -302,6 +271,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
                         </div>
                     );
                 } else {
+                    // zoomLevel >= 16
                     if (placeGroup.length > 1) {
                         placeGroup.slice(1).forEach((place, j) => {
                             if (place && place.latitude && place.longitude) {

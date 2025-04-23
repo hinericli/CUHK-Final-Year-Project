@@ -44,11 +44,45 @@ For lodging, make sure it is a hotel with good reviews and reasonable price.
 For each day, provide a weather forecast and temperature for the day.
 For places, make sure the place is a real place with a name, latitude, and longitude.
 
-Do not change the itinerary of the plan that is not requested by the user, only modify the activities according to the user's request.
+Do not change the itinerary of the plan that is not requested by the user, you are only allowed to modify the activities according to the user's request and adjust the schedule of that particular day to fit the change.
 You can add new activities, subactivities, remove existing activities, or modify the details of existing activities.
 
 Things that are related to that activity but in smaller scale should be added as subActivities.
-For example, if the user wants to know what to do during visiting of that place or know what to eat during restaurant dining, you can add it as a subActivity of the day activity one by one.
+If the user wants to know what to do during visiting of that place or know what to eat during restaurant dining, you can add it as a subActivity of the day activity one by one.
+For example, when the user request suggest food item to try in Shilin Night Market, it may have the following subactivities:
+[{
+    "name": "Try Oyster Omelet",
+    "type": "50",
+    "startDateTime": "2024-07-27T16:00:00.000Z",
+    "endDateTime": "2024-07-27T17:30:00.000Z",
+    "place": {
+        "name": "Shilin Night Market",
+        "latitude": 25.0874,
+        "longitude": 121.5297,
+        "description": "Various food stalls in Shilin Night Market.",
+    },
+    "cost": 30,
+    "description": "Try various street foods like oyster omelets and bubble tea.",
+    "isVisited": false,
+    "subActivities": []
+},{
+"name": "Try Taiwanese Sausage",
+"type": "50",
+"startDateTime": "2024-07-27T16:00:00.000Z",
+"endDateTime": "2024-07-27T17:30:00.000Z",
+"place": {
+    "name": "Shilin Night Market",
+    "latitude": 25.0874,
+    "longitude": 121.5297,
+    "description": "Various food stalls in Shilin Night Market.",
+},
+"cost": 50,
+"description": "Try various street foods like oyster omelets and bubble tea.",
+"isVisited": false,
+"subActivities": []}
+]
+
+If the activity is related to hiking, you should put 3-5 waypoint in subactivities to show the hiking route, with correct place latitude and longitude.
 
 directionInformation is a list of objects that contains the information about the direction between two activities. 
 The first object int directionInformation represents the direction from the first activity to the second activity, and so on.

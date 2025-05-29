@@ -12,18 +12,18 @@ import { useContext } from 'react';
 import { AppContext } from '../../Viewer';
 
 const PlanSuggestion = ({ setGeneratedResponseData, displayingComponent }) => {
-    const { plan, directionInformation } = useContext(AppContext); // Use the PlanContext to get the current plan
+    const { plan, directionInformation } = useContext(AppContext); // use PlanContext to get the current plan
 
     // --- For AI text query 
     const [query, setQuery] = useState('');  // string inputted by the user in the text field
     const [isLoadingAPI, setIsLoadingAPI] = useState(false);
-    const [openDialog, setOpenDialog] = useState(false); // New state for dialog
-    const [openErrorDialog, setOpenErrorDialog] = useState(false); // New state for error dialog
+    const [openDialog, setOpenDialog] = useState(false); // new state for dialog
+    const [openErrorDialog, setOpenErrorDialog] = useState(false); // new state for error dialog
     const apiBase = 'http://localhost:3000';
 
     const handleSubmit = async () => {
         if (!query.trim()) {
-            setOpenErrorDialog(true); // Open error dialog if query is empty
+            setOpenErrorDialog(true); // open error dialog if query is empty
             return;
         }
         setIsLoadingAPI(true);
@@ -44,9 +44,9 @@ const PlanSuggestion = ({ setGeneratedResponseData, displayingComponent }) => {
                 setGeneratedResponseData(data);
                 setOpenDialog(true); // Open dialog on success
             } else if (displayingComponent === 'Planner') {
-                // Combine plan and query into a single object
+                // combine plan, query and directionInformation into a single object, then it will send it to the backend as a JSON
                 const requestBody = {
-                    plan: plan || {}, // Use empty object if plan is null/undefined
+                    plan: plan || {}, // empty obj for empty plan
                     query: query,
                     directionInformation: directionInformation
                 };
@@ -56,14 +56,14 @@ const PlanSuggestion = ({ setGeneratedResponseData, displayingComponent }) => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(requestBody), // Stringify the combined object
+                    body: JSON.stringify(requestBody), 
                 });
                 const data = await response.json();
                 console.log('Response from server:', data);
-                //saveJson(data); // Uncomment if needed
+                //saveJson(data);
                 setQuery('');
                 setGeneratedResponseData(data);
-                setOpenDialog(true); // Open dialog on success
+                setOpenDialog(true); // open dialog
             }
         } catch (error) {
             console.error('Error:', error);
@@ -81,7 +81,7 @@ const PlanSuggestion = ({ setGeneratedResponseData, displayingComponent }) => {
         setOpenErrorDialog(false);
     };
 
-    // Determine button text based on displayingComponent
+    // Determine button text based on displayingComponent (Generate/Modify)
     const buttonText = displayingComponent === 'SelectPlan' ? 'Generate' : 'Modify';
 
     return (

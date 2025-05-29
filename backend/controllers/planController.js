@@ -9,12 +9,12 @@ async function parseJSON(jsonString) {
         const jsonData = JSON.parse(jsonString);
         console.log('Parsed JSON:', jsonData);
 
-        // Validate dayList
+        // validate dayList
         if (!jsonData.dayList || !Array.isArray(jsonData.dayList)) {
             throw new Error('Invalid JSON: dayList must be an array');
         }
 
-        // Save all places and create a mapping of place names to their ObjectIds
+        // save all places and create a mapping of place names to their ObjectIds
         const allPlaces = jsonData.dayList.flatMap(day =>
             day.activities.flatMap(activity => [
                 activity.place,
@@ -32,7 +32,7 @@ async function parseJSON(jsonString) {
             placeMap[place.name] = place._id;
         });
 
-        // Save all activities (including sub-activities) and create a mapping
+        // save all activities (including sub-activities) and create a mapping
         const activityMap = {};
         const activities = await Promise.all(jsonData.dayList.flatMap(day =>
             day.activities.map(async activityData => {
@@ -62,7 +62,7 @@ async function parseJSON(jsonString) {
             })
         ));
 
-        // Save the days with their activities
+        // save the days with their activities
         const days = await Promise.all(jsonData.dayList.map(async dayData => {
             try {
                 const dayActivities = activities.filter(activity =>
@@ -76,11 +76,7 @@ async function parseJSON(jsonString) {
             }
         }));
 
-        console.log('Saved days:', days);
-        console.log('Is days an array?', Array.isArray(days));
-
-        // Return the parsed data with saved references instead of saving the plan
-        return { ...jsonData, dayList: days };
+        return { ...jsonData, dayList: days }; // parsed data with saved references
     } catch (error) {
         console.error('Error parsing JSON or saving to MongoDB:', error);
         throw error;
@@ -90,22 +86,24 @@ async function parseJSON(jsonString) {
 async function getMaxPlanIdBackend () {
     // for backend
     try {
-        const plans = await Plan.find().sort({ planId: -1 }).limit(1).exec(); // Get the highest planId
+        const plans = await Plan.find().sort({ planId: -1 }).limit(1).exec(); // get the highest planId
         if (!plans || plans.length === 0) {
+            // no plans exist
             console.log('No plans found, returning 0');
-            return 0; // Return 0 if no plans exist
+            return 0; 
         }
         console.log('Max plan ID found:', plans[0].planId);
-        return plans[0].planId; // Return the highest planId
+        return plans[0].planId; // return the highest planId
     } catch (error) {
         console.error('Error in getMaxPlanId:', error.message);
-        throw error; // Propagate the error
+        throw error; 
     }
 }
 
 export async function getPlan(req, res) {
     const planId = req.params.planId;
 
+    // populate is for "joining" the schemas
     Plan.find({ planId: { $eq: planId } })
         .populate({
             path: 'dayList',
@@ -158,16 +156,16 @@ export async function saveJson(req, res) {
     try {
         const tripData = req.body;
 
-        // Validate input
+        // validate input
         if (!tripData || typeof tripData !== 'object' || tripData === null) {
-            throw new Error('Invalid trip data: Must be a non-null object');
+            throw new Error('Invaild Plan');
         }
 
         if (!Array.isArray(tripData.dayList)) {
-            throw new Error('Invalid trip data: dayList must be an array');
+            throw new Error('dayList must be an array');
         }
 
-        // Save Places and Activities for each Day
+        // save Places and Activities for each Day
         const dayIds = [];
         for (const dayData of tripData.dayList) {
             if (!dayData || !Array.isArray(dayData.activities)) {
@@ -180,7 +178,7 @@ export async function saveJson(req, res) {
                     throw new Error('Invalid activity data: place is required');
                 }
 
-                // Save place
+                // save place
                 const place = new Place({
                     name: activityData.place.name,
                     latitude: activityData.place.latitude,
@@ -189,7 +187,7 @@ export async function saveJson(req, res) {
                 });
                 const savedPlace = await place.save();
 
-                // Save subActivities (if any)
+                // save subActivities (if any)
                 const subActivityIds = [];
                 if (Array.isArray(activityData.subActivities)) {
                     for (const subActivityData of activityData.subActivities) {
@@ -197,7 +195,7 @@ export async function saveJson(req, res) {
                             throw new Error('Invalid subActivity data: place is required');
                         }
 
-                        // Save subActivity place
+                        // save subActivity place
                         const subPlace = new Place({
                             name: subActivityData.place.name,
                             latitude: subActivityData.place.latitude,
@@ -206,7 +204,7 @@ export async function saveJson(req, res) {
                         });
                         const savedSubPlace = await subPlace.save();
 
-                        // Save subActivity
+                        // save subActivity
                         const subActivity = new Activity({
                             name: subActivityData.name,
                             type: subActivityData.type,
@@ -222,7 +220,7 @@ export async function saveJson(req, res) {
                     }
                 }
 
-                // Save activity
+                // save activity
                 const activity = new Activity({
                     name: activityData.name,
                     type: activityData.type,
@@ -238,7 +236,7 @@ export async function saveJson(req, res) {
                 activityIds.push(savedActivity._id);
             }
 
-            // Save day
+            // save day
             const day = new Day({
                 day: dayData.day,
                 date: new Date(dayData.date),
@@ -251,8 +249,8 @@ export async function saveJson(req, res) {
             dayIds.push(savedDay._id);
         }
 
-        // Save the Plan
-        const maxPlanId = await getMaxPlanIdBackend(); // Await the result
+        // save the Plan
+        const maxPlanId = await getMaxPlanIdBackend(); // for maxPlanId+1
         console.log('Max Plan ID:', maxPlanId);
 
         const plan = new Plan({
@@ -275,34 +273,34 @@ export async function saveJson(req, res) {
     }
 }
 
-// for updating the plan in backend, not for router
+// for updating the plan in backend, NOT FOR ROUTER
 export async function updatePlan(req_str) {
     try {
-        // Parse the JSON string and await the result
+        // parse the JSON string and await the result
         const tripData = await parseJSON(req_str);
 
         console.log('Parsed tripData:', tripData);
 
-        // Validate input
+        // validate input
         if (!tripData || typeof tripData !== 'object' || tripData === null) {
-            throw new Error('Invalid trip data: Must be a non-null object');
+            throw new Error('Invaild Plan');
         }
 
         if (!Array.isArray(tripData.dayList)) {
-            throw new Error('Invalid trip data: dayList must be an array');
+            throw new Error('dayList must be an array');
         }
 
         if (!tripData.planId) {
-            throw new Error('Invalid trip data: planId is required for update');
+            throw new Error('planId is required');
         }
 
-        // Find existing plan
+        // find existing plan
         const existingPlan = await Plan.findOne({ planId: tripData.planId });
         if (!existingPlan) {
             throw new Error('Plan not found');
         }
 
-        // Update the Plan
+        // update the Plan
         const updatedPlan = await Plan.findByIdAndUpdate(
             existingPlan._id,
             {
@@ -427,7 +425,7 @@ export async function addNewActivity (req, res) {
 
 export async function deletePlanById(planId) {
     try {
-        // Find the plan
+        // find the plan
         const plan = await Plan.findOne({ planId: planId }).populate({
             path: 'dayList',
             populate: {
@@ -442,14 +440,14 @@ export async function deletePlanById(planId) {
             throw new Error(`Plan with planId ${planId} not found`);
         }
 
-        // Extract IDs of related documents
+        // extract IDs of related documents
         const dayIds = plan.dayList.map(day => day._id);
         const activityIds = plan.dayList.flatMap(day => day.activities.map(activity => activity._id));
         const placeIds = plan.dayList
             .flatMap(day => day.activities.map(activity => activity.place._id))
-            .filter(id => id); // Remove null/undefined values
+            .filter(id => id); // remove null/undefined values
 
-        // Delete all related documents
+        // delete all related documents
         await Place.deleteMany({ _id: { $in: placeIds } });
         await Activity.deleteMany({ _id: { $in: activityIds } });
         await Day.deleteMany({ _id: { $in: dayIds } });
@@ -480,7 +478,7 @@ export async function updateActivity(req, res) {
     const { name, type, startDateTime, endDateTime, place, cost, description, isVisited } = req.body;
 
     try {
-        // Find the plan by planId
+        // find the plan by planId
         const plan = await Plan.findOne({ planId: { $eq: planId } }).populate({
             path: 'dayList',
             populate: { path: 'activities', model: 'Activity', populate: { path: 'place', model: 'Place' } }
@@ -490,21 +488,21 @@ export async function updateActivity(req, res) {
             return res.status(404).json({ error: 'Plan not found' });
         }
 
-        // Check if the day exists
+        // check if the day exists
         if (!plan.dayList[dayIndex]) {
             return res.status(404).json({ error: 'Day not found' });
         }
 
-        // Find the activity by activityId
+        // find the activity by activityId
         const activity = await Activity.findById(activityId);
         if (!activity) {
             return res.status(404).json({ error: 'Activity not found' });
         }
 
-        // Update or create the place
+        // update or create the place
         let placeDoc;
         if (place._id) {
-            // Update existing place
+            // update existing place
             placeDoc = await Place.findByIdAndUpdate(
                 place._id,
                 {
@@ -516,7 +514,7 @@ export async function updateActivity(req, res) {
                 { new: true }
             );
         } else {
-            // Create new place
+            // create new place
             placeDoc = new Place({
                 name: place.name,
                 latitude: place.latitude,
@@ -526,7 +524,7 @@ export async function updateActivity(req, res) {
             await placeDoc.save();
         }
 
-        // Update the activity
+        // update the activity
         const updatedActivity = await Activity.findByIdAndUpdate(
             activityId,
             {
@@ -553,7 +551,7 @@ export async function updateActivity(req, res) {
 export async function deleteActivityById(req, res) {
     const { activityId } = req.params;
 
-    // Validate ObjectId
+    // validate ObjectId
     if (!mongoose.isValidObjectId(activityId)) {
         return res.status(400).json({
             success: false,
@@ -562,7 +560,7 @@ export async function deleteActivityById(req, res) {
     }
 
     try {
-        // Find the activity with lean to avoid Mongoose documents
+        // find the activity
         const activity = await Activity.findById(activityId)
             .populate('place')
             .populate({
@@ -578,7 +576,7 @@ export async function deleteActivityById(req, res) {
             });
         }
 
-        // Collect place IDs to potentially delete
+        // collect place IDs to potentially delete
         const placeIdsToDelete = [];
         if (activity.place?._id) {
             // Check if the main activity's place is referenced elsewhere
@@ -591,15 +589,15 @@ export async function deleteActivityById(req, res) {
             }
         }
 
-        // Handle sub-activities
+        // handle sub-activities
         const subActivityIds = activity.subActivities?.map(sub => sub._id) || [];
         if (subActivityIds.length > 0) {
-            // Collect sub-activity place IDs
+            // collect sub-activity place IDs
             const subPlaceIds = activity.subActivities
                 .map(sub => sub.place?._id)
                 .filter(id => id && !placeIdsToDelete.includes(id));
 
-            // Check if sub-activity places are referenced elsewhere
+            // check if sub-activity places are referenced elsewhere
             for (const subPlaceId of subPlaceIds) {
                 const activitiesWithSubPlace = await Activity.find({
                     _id: { $nin: [...subActivityIds, activityId] },
@@ -610,19 +608,19 @@ export async function deleteActivityById(req, res) {
                 }
             }
 
-            // Delete sub-activities
+            // delete sub-activities
             await Activity.deleteMany({ _id: { $in: subActivityIds } });
         }
 
-        // Delete the main activity
+        // delete the main activity
         await Activity.deleteOne({ _id: activityId });
 
-        // Delete unreferenced places
+        // delete unreferenced places
         if (placeIdsToDelete.length > 0) {
             await Place.deleteMany({ _id: { $in: placeIdsToDelete } });
         }
 
-        // Update any Day documents that reference this activity
+        // update any Day documents that reference this activity
         await Day.updateMany(
             { activities: activityId },
             { $pull: { activities: activityId } }

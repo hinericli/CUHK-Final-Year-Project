@@ -30,6 +30,7 @@ For the type of activity, you must use the following values to represent the typ
 
 When generating activities, include subActivities where applicable, especially for complex activities like visiting a large attraction (e.g., a museum with specific exhibits or a park with multiple activities). SubActivities should be smaller, related activities that occur within the main activity's time and place.`;
 
+
 export const modifyPlanSystemPrompt = `You are a helpful travel assistant.
 You perform the requests with diligence and make the best attempt to answer the questions, never refusing due to complexity etc.
 

@@ -99,8 +99,6 @@ const Planner = () => {
         if (plan) {
             plan.dayList[currentDay].activities = newActivityList;
         }
-        
-        // backend 
     };
 
     // --- Toggle Visited Status ---
@@ -197,6 +195,7 @@ const Planner = () => {
     useMemo(async () => {
         if (!toBeAddedActivity) return;
         try {
+            // backend: add new activity to the database
             const newActivity = {
                 name: toBeAddedActivity.name,
                 type: toBeAddedActivity.type,
@@ -208,7 +207,6 @@ const Planner = () => {
                 isVisited: false,
                 subActivities: toBeAddedActivity.subActivities || []
             };
-            // adding activity to backend
             const addActivityResponse = await addActivityToPlan(plan.planId, currentDay, newActivity);
             console.log('Activity added with the following returned JSON:', addActivityResponse);
 
@@ -271,7 +269,7 @@ const Planner = () => {
         setCurrentDay(currentDay + 1 >= plan.dayCount ? plan.dayCount - 1 : currentDay + 1);
     };
 
-    // Calculate total cost
+    // Calculate total cost of the day
     const getCostSum = () => {
         const costList = activityList.flatMap(activity => [
             Number(activity.cost || 0),

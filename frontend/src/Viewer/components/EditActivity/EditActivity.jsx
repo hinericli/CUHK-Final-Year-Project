@@ -85,13 +85,11 @@ const EditActivity = ({ activity, onSave, setUpdatedActivity }) => {
         }
     }, [activity]);
 
-    // Log state changes for debugging
     useEffect(() => {
         console.log('startDateTimeDayJS:', startDateTimeDayJS?.format('DD/MM/YYYY HH:mm'));
         console.log('endDateTimeDayJS:', endDateTimeDayJS?.format('DD/MM/YYYY HH:mm'));
     }, [startDateTimeDayJS, endDateTimeDayJS]);
 
-    // Validation function
     const validateForm = () => {
         let isValid = true;
 
@@ -290,7 +288,6 @@ const EditActivity = ({ activity, onSave, setUpdatedActivity }) => {
                     };
 
                     try {
-                        console.log("Passing in parameters: ", plan.planId, currentDay, activity._id, updatedActivity);
                         const updatedPlan = await updateActivityInPlan(plan.planId, currentDay, activity._id, updatedActivity);
                         console.log('Activity updated:', updatedPlan);
                         setUpdatedActivity(updatedActivity);

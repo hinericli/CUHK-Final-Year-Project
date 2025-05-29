@@ -61,8 +61,8 @@ const EditActivityDialog = ({ open, setOpen, setDisplayingComponent, activity })
             <DialogContent>
                 <EditActivity 
                     activity={activity}
-                    onSave={handleClose} // Pass handleClose to trigger plan fetch after save
-                    setUpdatedActivity={setUpdatedActivity} // Pass the setter function
+                    onSave={handleClose} // pass handleClose so that it can close the dialog
+                    setUpdatedActivity={setUpdatedActivity} 
                 />
             </DialogContent>
         </Dialog>

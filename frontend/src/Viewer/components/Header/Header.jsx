@@ -12,6 +12,7 @@ const Header = ({ setDirectionColor, directionColor }) => {
                 <Typography variant="h5" className={classes.title}>
                     Travel Planner
                 </Typography>
+                {/* direction color setter */}
                 <Box display="flex" alignItems="center" gap="1rem">
                     <FormControl style={{ minWidth: 120 }}>
                         <InputLabel id="color-select-label">Direction Color</InputLabel>
@@ -19,7 +20,7 @@ const Header = ({ setDirectionColor, directionColor }) => {
                             labelId="color-select-label"
                             id="color-select"
                             value={directionColor}
-                            onChange={(e) => setDirectionColor(e.target.value)} // Update directionColor via prop
+                            onChange={(e) => setDirectionColor(e.target.value)}
                         >
                             <MenuItem value="#0000FF">Blue</MenuItem>
                             <MenuItem value="#FF0000">Red</MenuItem>

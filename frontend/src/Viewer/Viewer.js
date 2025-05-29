@@ -10,8 +10,7 @@ import Planner from './components/Planner/Planner';
 import Map from './components/Map/Map';
 import PlanSuggestion from './components/PlanSuggestion/PlanSuggestion';
 
-// Unified context for all state and setters
-export const AppContext = createContext();
+export const AppContext = createContext();  // Context that can broadcast all app-related states to child components
 
 const App = () => {
     // --- State for planner ---

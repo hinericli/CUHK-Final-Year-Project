@@ -129,8 +129,8 @@ export default makeStyles((theme) => ({
     },
   },
   directionCard: {
-    width: '480px', // Fixed width for consistency
-    maxWidth: '90%', // Ensure it doesn't overflow on small screens
+    width: '480px',
+    maxWidth: '90%', 
     borderRadius: '8px',
     background: 'linear-gradient(145deg, #e6f0fa, #f0f8ff)',
     boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
@@ -143,7 +143,7 @@ export default makeStyles((theme) => ({
     padding: theme.spacing(1.5),
     [theme.breakpoints.down('sm')]: {
       padding: theme.spacing(1),
-      width: '100%', // Full width on small screens for better readability
+      width: '100%', 
       maxWidth: '100%',
     },
   },

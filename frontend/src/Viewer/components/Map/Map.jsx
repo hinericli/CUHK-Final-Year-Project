@@ -31,7 +31,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
     const [zoomLevel, setZoomLevel] = useState(14); 
     const [isZoomAboveBoundary, setIsZoomAboveBoundary] = useState(false);  // boolean to check if the zoom is below or above a boundary (17)
     const [segmentRenderers, setSegmentRenderers] = useState([]);   // for render segment on map
-    const shouldFitBounds = useRef(true); // Ref to control when to call fitBounds
+    const shouldFitBounds = useRef(true); // to control when to call fitBounds
 
     useEffect(() => {
         console.log('Direction Information:', directionInformation);
@@ -113,7 +113,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
         const is2DArray = places?.length > 0 && Array.isArray(places[0]);
 
         if (is2DArray && isZoomAboveBoundary) {
-            // include all sub-activities when isZoomAboveBoundary is true (>= 16)
+            // include all sub-activities when isZoomAboveBoundary is true
             places.forEach((placeGroup) => {
                 if (Array.isArray(placeGroup)) {
                     placeGroup.forEach((place) => {
@@ -167,7 +167,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
                     selectedMode = window.google.maps.TravelMode.WALKING;
                 }
             } else {
-                console.warn('Google Maps Geometry library not loaded, cannot compute distance. Using default mode:', travelMode);
+                console.warn('Cannot load geometry library, cannot compute distance. Using default mode:', travelMode);
             }
 
             directionsService.route(
@@ -204,7 +204,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
 
                         // Add transit line information if TRANSIT mode
                         if (selectedMode === window.google.maps.TravelMode.TRANSIT) {
-                            const transitSteps = leg.steps.filter((step) => step.travel_mode === 'TRANSIT');
+                            const transitSteps = leg.steps.filter((step) => step.travel_mode === 'TRANSIT'); // extract out the ones with travel mode "transit"
                             const transitLines = transitSteps
                                 .map((step) => {
                                     const line = step.transit?.line;
@@ -240,17 +240,17 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
             );
         };
 
-        // Clear previous direction info
+        // clear previous direction info
         setDirectionInformation([]);
 
         // for store direction info in order
         const tempDirectionInfo = new Array(allPoints.length - 1).fill(null);
 
-        // Compute segment for every pair of points consecutively
+        // compute segment for every pair of points consecutively
         let completedSegments = 0;
         for (let i = 0; i < allPoints.length - 1; i++) {
-            const start = allPoints[i];
-            const end = allPoints[i + 1];
+            const start = allPoints[i]; // current point
+            const end = allPoints[i + 1]; // next point
 
             drawSegment(map, start, end, window.google.maps.TravelMode.TRANSIT, (success, directionInfo, index) => {
                 if (success && directionInfo) {
@@ -270,7 +270,7 @@ const Map = ({ setCoordinates, setBounds, coordinates, setChildClicked }) => {
                         const bounds = new window.google.maps.LatLngBounds();
                         allPoints.forEach((point) => bounds.extend(point));
                         map.fitBounds(bounds);
-                        shouldFitBounds.current = false; // Reset after fitting bounds
+                        shouldFitBounds.current = false; // reset after fitting bounds
                     }
                 }
             }, i);

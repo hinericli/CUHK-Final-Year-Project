@@ -40,8 +40,8 @@ export default makeStyles((theme) => ({
     backgroundColor: '#ffffff',
     width: '350px', 
     height: '200px',
-    display: 'flex', // Ensure content fits within fixed dimensions
-    flexDirection: 'column', // Stack content vertically
+    display: 'flex', 
+    flexDirection: 'column', // stack content vertically
   },
   cardContent: {
     display: 'flex',
@@ -49,15 +49,15 @@ export default makeStyles((theme) => ({
     alignItems: 'center',
     padding: theme.spacing(1),
     flex: 1, 
-    overflow: 'hidden', // Prevent content from overflowing
+    overflow: 'hidden', // prevent content from overflowing
   },
   planDetails: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
     gap: theme.spacing(1),
-    overflow: 'hidden', // Prevent text from overflowing
-    textOverflow: 'ellipsis', // Truncate long text
+    overflow: 'hidden', // prevent text from overflowing
+    textOverflow: 'ellipsis', // truncate long text
   },
   planActions: {
     display: 'flex',

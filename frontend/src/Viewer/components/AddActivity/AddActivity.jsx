@@ -62,7 +62,7 @@ const AddActivity = ({ setDisplayingComponent }) => {
     const [placeError, setPlaceError] = useState(false);
 
     useEffect(() => {
-        // Parse the day's date as UTC
+        // Initialization of the add activity component: showing the date correctly
         const dayDate = plan.dayList[currentDay].date;
         console.log('dayDate:', dayDate);
         const parsedDate = dayDate ? dayjs.utc(dayDate) : null;
@@ -83,13 +83,12 @@ const AddActivity = ({ setDisplayingComponent }) => {
         }
     }, []);
 
-    // Log state changes for debugging
     useEffect(() => {
         console.log('startDateTimeDayJS:', startDateTimeDayJS?.format('DD/MM/YYYY HH:mm'));
         console.log('endDateTimeDayJS:', endDateTimeDayJS?.format('DD/MM/YYYY HH:mm'));
     }, [startDateTimeDayJS, endDateTimeDayJS]);
 
-    // Validation function
+    // Validate the form attributes like name, type, startDateTime and so on
     const validateForm = () => {
         let isValid = true;
 
@@ -138,6 +137,7 @@ const AddActivity = ({ setDisplayingComponent }) => {
             </Button>
             <Typography variant="h6" className={classes.title}>Add Activity</Typography>
 
+            {/* Name */}
             <FormControl fullWidth className={classes.formControl}>
                 <TextField
                     required
@@ -154,6 +154,7 @@ const AddActivity = ({ setDisplayingComponent }) => {
                 />
             </FormControl>
 
+            {/* Type */}
             <FormControl fullWidth className={classes.formControl}>
                 <InputLabel id="type-label">Type</InputLabel>
                 <Select
@@ -180,6 +181,7 @@ const AddActivity = ({ setDisplayingComponent }) => {
                 )}
             </FormControl>
 
+            {/* Start Date Time & End Date Time */}
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <FormControl fullWidth className={classes.formControl}>
                     <DateTimePicker
@@ -246,6 +248,7 @@ const AddActivity = ({ setDisplayingComponent }) => {
                 </FormControl>
             </LocalizationProvider>
 
+            {/* Place */}
             <FormControl fullWidth className={classes.formControl}>
                 <MapSearch setActivityPlace={setPlace} />
                 {placeError && (
@@ -255,6 +258,7 @@ const AddActivity = ({ setDisplayingComponent }) => {
                 )}
             </FormControl>
 
+            {/* Cost */}
             <FormControl fullWidth className={classes.formControl} variant="standard">
                 <InputLabel htmlFor="input-cost">Cost</InputLabel>
                 <Input
@@ -265,6 +269,7 @@ const AddActivity = ({ setDisplayingComponent }) => {
                 />
             </FormControl>
 
+            {/* Description */}
             <FormControl fullWidth className={classes.formControl}>
                 <TextField
                     placeholder="Description"
@@ -275,6 +280,7 @@ const AddActivity = ({ setDisplayingComponent }) => {
                 />
             </FormControl>
 
+            {/* Submit */}
             <Button
                 className={classes.finishButton}
                 variant="outlined"

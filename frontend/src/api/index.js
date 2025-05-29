@@ -5,7 +5,7 @@ export const getWeatherData = async (latitude, longitude) => {
     const response = await axios.get(
       `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${process.env.REACT_APP_OPENWEATHER_API_KEY}`
     );
-    console.log(response.data); //You can see all the weather data in console log
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error(error);

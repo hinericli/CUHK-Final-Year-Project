@@ -10,13 +10,12 @@ const DiscoverList = ({places, childClicked, isLoading, type, setType, rating, s
     const classes = useStyles();
 
     // --- Refs
-    const [elRefs, setElRefs] = useState([]);   //element refs for scrolling to the correct PlaceDetails item after clicking on the map pin
+    const [elRefs, setElRefs] = useState([]);   // element refs for scrolling to the correct PlaceDetails item after clicking on the map pin
 
     useEffect(() => {
-        setElRefs(Array(places?.length).fill().map((_, i) => elRefs[i] || createRef()));  //construct array to fill and map all the refs
+        setElRefs(Array(places?.length).fill().map((_, i) => elRefs[i] || createRef()));  // construct array to fill and map all the refs
     }, [places]);
 
-    // --- Returns
     return (
         <div className={classes.container}>
             <Typography variant="h5">Search for Places</Typography>

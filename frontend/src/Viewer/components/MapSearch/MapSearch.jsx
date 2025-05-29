@@ -23,7 +23,7 @@ const MapSearch = ({setActivityPlace}) => {
 
         setCoordinates({lat, lng});
         console.log(coordinates)
-        typeof(setActivityPlace) === 'function' ? setActivityPlace({place}) : console.error("No Set Activity Place Found");
+        typeof(setActivityPlace) === 'function' ? setActivityPlace({place}) : console.error("No Set Activity Place Found"); // prevent error
     }
 
     return (
@@ -47,8 +47,6 @@ const MapSearch = ({setActivityPlace}) => {
                     typeof(setActivityPlace) === 'function' ? setActivityPlace(event.target.value) : console.error("No Set Activity Place Found");
                 }}
             />
-
-
             </Autocomplete>
         </>
     )
